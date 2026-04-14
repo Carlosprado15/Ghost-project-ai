@@ -121,7 +121,7 @@ export default function App() {
     setStage(STAGES.LOADING);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" }, // Câmera Frontal
+        video: { facingMode: "environment" }, // Câmera Frontal
         audio: false,
       });
       streamRef.current = stream;
