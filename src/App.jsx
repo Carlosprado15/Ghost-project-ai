@@ -8,17 +8,12 @@ const STAGES = {
   ERROR: "error",
 };
 
-const FACING = {
-  REAR: "environment",
-  FRONT: "user",
-};
-
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 const IconFlipCamera = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20 7h-3a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/>
-    <path d="M15 13a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
-    <path d="M18 4 l2 3 -2 3"/>
+    <circle cx="12" cy="13" r="3"/>
+    <path d="M15 2l2 3-2 3"/>
   </svg>
 );
 
@@ -29,14 +24,13 @@ const IconClose = () => (
 );
 
 const IconScan = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
     <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
     <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
     <line x1="7" y1="12" x2="17" y2="12"/>
   </svg>
 );
 
-// ─── Ghost Logo Mark (SVG inline) ─────────────────────────────────────────────
 const GhostMark = ({ size = 48 }) => (
   <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
     <defs>
@@ -45,20 +39,12 @@ const GhostMark = ({ size = 48 }) => (
         <stop offset="50%" stopColor="#d4af37"/>
         <stop offset="100%" stopColor="#a07828"/>
       </linearGradient>
-      <filter id="gGlow">
-        <feGaussianBlur stdDeviation="3" result="blur"/>
-        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
     </defs>
-    {/* Outer G letter form */}
     <path d="M72 25 A32 32 0 1 0 72 75 L72 52 L56 52 L56 62 L62 62 L62 70 A24 24 0 1 1 62 30 L62 25 Z"
-      fill="url(#gGold)" filter="url(#gGlow)" opacity="0.9"/>
-    {/* Inner negative space accent */}
-    <rect x="58" y="50" width="16" height="2" fill="#0a101f" opacity="0.6"/>
+      fill="url(#gGold)" opacity="0.9"/>
   </svg>
 );
 
-// ─── AR Corner Brackets ───────────────────────────────────────────────────────
 const ARBrackets = () => (
   <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:2}}>
     {[
@@ -66,410 +52,321 @@ const ARBrackets = () => (
       {top:12,right:12,borderTop:'2px solid',borderRight:'2px solid'},
       {bottom:12,left:12,borderBottom:'2px solid',borderLeft:'2px solid'},
       {bottom:12,right:12,borderBottom:'2px solid',borderRight:'2px solid'},
-    ].map((style, i) => (
-      <div key={i} style={{
-        position:'absolute', width:24, height:24,
-        borderColor:'rgba(212,175,55,0.7)', ...style
-      }}/>
+    ].map((s, i) => (
+      <div key={i} style={{position:'absolute',width:24,height:24,borderColor:'rgba(212,175,55,0.7)',...s}}/>
     ))}
-    {/* Center crosshair */}
-    <div style={{
-      position:'absolute',top:'50%',left:'50%',
-      transform:'translate(-50%,-50%)',
-      width:40,height:40,
-      border:'1px solid rgba(212,175,55,0.25)',
-      borderRadius:'50%',
-    }}>
-      <div style={{position:'absolute',top:'50%',left:0,right:0,height:'1px',background:'rgba(212,175,55,0.3)',transform:'translateY(-50%)'}}/>
-      <div style={{position:'absolute',left:'50%',top:0,bottom:0,width:'1px',background:'rgba(212,175,55,0.3)',transform:'translateX(-50%)'}}/>
-    </div>
   </div>
 );
 
-// ─── Scan Line Animation ──────────────────────────────────────────────────────
 const ScanLine = () => (
   <div style={{
     position:'absolute',left:0,right:0,height:'2px',
-    background:'linear-gradient(90deg, transparent, rgba(212,175,55,0.6), transparent)',
+    background:'linear-gradient(90deg,transparent,rgba(212,175,55,0.55),transparent)',
     animation:'scanline 3s ease-in-out infinite',
     zIndex:3,pointerEvents:'none',
   }}/>
 );
 
-// ─── CSS Animation Keyframes injected once ────────────────────────────────────
-const GLOBAL_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html, body, #root {
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-    background: #060d1a;
-  }
-
-  @keyframes scanline {
-    0%   { top: 10%; opacity: 0; }
-    10%  { opacity: 1; }
-    90%  { opacity: 1; }
-    100% { top: 90%; opacity: 0; }
-  }
-
-  @keyframes pulseRing {
-    0%, 100% { transform: scale(1); opacity: 0.6; }
-    50%       { transform: scale(1.08); opacity: 1; }
-  }
-
-  @keyframes fadeSlideUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes spinSlow {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-  }
-
-  @keyframes blinkDot {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.2; }
-  }
-
-  @keyframes flipIn {
-    from { opacity: 0; transform: scale(0.92); }
-    to   { opacity: 1; transform: scale(1); }
-  }
-
-  .gp-btn {
-    font-family: 'Share Tech Mono', monospace;
-    letter-spacing: 0.18em;
-    cursor: pointer;
-    border: none;
-    outline: none;
-    transition: all 0.25s ease;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-    user-select: none;
-  }
-  .gp-btn:active { transform: scale(0.97); }
+// ─── Global styles injected once ─────────────────────────────────────────────
+const GLOBAL_CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body,#root{height:100%;width:100%;overflow:hidden;background:#060d1a;}
+@keyframes scanline{0%{top:8%;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:92%;opacity:0}}
+@keyframes pulseRing{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.07);opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+@keyframes flipIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+.gp-btn{font-family:'Share Tech Mono',monospace;letter-spacing:.18em;cursor:pointer;border:none;outline:none;transition:opacity .2s,transform .15s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;}
+.gp-btn:active{transform:scale(.96);opacity:.8;}
+.gp-btn:focus-visible{outline:2px solid rgba(212,175,55,.6);outline-offset:3px;}
 `;
 
-// ─── Main App Component ───────────────────────────────────────────────────────
+// ─── Camera cascade: tries multiple constraint sets for max compatibility ─────
+async function getCameraStream(facingMode) {
+  const strategies = [
+    // 1. Ideal hint — most compatible across Android/iOS/WebView
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+    // 2. Exact facing — forces the specific camera
+    { video: { facingMode: { exact: facingMode } }, audio: false },
+    // 3. No constraints at all — opens whatever camera is available
+    { video: true, audio: false },
+  ];
+
+  let lastError;
+  for (const constraints of strategies) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (stream) return stream;
+    } catch (e) {
+      lastError = e;
+      // Permission denied is final — no point trying other strategies
+      if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") throw e;
+    }
+  }
+  throw lastError || new Error("NoCameraAvailable");
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function App() {
-  const [stage, setStage]       = useState(STAGES.IDLE);
-  const [facing, setFacing]     = useState(FACING.REAR);
-  const [errorMsg, setErrorMsg] = useState("");
-  const videoRef   = useRef(null);
-  const streamRef  = useRef(null);
+  const [stage,     setStage]     = useState(STAGES.IDLE);
+  const [facing,    setFacing]    = useState("environment");
+  const [errorMsg,  setErrorMsg]  = useState("");
+  const [mirrored,  setMirrored]  = useState(false);
+  const videoRef  = useRef(null);
+  const streamRef = useRef(null);
 
-  // Inject global styles once
+  // Inject CSS once on mount
   useEffect(() => {
-    const existing = document.getElementById("ghost-global-styles");
-    if (existing) return;
-    const tag = document.createElement("style");
-    tag.id = "ghost-global-styles";
-    tag.textContent = GLOBAL_STYLES;
-    document.head.appendChild(tag);
+    if (document.getElementById("gp-global")) return;
+    const s = document.createElement("style");
+    s.id = "gp-global";
+    s.textContent = GLOBAL_CSS;
+    document.head.appendChild(s);
   }, []);
 
-  // ── Camera control ──────────────────────────────────────────────────────────
-  const startStream = useCallback(async (facingMode) => {
-    // Stop any existing stream first
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop());
-      streamRef.current = null;
-    }
-
-    const constraints = {
-      audio: false,
-      video: {
-        facingMode: { ideal: facingMode },
-        width:  { ideal: 1920 },
-        height: { ideal: 1080 },
-      },
-    };
-
-    // Fallback: try exact, then any
-    let stream = null;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia(constraints);
-    } catch {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-      } catch (fallbackErr) {
-        throw fallbackErr;
-      }
-    }
-
-    streamRef.current = stream;
-
-    // Wait for video element to be in DOM, then attach
-    await new Promise(resolve => {
-      const attach = () => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current.play().catch(() => {});
-            resolve();
-          };
-        } else {
-          setTimeout(attach, 80);
-        }
-      };
-      attach();
-    });
+  // Cleanup on unmount
+  useEffect(() => () => {
+    if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
   }, []);
 
-  const handleActivate = async () => {
-    setStage(STAGES.LOADING);
-    setErrorMsg("");
-    try {
-      await startStream(facing);
-      setStage(STAGES.ACTIVE);
-    } catch (err) {
-      const msg = err.name === "NotAllowedError"
-        ? "ACESSO À CÂMERA NEGADO. VERIFIQUE AS PERMISSÕES DO NAVEGADOR."
-        : err.name === "NotFoundError"
-        ? "NENHUMA CÂMERA ENCONTRADA NESTE DISPOSITIVO."
-        : "ERRO AO INICIALIZAR A CÂMERA. TENTE NOVAMENTE.";
-      setErrorMsg(msg);
-      setStage(STAGES.ERROR);
-    }
-  };
-
-  const handleFlip = async () => {
-    const next = facing === FACING.REAR ? FACING.FRONT : FACING.REAR;
-    setFacing(next);
-    if (stage === STAGES.ACTIVE) {
-      try {
-        await startStream(next);
-      } catch {
-        // silently keep current stream if flip fails
-        setFacing(facing);
-      }
-    }
-  };
-
-  const handleDeactivate = () => {
+  // ── Stop current stream ───────────────────────────────────────────────────
+  const stopStream = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(t => t.stop());
       streamRef.current = null;
     }
     if (videoRef.current) videoRef.current.srcObject = null;
+  }, []);
+
+  // ── Attach stream to <video> with retry for delayed DOM mount ─────────────
+  const attachStream = useCallback((stream) => {
+    let tries = 0;
+    const attempt = () => {
+      const v = videoRef.current;
+      if (v) {
+        v.srcObject = stream;
+        v.setAttribute("playsinline", "");
+        v.setAttribute("webkit-playsinline", "");
+        v.muted = true;
+        v.play().catch(() => {}); // Autoplay policy: play() may be blocked silently
+      } else if (tries++ < 20) {
+        setTimeout(attempt, 100);
+      }
+    };
+    attempt();
+  }, []);
+
+  // ── Start camera + detect actual facing for mirror logic ─────────────────
+  const startCamera = useCallback(async (facingMode) => {
+    stopStream();
+    const stream = await getCameraStream(facingMode);
+    streamRef.current = stream;
+    // Read actual facingMode from the track (more reliable than what we requested)
+    const track    = stream.getVideoTracks()[0];
+    const settings = track?.getSettings?.() ?? {};
+    setMirrored((settings.facingMode ?? facingMode) === "user");
+    return stream;
+  }, [stopStream]);
+
+  // ── Activate ──────────────────────────────────────────────────────────────
+  const handleActivate = async () => {
+    setStage(STAGES.LOADING);
+    setErrorMsg("");
+    try {
+      const stream = await startCamera(facing);
+      setStage(STAGES.ACTIVE);
+      setTimeout(() => attachStream(stream), 80);
+    } catch (err) {
+      const name = err.name || "";
+      let msg;
+      if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+        msg = "ACESSO À CÂMERA NEGADO.\n\nPASSOS:\n1. Toque no cadeado 🔒 na barra de endereço\n2. Toque em Permissões\n3. Câmera → Permitir\n4. Recarregue a página";
+      } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+        msg = "NENHUMA CÂMERA ENCONTRADA NESTE DISPOSITIVO.";
+      } else if (name === "NotReadableError" || name === "TrackStartError") {
+        msg = "CÂMERA EM USO POR OUTRO APP.\nFeche o app que está usando a câmera e tente novamente.";
+      } else {
+        msg = `ERRO AO ACESSAR A CÂMERA.\n(${name || err.message || "Desconhecido"})`;
+      }
+      setErrorMsg(msg);
+      setStage(STAGES.ERROR);
+    }
+  };
+
+  // ── Flip camera ───────────────────────────────────────────────────────────
+  const handleFlip = async () => {
+    const next = facing === "environment" ? "user" : "environment";
+    setFacing(next);
+    if (stage === STAGES.ACTIVE) {
+      try {
+        const stream = await startCamera(next);
+        attachStream(stream);
+      } catch {
+        setFacing(facing); // Revert if flip fails
+      }
+    }
+  };
+
+  // ── Deactivate ────────────────────────────────────────────────────────────
+  const handleDeactivate = () => {
+    stopStream();
     setStage(STAGES.IDLE);
   };
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
-    };
-  }, []);
+  // ── Colors ────────────────────────────────────────────────────────────────
+  const C   = "#d4af37";
+  const DIM = "rgba(212,175,55,0.45)";
 
-  // ── Mirror only front camera ────────────────────────────────────────────────
-  const videoMirror = facing === FACING.FRONT ? "scaleX(-1)" : "none";
-
-  // ── Render ──────────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div style={{
-      position: "fixed",
-      inset: 0,
-      backgroundColor: "#060d1a",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      fontFamily: "'Rajdhani', 'Share Tech Mono', sans-serif",
-      overflow: "hidden",
+      position:"fixed", inset:0,
+      backgroundColor:"#060d1a",
+      display:"flex", flexDirection:"column",
+      alignItems:"center", justifyContent:"center",
+      fontFamily:"'Rajdhani','Share Tech Mono',sans-serif",
+      overflow:"hidden",
     }}>
       {/* Grid background */}
       <div style={{
         position:"absolute", inset:0, pointerEvents:"none",
         backgroundImage:`
-          linear-gradient(rgba(212,175,55,0.035) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(212,175,55,0.035) 1px, transparent 1px)
-        `,
-        backgroundSize:"44px 44px",
-        zIndex:0,
+          linear-gradient(rgba(212,175,55,.032) 1px,transparent 1px),
+          linear-gradient(90deg,rgba(212,175,55,.032) 1px,transparent 1px)`,
+        backgroundSize:"44px 44px", zIndex:0,
       }}/>
-      {/* Radial glow */}
       <div style={{
         position:"absolute", top:"50%", left:"50%",
         transform:"translate(-50%,-50%)",
-        width:"70vmax", height:"70vmax",
-        background:"radial-gradient(circle, rgba(212,175,55,0.055) 0%, transparent 65%)",
+        width:"80vmax", height:"80vmax",
+        background:"radial-gradient(circle,rgba(212,175,55,.05) 0%,transparent 65%)",
         pointerEvents:"none", zIndex:0,
       }}/>
 
-      {/* ── IDLE SCREEN ─────────────────────────────────────────────── */}
+      {/* ══ IDLE ════════════════════════════════════════════════════════ */}
       {stage === STAGES.IDLE && (
         <div style={{
           position:"relative", zIndex:1,
           display:"flex", flexDirection:"column",
-          alignItems:"center", justifyContent:"center",
-          padding:"48px 28px",
+          alignItems:"center", padding:"40px 28px",
           width:"100%", maxWidth:"380px",
-          animation:"fadeSlideUp 0.6s ease both",
+          animation:"fadeUp .55s ease both",
         }}>
-          {/* Logo area */}
-          <div style={{position:"relative", marginBottom:"36px"}}>
-            {/* Spinning outer ring */}
+          {/* Logo */}
+          <div style={{position:"relative", marginBottom:"32px"}}>
             <div style={{
-              position:"absolute", inset:"-16px",
-              border:"1px dashed rgba(212,175,55,0.2)",
-              borderRadius:"50%",
-              animation:"spinSlow 16s linear infinite",
+              position:"absolute", inset:"-14px",
+              border:"1px dashed rgba(212,175,55,.17)", borderRadius:"50%",
+              animation:"spin 18s linear infinite",
             }}/>
-            {/* Pulse ring */}
             <div style={{
-              position:"absolute", inset:"-6px",
-              border:"1px solid rgba(212,175,55,0.35)",
-              borderRadius:"50%",
+              position:"absolute", inset:"-5px",
+              border:"1px solid rgba(212,175,55,.28)", borderRadius:"50%",
               animation:"pulseRing 2.8s ease-in-out infinite",
             }}/>
-            {/* Logo container */}
             <div style={{
-              width:"80px", height:"80px",
-              borderRadius:"50%",
-              background:"linear-gradient(135deg, rgba(212,175,55,0.12), rgba(212,175,55,0.04))",
-              border:"1.5px solid rgba(212,175,55,0.45)",
+              width:"78px", height:"78px", borderRadius:"50%",
+              background:"linear-gradient(135deg,rgba(212,175,55,.12),rgba(212,175,55,.04))",
+              border:"1.5px solid rgba(212,175,55,.44)",
               display:"flex", alignItems:"center", justifyContent:"center",
-              boxShadow:"0 0 32px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.05)",
+              boxShadow:"0 0 28px rgba(212,175,55,.12)",
             }}>
-              <GhostMark size={42} />
+              <GhostMark size={40}/>
             </div>
           </div>
 
           {/* Title */}
-          <div style={{textAlign:"center", marginBottom:"8px"}}>
+          <div style={{textAlign:"center", marginBottom:"6px"}}>
             <div style={{
-              fontSize:"clamp(22px,6vw,30px)",
-              fontWeight:700,
-              letterSpacing:"0.32em",
-              color:"#d4af37",
-              textShadow:"0 0 40px rgba(212,175,55,0.35)",
-              fontFamily:"'Rajdhani', sans-serif",
-              lineHeight:1,
-            }}>
-              GHOST PROJECT
-            </div>
+              fontSize:"clamp(20px,5.5vw,28px)", fontWeight:700,
+              letterSpacing:".3em", color:C,
+              textShadow:"0 0 36px rgba(212,175,55,.28)",
+              fontFamily:"'Rajdhani',sans-serif", lineHeight:1,
+            }}>GHOST PROJECT</div>
             <div style={{
-              fontSize:"9px",
-              letterSpacing:"0.52em",
-              color:"rgba(212,175,55,0.45)",
-              marginTop:"8px",
-              fontFamily:"'Share Tech Mono', monospace",
-            }}>
-              AI · AR · E-COMMERCE TECHNOLOGY
-            </div>
+              fontSize:"9px", letterSpacing:".46em", color:DIM,
+              marginTop:"7px", fontFamily:"'Share Tech Mono',monospace",
+            }}>AI · AR · E-COMMERCE</div>
           </div>
 
-          {/* Divider */}
           <div style={{
             width:"100%", height:"1px",
-            background:"linear-gradient(90deg, transparent, rgba(212,175,55,0.25), transparent)",
-            margin:"28px 0",
+            background:"linear-gradient(90deg,transparent,rgba(212,175,55,.2),transparent)",
+            margin:"22px 0",
           }}/>
 
-          {/* Descriptor */}
           <div style={{
-            textAlign:"center",
-            color:"rgba(212,175,55,0.5)",
-            fontSize:"11px",
-            letterSpacing:"0.12em",
-            lineHeight:"1.7",
-            fontFamily:"'Share Tech Mono', monospace",
-            marginBottom:"36px",
+            textAlign:"center", color:DIM, fontSize:"10px",
+            letterSpacing:".1em", lineHeight:"1.75",
+            fontFamily:"'Share Tech Mono',monospace", marginBottom:"30px",
           }}>
             VISUALIZAÇÃO 3D EM REALIDADE AUMENTADA<br/>
             VALIDAÇÃO DE PRODUTO EM TEMPO REAL
           </div>
 
-          {/* CTA Button */}
-          <button
-            className="gp-btn"
-            onClick={handleActivate}
-            style={{
-              width:"100%",
-              padding:"17px 32px",
-              borderRadius:"4px",
-              border:"1.5px solid rgba(212,175,55,0.6)",
-              background:"linear-gradient(135deg, rgba(212,175,55,0.14) 0%, rgba(212,175,55,0.04) 100%)",
-              color:"#d4af37",
-              fontSize:"12px",
-              boxShadow:"0 0 24px rgba(212,175,55,0.08)",
-            }}
-          >
-            ◈ ATIVAR GHOST AI
+          {/* CTA */}
+          <button className="gp-btn" onClick={handleActivate} style={{
+            width:"100%", padding:"17px 24px", borderRadius:"4px",
+            border:"1.5px solid rgba(212,175,55,.54)",
+            background:"linear-gradient(135deg,rgba(212,175,55,.13),rgba(212,175,55,.04))",
+            color:C, fontSize:"12px",
+            boxShadow:"0 0 20px rgba(212,175,55,.07)",
+          }}>
+            ◈ &nbsp;ATIVAR GHOST AI
           </button>
 
-          {/* Camera mode selector */}
-          <div style={{
-            marginTop:"20px",
-            display:"flex",
-            gap:"10px",
-            alignItems:"center",
-          }}>
-            {[FACING.REAR, FACING.FRONT].map(f => (
-              <button
-                key={f}
-                className="gp-btn"
-                onClick={() => setFacing(f)}
-                style={{
-                  padding:"8px 16px",
-                  borderRadius:"3px",
-                  border:`1px solid ${facing===f ? "rgba(212,175,55,0.55)" : "rgba(212,175,55,0.15)"}`,
-                  background: facing===f ? "rgba(212,175,55,0.1)" : "transparent",
-                  color: facing===f ? "#d4af37" : "rgba(212,175,55,0.35)",
-                  fontSize:"9px",
-                }}
-              >
-                {f === FACING.REAR ? "TRASEIRA" : "FRONTAL"}
+          {/* Camera selector */}
+          <div style={{marginTop:"16px", display:"flex", gap:"10px"}}>
+            {["environment","user"].map(f => (
+              <button key={f} className="gp-btn" onClick={() => setFacing(f)} style={{
+                padding:"9px 18px", borderRadius:"3px",
+                border:`1px solid ${facing===f?"rgba(212,175,55,.5)":"rgba(212,175,55,.13)"}`,
+                background:facing===f?"rgba(212,175,55,.09)":"transparent",
+                color:facing===f?C:"rgba(212,175,55,.3)", fontSize:"9px",
+              }}>
+                {f==="environment" ? "TRASEIRA" : "FRONTAL"}
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* ── LOADING SCREEN ──────────────────────────────────────────── */}
+      {/* ══ LOADING ══════════════════════════════════════════════════════ */}
       {stage === STAGES.LOADING && (
         <div style={{
           position:"relative", zIndex:1,
           display:"flex", flexDirection:"column",
-          alignItems:"center", gap:"20px",
-          animation:"fadeSlideUp 0.4s ease both",
+          alignItems:"center", gap:"22px",
+          animation:"fadeUp .35s ease both",
         }}>
-          {/* Spinner */}
           <div style={{
-            width:"56px", height:"56px",
-            borderRadius:"50%",
-            border:"1.5px solid rgba(212,175,55,0.15)",
-            borderTop:"1.5px solid rgba(212,175,55,0.7)",
-            animation:"spinSlow 1s linear infinite",
+            width:"54px", height:"54px", borderRadius:"50%",
+            border:"1.5px solid rgba(212,175,55,.13)",
+            borderTop:"1.5px solid rgba(212,175,55,.75)",
+            animation:"spin .9s linear infinite",
           }}/>
           <div style={{
-            color:"rgba(212,175,55,0.65)",
-            fontSize:"11px",
-            letterSpacing:"0.35em",
-            fontFamily:"'Share Tech Mono', monospace",
+            color:"rgba(212,175,55,.58)", fontSize:"10px",
+            letterSpacing:".3em", fontFamily:"'Share Tech Mono',monospace",
           }}>
-            INICIALIZANDO<span style={{animation:"blinkDot 1s infinite 0s"}}>.</span>
-            <span style={{animation:"blinkDot 1s infinite 0.3s"}}>.</span>
-            <span style={{animation:"blinkDot 1s infinite 0.6s"}}>.</span>
+            INICIALIZANDO
+            <span style={{animation:"blink 1s infinite 0s"}}>.</span>
+            <span style={{animation:"blink 1s infinite .3s"}}>.</span>
+            <span style={{animation:"blink 1s infinite .6s"}}>.</span>
           </div>
         </div>
       )}
 
-      {/* ── ACTIVE / AR VIEW ────────────────────────────────────────── */}
+      {/* ══ ACTIVE — AR VIEW ════════════════════════════════════════════ */}
       {stage === STAGES.ACTIVE && (
         <div style={{
           position:"fixed", inset:0, zIndex:10,
-          display:"flex", flexDirection:"column",
           background:"#000",
-          animation:"flipIn 0.35s ease both",
+          animation:"flipIn .3s ease both",
         }}>
-          {/* Video feed — fills entire screen */}
+          {/* Camera feed */}
           <video
             ref={videoRef}
             autoPlay
@@ -479,121 +376,72 @@ export default function App() {
               position:"absolute", inset:0,
               width:"100%", height:"100%",
               objectFit:"cover",
-              transform: videoMirror,
-              backgroundColor:"#000",
+              transform: mirrored ? "scaleX(-1)" : "none",
+              background:"#000",
             }}
           />
 
-          {/* AR overlay layer */}
+          {/* AR overlay (no pointer events) */}
           <div style={{position:"absolute",inset:0,zIndex:2,pointerEvents:"none"}}>
-            {/* Scan line */}
-            <ScanLine />
-            {/* Corner brackets */}
-            <ARBrackets />
+            <ScanLine/>
+            <ARBrackets/>
             {/* Top HUD */}
             <div style={{
               position:"absolute", top:0, left:0, right:0,
-              padding:"env(safe-area-inset-top, 16px) 20px 16px",
-              background:"linear-gradient(to bottom, rgba(6,13,26,0.75), transparent)",
+              padding:"max(env(safe-area-inset-top,14px),14px) 20px 16px",
+              background:"linear-gradient(to bottom,rgba(6,13,26,.78),transparent)",
               display:"flex", alignItems:"center", justifyContent:"space-between",
             }}>
-              <div style={{display:"flex", alignItems:"center", gap:"10px"}}>
-                <GhostMark size={24}/>
+              <div style={{display:"flex",alignItems:"center",gap:"9px"}}>
+                <GhostMark size={22}/>
                 <div>
-                  <div style={{
-                    fontSize:"11px", fontWeight:700, letterSpacing:"0.28em",
-                    color:"#d4af37", fontFamily:"'Rajdhani',sans-serif",
-                  }}>
-                    GHOST PROJECT
-                  </div>
-                  <div style={{
-                    fontSize:"8px", letterSpacing:"0.3em",
-                    color:"rgba(212,175,55,0.5)",
-                    fontFamily:"'Share Tech Mono',monospace",
-                  }}>
-                    AR · ATIVO
-                  </div>
+                  <div style={{fontSize:"11px",fontWeight:700,letterSpacing:".26em",color:C,fontFamily:"'Rajdhani',sans-serif"}}>GHOST PROJECT</div>
+                  <div style={{fontSize:"8px",letterSpacing:".28em",color:"rgba(212,175,55,.45)",fontFamily:"'Share Tech Mono',monospace"}}>AR · ATIVO</div>
                 </div>
               </div>
-              {/* Live indicator */}
-              <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
-                <div style={{
-                  width:6, height:6, borderRadius:"50%",
-                  background:"#4ade80",
-                  boxShadow:"0 0 8px rgba(74,222,128,0.8)",
-                  animation:"blinkDot 1.5s ease-in-out infinite",
-                }}/>
-                <span style={{
-                  fontSize:"9px",letterSpacing:"0.25em",
-                  color:"rgba(74,222,128,0.9)",
-                  fontFamily:"'Share Tech Mono',monospace",
-                }}>LIVE</span>
+              <div style={{display:"flex",alignItems:"center",gap:"5px"}}>
+                <div style={{width:6,height:6,borderRadius:"50%",background:"#4ade80",boxShadow:"0 0 8px rgba(74,222,128,.9)",animation:"blink 1.6s ease-in-out infinite"}}/>
+                <span style={{fontSize:"9px",letterSpacing:".22em",color:"rgba(74,222,128,.85)",fontFamily:"'Share Tech Mono',monospace"}}>LIVE</span>
               </div>
             </div>
           </div>
 
-          {/* Controls overlay (bottom) — pointer events ON */}
+          {/* Bottom controls (pointer events ON) */}
           <div style={{
             position:"absolute", bottom:0, left:0, right:0, zIndex:3,
-            padding:"20px 20px env(safe-area-inset-bottom, 28px)",
-            background:"linear-gradient(to top, rgba(6,13,26,0.85) 0%, transparent 100%)",
-            display:"flex", alignItems:"center", justifyContent:"center", gap:"20px",
+            padding:`20px 20px max(env(safe-area-inset-bottom,24px),24px)`,
+            background:"linear-gradient(to top,rgba(6,13,26,.88),transparent)",
+            display:"flex", alignItems:"center", justifyContent:"center", gap:"22px",
           }}>
-            {/* Deactivate */}
-            <button
-              className="gp-btn"
-              onClick={handleDeactivate}
-              title="Desativar"
-              style={{
-                width:"48px", height:"48px",
-                borderRadius:"50%",
-                border:"1.5px solid rgba(212,175,55,0.35)",
-                background:"rgba(212,175,55,0.08)",
-                color:"rgba(212,175,55,0.7)",
-                display:"flex", alignItems:"center", justifyContent:"center",
-              }}
-            >
-              <IconClose />
-            </button>
+            <button className="gp-btn" onClick={handleDeactivate} style={{
+              width:"48px",height:"48px",borderRadius:"50%",
+              border:"1.5px solid rgba(212,175,55,.3)",
+              background:"rgba(212,175,55,.07)",
+              color:"rgba(212,175,55,.62)",
+              display:"flex",alignItems:"center",justifyContent:"center",
+            }}><IconClose/></button>
 
-            {/* Scan / Validate (placeholder for AR anchor) */}
-            <button
-              className="gp-btn"
-              title="Validar Produto"
-              style={{
-                width:"68px", height:"68px",
-                borderRadius:"50%",
-                border:"2px solid #d4af37",
-                background:"linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.06))",
-                color:"#d4af37",
-                display:"flex", alignItems:"center", justifyContent:"center",
-                boxShadow:"0 0 28px rgba(212,175,55,0.2)",
-              }}
-            >
-              <IconScan />
-            </button>
+            <button className="gp-btn" style={{
+              width:"68px",height:"68px",borderRadius:"50%",
+              border:`2px solid ${C}`,
+              background:"linear-gradient(135deg,rgba(212,175,55,.2),rgba(212,175,55,.05))",
+              color:C,
+              display:"flex",alignItems:"center",justifyContent:"center",
+              boxShadow:"0 0 28px rgba(212,175,55,.18)",
+            }}><IconScan/></button>
 
-            {/* Flip camera */}
-            <button
-              className="gp-btn"
-              onClick={handleFlip}
-              title="Trocar câmera"
-              style={{
-                width:"48px", height:"48px",
-                borderRadius:"50%",
-                border:"1.5px solid rgba(212,175,55,0.35)",
-                background:"rgba(212,175,55,0.08)",
-                color:"rgba(212,175,55,0.7)",
-                display:"flex", alignItems:"center", justifyContent:"center",
-              }}
-            >
-              <IconFlipCamera />
-            </button>
+            <button className="gp-btn" onClick={handleFlip} style={{
+              width:"48px",height:"48px",borderRadius:"50%",
+              border:"1.5px solid rgba(212,175,55,.3)",
+              background:"rgba(212,175,55,.07)",
+              color:"rgba(212,175,55,.62)",
+              display:"flex",alignItems:"center",justifyContent:"center",
+            }}><IconFlipCamera/></button>
           </div>
         </div>
       )}
 
-      {/* ── ERROR SCREEN ────────────────────────────────────────────── */}
+      {/* ══ ERROR ════════════════════════════════════════════════════════ */}
       {stage === STAGES.ERROR && (
         <div style={{
           position:"relative", zIndex:1,
@@ -601,35 +449,24 @@ export default function App() {
           alignItems:"center", gap:"20px",
           padding:"0 32px", maxWidth:"340px",
           textAlign:"center",
-          animation:"fadeSlideUp 0.4s ease both",
+          animation:"fadeUp .4s ease both",
         }}>
+          <div style={{fontSize:"30px",color:"rgba(212,175,55,.26)"}}>⊘</div>
           <div style={{
-            fontSize:"28px", color:"rgba(212,175,55,0.3)",
-            lineHeight:1,
-          }}>⊘</div>
-          <div style={{
-            color:"rgba(212,175,55,0.8)",
-            fontSize:"11px",
-            letterSpacing:"0.15em",
-            lineHeight:"1.75",
+            color:"rgba(212,175,55,.76)", fontSize:"10.5px",
+            letterSpacing:".08em", lineHeight:"1.85",
             fontFamily:"'Share Tech Mono',monospace",
+            whiteSpace:"pre-line",
           }}>
             {errorMsg}
           </div>
-          <button
-            className="gp-btn"
-            onClick={() => setStage(STAGES.IDLE)}
-            style={{
-              padding:"13px 28px",
-              borderRadius:"3px",
-              border:"1px solid rgba(212,175,55,0.4)",
-              background:"rgba(212,175,55,0.07)",
-              color:"rgba(212,175,55,0.75)",
-              fontSize:"10px",
-              letterSpacing:"0.25em",
-              marginTop:"8px",
-            }}
-          >
+          <button className="gp-btn" onClick={() => setStage(STAGES.IDLE)} style={{
+            padding:"13px 28px", borderRadius:"3px",
+            border:"1px solid rgba(212,175,55,.36)",
+            background:"rgba(212,175,55,.07)",
+            color:"rgba(212,175,55,.7)",
+            fontSize:"10px", letterSpacing:".22em", marginTop:"6px",
+          }}>
             TENTAR NOVAMENTE
           </button>
         </div>
