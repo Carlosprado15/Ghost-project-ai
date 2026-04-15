@@ -1,73 +1,58 @@
-```css
-.app-container {
-  background-color: #000;
-  color: #d4af37;
-  height: 100vh;
+/*
+ * Ghost Project AI — App.css v4.0
+ * Supplemental styles. Core keyframes + resets live in App.jsx → GCSS.
+ */
+
+html, body {
   overflow: hidden;
-  font-family: Arial, sans-serif;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }
 
-.idle-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
+/* Widget isolation for future B2B embedding */
+#ghost-root,
+#ghost-root *,
+#ghost-root *::before,
+#ghost-root *::after {
+  box-sizing: border-box;
 }
 
-.gold-text {
-  letter-spacing: 4px;
-  margin-top: 20px;
-  text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+/* Safe-area helpers */
+.gp-safe-top    { padding-top:    env(safe-area-inset-top,    0px); }
+.gp-safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+/* GPU promotion */
+.gp-gpu {
+  transform:           translateZ(0);
+  will-change:         transform;
+  backface-visibility: hidden;
 }
 
-.subtitle {
-  opacity: 0.7;
-  margin-bottom: 30px;
+/* Remove tap flash on all touch platforms */
+button,
+.gp-btn,
+.gp-btn * {
+  -webkit-tap-highlight-color: transparent;
 }
 
-.start-btn {
-  background: transparent;
-  border: 1px solid #d4af37;
-  color: #d4af37;
-  padding: 15px 40px;
-  cursor: pointer;
-  transition: 0.3s;
+/* Canvas: block removes inline gap */
+canvas {
+  display: block;
 }
 
-.start-btn:hover {
-  background: #d4af37;
-  color: #000;
+/* Hide native video controls on all browsers */
+video::-webkit-media-controls,
+video::-webkit-media-controls-enclosure,
+video::-webkit-media-controls-panel {
+  display: none !important;
 }
 
-.ar-viewport {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.camera-feed {
-  position: absolute;
+/* Logo image: ensure no bleed or background */
+.gp-logo-img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: 1;
+  background: transparent;
+  border: none;
 }
-
-.three-canvas {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  z-index: 2;
-}
-
-.ui-overlay {
-  position: absolute;
-  top: 20px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  z-index: 3;
-  opacity: 0.8;
-}
-```
