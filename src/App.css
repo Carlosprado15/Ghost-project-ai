@@ -1,77 +1,78 @@
 /* ============================================================
-   GHOST PROJECT — App.css
-   Estética: Luxury Dark · Gold · Minimal
+   GHOST PROJECT — App.css — VERSÃO FINAL
+   Fundo preto absoluto · Dourado #d4af37
    ============================================================ */
 
-/* ── Tokens de design ──────────────────────────────────── */
+/* ── Tokens ──────────────────────────────────────────────── */
 :root {
-  --gold-light:   #f0d060;
-  --gold-main:    #d4af37;
-  --gold-dark:    #a07830;
-  --gold-shadow:  #8a6520;
-  --black:        #000000;
-  --near-black:   #080808;
-  --surface:      #111111;
-  --surface-2:    #181818;
-  --text-primary: #f5f0e8;
-  --text-muted:   rgba(212,175,55,0.55);
-  --border:       rgba(212,175,55,0.18);
-  --scan-gold:    rgba(212,175,55,0.85);
-
-  --font-display: 'Georgia', 'Times New Roman', serif;
-  --font-ui:      'Helvetica Neue', 'Arial', sans-serif;
-
-  --radius-sm:    4px;
-  --radius-md:    8px;
-  --radius-full:  999px;
-
-  --transition:   0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --gold:       #d4af37;
+  --gold-hi:    #f0d060;
+  --gold-lo:    #a07830;
+  --gold-dim:   rgba(212,175,55,0.55);
+  --gold-line:  rgba(212,175,55,0.22);
+  --black:      #000000;
+  --bg:         #080808;
+  --surface:    #111111;
+  --text:       #f5f0e8;
+  --text-dim:   rgba(245,240,232,0.6);
+  --serif:      'Georgia', 'Times New Roman', serif;
+  --sans:       'Helvetica Neue', Arial, sans-serif;
+  --ease:       cubic-bezier(0.4,0,0.2,1);
 }
 
-/* ── Reset ─────────────────────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* ── Reset global ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  background: var(--black);
+  height: 100%;
 }
 
-html, body, #root {
-  width: 100%;
+body {
+  background: var(--black);
   height: 100%;
   overflow: hidden;
-  background: var(--black);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ══ ROOT ═══════════════════════════════════════════════ */
-.ghost-root {
+#root {
+  background: var(--black);
+  width: 100%;
+  height: 100%;
+}
+
+/* ══ ROOT ════════════════════════════════════════════════════ */
+.gp-root {
   position: relative;
   width: 100vw;
   height: 100vh;
-  height: 100dvh;          /* dvh: safe area em iOS */
+  height: 100dvh;
   overflow: hidden;
-  background: var(--near-black);
+  background: var(--black);   /* <── garante preto mesmo sem outras regras */
   touch-action: none;
   user-select: none;
+  -webkit-user-select: none;
 }
 
-/* ── Vídeo de fundo ─────────────────────────────────────*/
-.ghost-video {
+/* ── Vídeo câmera ─────────────────────────────────────────── */
+.gp-video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   z-index: 1;
-  transition: opacity 0.4s;
+  opacity: 1;
+  transition: opacity 0.3s;
 }
-.ghost-video.hidden {
+.gp-video.hidden {
   opacity: 0;
   pointer-events: none;
 }
 
-/* ── Canvas Three.js ─────────────────────────────────── */
-.ghost-canvas {
+/* ── Canvas Three.js ─────────────────────────────────────── */
+.gp-canvas {
   position: absolute;
   inset: 0;
   width: 100% !important;
@@ -79,15 +80,15 @@ html, body, #root {
   z-index: 3;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.6s ease;
+  transition: opacity 0.55s var(--ease);
 }
-.ghost-canvas.visible {
+.gp-canvas.visible {
   opacity: 1;
   pointer-events: auto;
 }
 
-/* ── Overlay canvas (scan) ───────────────────────────── */
-.ghost-overlay-canvas {
+/* ── Overlay canvas (scan 2D) ────────────────────────────── */
+.gp-overlay {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -96,445 +97,399 @@ html, body, #root {
   pointer-events: none;
 }
 
-/* ══ FASE IDLE ══════════════════════════════════════════ */
-.ghost-idle {
+/* ══ LOADING ══════════════════════════════════════════════════ */
+.gp-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  background: var(--black);
+}
+
+.gp-ring {
+  width: 44px;
+  height: 44px;
+  border: 2px solid rgba(212,175,55,0.15);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.85s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.gp-loading-text {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  animation: fade-pulse 1.4s ease-in-out infinite;
+}
+@keyframes fade-pulse {
+  0%,100% { opacity: 0.6; }
+  50%      { opacity: 1;   }
+}
+
+/* ══ IDLE ═════════════════════════════════════════════════════ */
+.gp-idle {
   position: absolute;
   inset: 0;
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(
-    ellipse 80% 60% at 50% 40%,
-    #1a1400 0%,
-    #0a0a0a 60%,
-    #000 100%
-  );
+  /* Gradiente sutil — fundo permanece escuro */
+  background: radial-gradient(ellipse 90% 70% at 50% 45%, #1a1200 0%, #080808 55%, #000 100%);
 }
 
-/* Grade sutil de fundo */
-.ghost-bg-grid {
+.gp-grid-bg {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(212,175,55,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(212,175,55,0.04) 1px, transparent 1px);
-  background-size: 48px 48px;
+    linear-gradient(rgba(212,175,55,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212,175,55,0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
   pointer-events: none;
 }
 
-.ghost-idle-content {
+.gp-idle-inner {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
-  padding: 40px 32px;
+  gap: 22px;
+  padding: 40px 28px 48px;
   width: 100%;
   max-width: 400px;
   text-align: center;
 }
 
-/* ── Logotipo ─────────────────────────────────────────── */
-.ghost-logo-wrapper {
+/* ── Logotipo ──────────────────────────────────────────────── */
+.gp-logo-block {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 }
 
-.ghost-logo-img {
+.gp-logo {
+  max-width: 240px;
+  max-height: 90px;
   width: auto;
-  max-width: 220px;
-  max-height: 80px;
+  height: auto;
   object-fit: contain;
-  filter: drop-shadow(0 0 18px rgba(212,175,55,0.4));
+  filter: drop-shadow(0 0 20px rgba(212,175,55,0.35));
+  animation: logo-in 0.9s var(--ease) both;
+}
+@keyframes logo-in {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0);     }
 }
 
-.ghost-logo-svg {
-  width: 180px;
-  height: 56px;
-  filter: drop-shadow(0 0 14px rgba(212,175,55,0.35));
-}
-
-.ghost-logo-sub {
-  font-family: var(--font-ui);
-  font-size: 10px;
-  font-weight: 400;
+.gp-logo-sub {
+  font-family: var(--sans);
+  font-size: 9px;
   letter-spacing: 6px;
-  color: var(--text-muted);
+  color: var(--gold-dim);
   text-transform: uppercase;
-  margin-top: 2px;
 }
 
-/* ── Divisor ──────────────────────────────────────────── */
-.ghost-divider {
-  width: 48px;
+/* ── Separador ─────────────────────────────────────────────── */
+.gp-sep {
+  width: 44px;
   height: 1px;
-  background: linear-gradient(
-    90deg, transparent, var(--gold-main), transparent
-  );
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 
-/* ── Tagline ──────────────────────────────────────────── */
-.ghost-tagline {
-  font-family: var(--font-display);
-  font-size: 15px;
-  line-height: 1.65;
-  color: rgba(245,240,232,0.75);
+/* ── Tagline ───────────────────────────────────────────────── */
+.gp-tagline {
+  font-family: var(--serif);
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-dim);
 }
-.ghost-tagline-accent {
-  color: var(--gold-main);
+.gp-tagline em {
+  color: var(--gold);
   font-style: italic;
 }
 
-/* ── Erro ──────────────────────────────────────────────── */
-.ghost-error {
-  background: rgba(180,30,30,0.15);
-  border: 1px solid rgba(220,60,60,0.3);
-  border-radius: var(--radius-md);
+/* ── Erro ──────────────────────────────────────────────────── */
+.gp-error {
+  background: rgba(160,30,30,0.15);
+  border: 1px solid rgba(200,60,60,0.3);
+  border-radius: 6px;
   padding: 10px 16px;
-  font-family: var(--font-ui);
+  font-family: var(--sans);
   font-size: 12px;
   color: #ff9090;
-  max-width: 320px;
+  max-width: 300px;
 }
 
-/* ── CTA Principal ────────────────────────────────────── */
-.ghost-cta {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 14px 36px;
+/* ── Botão CTA principal ───────────────────────────────────── */
+.gp-cta {
+  padding: 13px 36px;
   background: transparent;
-  border: 1px solid var(--gold-main);
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  overflow: hidden;
-  transition: var(--transition);
-  margin-top: 8px;
-}
-.ghost-cta:hover,
-.ghost-cta:active {
-  background: rgba(212,175,55,0.08);
-  border-color: var(--gold-light);
-  box-shadow: 0 0 28px rgba(212,175,55,0.2);
-}
-.ghost-cta:active {
-  transform: scale(0.97);
-}
-
-.ghost-cta-ring {
-  position: absolute;
-  inset: -1px;
-  border-radius: var(--radius-full);
-  background: linear-gradient(
-    135deg,
-    rgba(212,175,55,0.25),
-    transparent 50%,
-    rgba(212,175,55,0.1)
-  );
-  pointer-events: none;
-}
-
-.ghost-cta-text {
-  font-family: var(--font-ui);
-  font-size: 11px;
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  font-family: var(--sans);
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 3px;
-  color: var(--gold-main);
+  color: var(--gold);
   text-transform: uppercase;
-  position: relative;
-  z-index: 1;
+  cursor: pointer;
+  transition: background 0.2s var(--ease), box-shadow 0.2s var(--ease), transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
 }
+.gp-cta:hover  { background: rgba(212,175,55,0.08); box-shadow: 0 0 24px rgba(212,175,55,0.18); }
+.gp-cta:active { transform: scale(0.96); }
 
-/* ── Hint ─────────────────────────────────────────────── */
-.ghost-hint {
-  font-family: var(--font-ui);
+/* ── Hint ──────────────────────────────────────────────────── */
+.gp-hint {
+  font-family: var(--sans);
   font-size: 10px;
-  letter-spacing: 1px;
-  color: rgba(212,175,55,0.3);
+  letter-spacing: 0.5px;
+  color: rgba(212,175,55,0.28);
 }
 
-/* ══ OVERLAY DE LOADING ══════════════════════════════════ */
-.ghost-overlay-ui {
+/* ══ REQUESTING ═══════════════════════════════════════════════ */
+.gp-overlay-ui {
   position: absolute;
   inset: 0;
-  z-index: 10;
+  z-index: 15;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  background: rgba(0,0,0,0.85);
+  gap: 18px;
+  background: rgba(0,0,0,0.88);
 }
 
-.ghost-spinner {
+.gp-spinner {
   width: 36px;
   height: 36px;
-  border: 2px solid rgba(212,175,55,0.15);
-  border-top-color: var(--gold-main);
+  border: 2px solid rgba(212,175,55,0.12);
+  border-top-color: var(--gold);
   border-radius: 50%;
   animation: spin 0.9s linear infinite;
 }
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
 
-.ghost-status-text {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  letter-spacing: 2px;
-  color: var(--text-muted);
+.gp-status {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 2.5px;
   text-transform: uppercase;
+  color: var(--gold-dim);
 }
 
-/* ══ HUD AR (streaming + scanning + ar) ═════════════════ */
-.ghost-ar-hud {
+/* ══ HUD (streaming + scanning + ar) ═════════════════════════ */
+.gp-hud {
   position: absolute;
   inset: 0;
   z-index: 5;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 0;
   pointer-events: none;
 }
-.ghost-ar-hud.ar-active {
-  z-index: 6;
-}
 
-/* ── Header HUD ─────────────────────────────────────────*/
-.ghost-hud-header {
+/* Top bar */
+.gp-hud-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 52px 20px 12px;
-  background: linear-gradient(
-    to bottom, rgba(0,0,0,0.65) 0%, transparent 100%
-  );
-  pointer-events: none;
+  padding: max(52px, calc(env(safe-area-inset-top) + 14px)) 18px 14px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.68), transparent);
 }
-
-.ghost-hud-logo {
-  font-family: var(--font-display);
-  font-size: 13px;
-  letter-spacing: 5px;
-  color: var(--gold-main);
-}
-
-.ghost-hud-badge {
-  font-family: var(--font-ui);
-  font-size: 9px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.55);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: var(--radius-full);
-  padding: 3px 10px;
-}
-.ghost-hud-badge.scanning {
-  color: var(--gold-main);
-  border-color: var(--gold-main);
-  animation: pulse 1s ease-in-out infinite;
-}
-.ghost-hud-badge.live {
-  color: #70ff90;
-  border-color: rgba(80,200,80,0.4);
-}
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.45; }
-}
-
-/* ── Frame de scan (cantos CSS) ──────────────────────── */
-.ghost-scan-frame {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(320px, 80vw);
-  height: min(320px, 80vw);
+.gp-hud-right {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+.gp-brand {
+  font-family: var(--serif);
+  font-size: 13px;
+  letter-spacing: 5px;
+  color: var(--gold);
 }
 
-.ghost-scan-hint {
-  font-family: var(--font-ui);
+/* Badges */
+.gp-badge {
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+.gp-badge.scanning {
+  color: var(--gold);
+  border-color: rgba(212,175,55,0.45);
+  animation: pulse 0.95s ease-in-out infinite;
+}
+.gp-badge.live {
+  color: #6cffaa;
+  border-color: rgba(80,200,100,0.38);
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* Ícone de alternância de câmera */
+.gp-icon-btn {
+  background: rgba(0,0,0,0.45);
+  border: 1px solid var(--gold-line);
+  border-radius: 50%;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.18s;
+}
+.gp-icon-btn:active { background: rgba(212,175,55,0.15); }
+
+/* Frame de scan (cantos CSS) */
+.gp-frame {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(300px, 78vw);
+  height: min(300px, 78vw);
+  display: flex; align-items: center; justify-content: center;
+}
+.gp-frame-hint {
+  font-family: var(--sans);
   font-size: 11px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--text-muted);
-  text-align: center;
+  color: var(--gold-dim);
 }
-
-.ghost-scan-corner {
+.gp-corner {
   position: absolute;
-  width: 28px;
-  height: 28px;
+  width: 26px; height: 26px;
 }
-.ghost-scan-corner.tl { top: 0; left: 0;
-  border-top: 1.5px solid var(--gold-main);
-  border-left: 1.5px solid var(--gold-main); }
-.ghost-scan-corner.tr { top: 0; right: 0;
-  border-top: 1.5px solid var(--gold-main);
-  border-right: 1.5px solid var(--gold-main); }
-.ghost-scan-corner.bl { bottom: 0; left: 0;
-  border-bottom: 1.5px solid var(--gold-main);
-  border-left: 1.5px solid var(--gold-main); }
-.ghost-scan-corner.br { bottom: 0; right: 0;
-  border-bottom: 1.5px solid var(--gold-main);
-  border-right: 1.5px solid var(--gold-main); }
+.gp-corner.tl { top:0;left:0;   border-top:1.5px solid var(--gold);border-left:1.5px solid var(--gold); }
+.gp-corner.tr { top:0;right:0;  border-top:1.5px solid var(--gold);border-right:1.5px solid var(--gold); }
+.gp-corner.bl { bottom:0;left:0;  border-bottom:1.5px solid var(--gold);border-left:1.5px solid var(--gold); }
+.gp-corner.br { bottom:0;right:0; border-bottom:1.5px solid var(--gold);border-right:1.5px solid var(--gold); }
 
-/* ── Barra de progresso de scan ─────────────────────── */
-.ghost-scan-progress-wrap {
+/* Barra de progresso */
+.gp-prog-wrap {
   position: absolute;
-  bottom: 120px;
-  left: 10%;
-  right: 10%;
+  bottom: 110px; left: 10%; right: 10%;
   height: 1px;
-  background: rgba(212,175,55,0.12);
-  border-radius: 1px;
-  overflow: hidden;
+  background: rgba(212,175,55,0.1);
+  border-radius: 1px; overflow: hidden;
 }
-.ghost-scan-progress-bar {
+.gp-prog-bar {
   height: 100%;
-  background: linear-gradient(
-    90deg, var(--gold-dark), var(--gold-light)
-  );
-  transition: width 0.08s linear;
-  box-shadow: 0 0 8px var(--gold-main);
+  background: linear-gradient(90deg, var(--gold-lo), var(--gold-hi));
+  box-shadow: 0 0 8px var(--gold);
+  transition: width 0.07s linear;
 }
 
-.ghost-scan-label {
+.gp-scan-lbl {
   position: absolute;
-  bottom: 100px;
-  left: 0; right: 0;
+  bottom: 90px; left: 0; right: 0;
   text-align: center;
-  font-family: var(--font-ui);
+  font-family: var(--sans);
   font-size: 10px;
-  letter-spacing: 2.5px;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--gold-dim);
+  pointer-events: none;
 }
 
-/* ── Footer HUD ─────────────────────────────────────── */
-.ghost-hud-footer {
-  padding: 16px 20px 40px;
-  background: linear-gradient(
-    to top, rgba(0,0,0,0.7) 0%, transparent 100%
-  );
+/* Bottom bar */
+.gp-hud-bottom {
+  padding: 16px 20px max(32px, calc(env(safe-area-inset-bottom) + 18px));
+  background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
   display: flex;
   justify-content: center;
   pointer-events: auto;
 }
-.ghost-hud-footer.ar-footer {
-  gap: 12px;
-}
+.gp-hud-bottom.ar-row { gap: 12px; }
 
-/* ── Botão ESCANEAR ─────────────────────────────────── */
-.ghost-scan-btn {
-  position: relative;
-  padding: 0;
+/* Botão ESCANEAR */
+.gp-scan-btn {
+  padding: 12px 44px;
   background: transparent;
-  border: none;
-  cursor: pointer;
-  pointer-events: auto;
-}
-.ghost-scan-btn-inner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 140px;
-  height: 44px;
-  border: 1px solid var(--gold-main);
-  border-radius: var(--radius-full);
-  font-family: var(--font-ui);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  font-family: var(--sans);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 3px;
-  color: var(--gold-main);
+  color: var(--gold);
   text-transform: uppercase;
-  background: rgba(212,175,55,0.06);
-  transition: var(--transition);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
 }
-.ghost-scan-btn:active .ghost-scan-btn-inner {
-  background: rgba(212,175,55,0.15);
-  transform: scale(0.96);
-}
+.gp-scan-btn:active { background: rgba(212,175,55,0.12); transform: scale(0.96); }
 
-/* ── Botões secundários ─────────────────────────────── */
-.ghost-secondary-btn {
+/* Botões secundários */
+.gp-sec {
   flex: 1;
-  max-width: 160px;
+  max-width: 165px;
   padding: 10px 0;
   background: rgba(0,0,0,0.5);
-  border: 1px solid rgba(212,175,55,0.3);
-  border-radius: var(--radius-full);
-  font-family: var(--font-ui);
+  border: 1px solid rgba(212,175,55,0.28);
+  border-radius: 999px;
+  font-family: var(--sans);
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 2px;
-  color: rgba(212,175,55,0.7);
+  color: rgba(212,175,55,0.65);
   text-transform: uppercase;
   cursor: pointer;
-  transition: var(--transition);
-  pointer-events: auto;
+  transition: background 0.18s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
 }
-.ghost-secondary-btn:active {
-  transform: scale(0.96);
-  background: rgba(212,175,55,0.1);
-}
-.ghost-secondary-btn.accent {
-  border-color: var(--gold-main);
-  color: var(--gold-main);
-  background: rgba(212,175,55,0.08);
-}
+.gp-sec:active { transform: scale(0.96); background: rgba(212,175,55,0.1); }
+.gp-sec.accent { border-color: var(--gold); color: var(--gold); background: rgba(212,175,55,0.07); }
 
-/* ── Hint de controles AR ───────────────────────────── */
-.ghost-ar-controls-hint {
+/* Hint de arraste */
+.gp-drag-hint {
   position: absolute;
   top: 50%;
   left: 0; right: 0;
-  transform: translateY(120px);
+  transform: translateY(105px);
   text-align: center;
   pointer-events: none;
-  animation: fadeHint 3s ease 1.5s forwards;
+  animation: drag-hint 3.2s ease 2s forwards;
   opacity: 0;
 }
-@keyframes fadeHint {
-  0%   { opacity: 0; transform: translateY(120px); }
-  15%  { opacity: 1; transform: translateY(110px); }
-  70%  { opacity: 1; transform: translateY(110px); }
-  100% { opacity: 0; transform: translateY(110px); }
+@keyframes drag-hint {
+  0%  { opacity:0; transform:translateY(115px); }
+  12% { opacity:1; transform:translateY(105px); }
+  75% { opacity:1; transform:translateY(105px); }
+  100%{ opacity:0; transform:translateY(105px); }
 }
-.ghost-ar-controls-hint span {
-  font-family: var(--font-ui);
+.gp-drag-hint span,
+.gp-drag-hint {
+  font-family: var(--sans);
   font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: rgba(212,175,55,0.55);
-  background: rgba(0,0,0,0.45);
+  color: rgba(212,175,55,0.5);
+  background: rgba(0,0,0,0.42);
   padding: 4px 14px;
-  border-radius: var(--radius-full);
-  border: 1px solid rgba(212,175,55,0.15);
+  border-radius: 999px;
+  border: 1px solid rgba(212,175,55,0.14);
+  display: inline-block;
 }
 
-/* ══ UTILITÁRIOS ════════════════════════════════════════ */
-@media (max-width: 380px) {
-  .ghost-idle-content { padding: 32px 20px; gap: 18px; }
-  .ghost-cta { padding: 12px 28px; }
-  .ghost-tagline { font-size: 13px; }
-}
-
-/* Safe area para notch/home bar no iOS */
-@supports (padding-top: env(safe-area-inset-top)) {
-  .ghost-hud-header {
-    padding-top: max(52px, calc(env(safe-area-inset-top) + 16px));
-  }
-  .ghost-hud-footer {
-    padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 20px));
-  }
+/* ══ MOBILE AJUSTES ══════════════════════════════════════════ */
+@media (max-width: 390px) {
+  .gp-idle-inner { padding: 32px 18px 40px; gap: 18px; }
+  .gp-logo { max-width: 200px; }
+  .gp-tagline { font-size: 13.5px; }
+  .gp-cta { padding: 11px 28px; }
 }
