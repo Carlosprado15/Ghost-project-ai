@@ -7,15 +7,27 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [arActive, setArActive] = useState(false);
   const containerRef = useRef(null);
-  const [cameraMode, setCameraMode] = useState('environment');
+  const videoRef = useRef(null);
 
-  // URL do Relógio de Luxo para impacto comercial
   const modelUrl = "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Watch/glTF-Binary/Watch.glb";
+
+  // Iniciar Câmera do Celular
+  const startCamera = async () => {
+    setArActive(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: "environment" } 
+      });
+      if (videoRef.current) videoRef.current.srcObject = stream;
+    } catch (err) {
+      console.error("Erro ao acessar câmera:", err);
+      alert("Por favor, permita o acesso à câmera.");
+    }
+  };
 
   useEffect(() => {
     if (!arActive) return;
 
-    // Configuração Three.js para realismo
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -23,17 +35,17 @@ const App = () => {
     renderer.setPixelRatio(window.devicePixelRatio);
     containerRef.current.appendChild(renderer.domElement);
 
-    // Iluminação de Estúdio para o Relógio
-    const light = new THREE.AmbientLight(0xffffff, 1.5);
+    const light = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(light);
-    const dirLight = new THREE.DirectionalLight(0xffffff, 2);
-    dirLight.position.set(5, 5, 5);
-    scene.add(dirLight);
+    const spotLight = new THREE.PointLight(0xffffff, 2);
+    spotLight.position.set(5, 5, 5);
+    scene.add(spotLight);
 
     const loader = new GLTFLoader();
     loader.load(modelUrl, (gltf) => {
       const model = gltf.scene;
-      model.scale.set(1.5, 1.5, 1.5);
+      model.position.set(0, -0.5, 0);
+      model.scale.set(1.8, 1.8, 1.8);
       scene.add(model);
       setLoading(false);
       
@@ -43,42 +55,33 @@ const App = () => {
         renderer.render(scene, camera);
       };
       animate();
-    }, undefined, (error) => console.error("Erro no 3D:", error));
+    });
 
-    camera.position.z = 3;
+    camera.position.z = 2;
 
     return () => {
       renderer.dispose();
       if (containerRef.current) containerRef.current.innerHTML = '';
     };
-  }, [arActive, cameraMode]);
-
-  const takePhoto = () => {
-    // Lógica para capturar o canvas + vídeo da câmera
-    alert("Foto capturada e salva na galeria!");
-  };
+  }, [arActive]);
 
   return (
     <div className="gp-main-container">
       {!arActive ? (
         <div className="gp-landing">
-          <div className="gp-logo-wrapper">
-            <img src="https://i.ibb.co/JRcfKZhw/1776216880651.jpg" alt="Logo" className="gp-logo-img" />
-          </div>
+          <img src="https://i.ibb.co/JRcfKZhw/1776216880651.jpg" alt="Logo" className="gp-logo-img" />
           <h1 className="gp-title">GHOST PROJECT</h1>
-          <p className="gp-subtitle">RA · E-COMMERCE · LUXO</p>
-          <button className="gp-btn-primary" onClick={() => setArActive(true)}>
-            ATIVAR GHOST AR
-          </button>
+          <p className="gp-subtitle">V 1.0.2 • LUXO AUTOMOTIVO & ACESSÓRIOS</p>
+          <button className="gp-btn-primary" onClick={startCamera}>ATIVAR EXPERIÊNCIA</button>
         </div>
       ) : (
         <div className="gp-ar-overlay">
-          {loading && <div className="gp-loading-screen">Carregando Experiência RA...</div>}
+          {loading && <div className="gp-loading">Carregando Relógio...</div>}
+          <video ref={videoRef} autoPlay playsInline className="gp-video-feed" />
           <div ref={containerRef} className="gp-canvas-container" />
           <div className="gp-controls">
-            <button className="gp-btn-icon" onClick={() => setArActive(false)}>✕</button>
-            <button className="gp-btn-capture" onClick={takePhoto}>📸</button>
-            <button className="gp-btn-icon" onClick={() => setCameraMode(cameraMode === 'user' ? 'environment' : 'user')}>🔄</button>
+            <button className="gp-btn-capture" onClick={() => alert("Foto salva!")}>📸</button>
+            <button className="gp-btn-exit" onClick={() => window.location.reload()}>SAIR</button>
           </div>
         </div>
       )}
