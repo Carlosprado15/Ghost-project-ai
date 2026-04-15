@@ -1,58 +1,540 @@
-/*
- * Ghost Project AI — App.css v4.0
- * Supplemental styles. Core keyframes + resets live in App.jsx → GCSS.
- */
+/* ============================================================
+   GHOST PROJECT — App.css
+   Estética: Luxury Dark · Gold · Minimal
+   ============================================================ */
 
-html, body {
-  overflow: hidden;
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
+/* ── Tokens de design ──────────────────────────────────── */
+:root {
+  --gold-light:   #f0d060;
+  --gold-main:    #d4af37;
+  --gold-dark:    #a07830;
+  --gold-shadow:  #8a6520;
+  --black:        #000000;
+  --near-black:   #080808;
+  --surface:      #111111;
+  --surface-2:    #181818;
+  --text-primary: #f5f0e8;
+  --text-muted:   rgba(212,175,55,0.55);
+  --border:       rgba(212,175,55,0.18);
+  --scan-gold:    rgba(212,175,55,0.85);
+
+  --font-display: 'Georgia', 'Times New Roman', serif;
+  --font-ui:      'Helvetica Neue', 'Arial', sans-serif;
+
+  --radius-sm:    4px;
+  --radius-md:    8px;
+  --radius-full:  999px;
+
+  --transition:   0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Widget isolation for future B2B embedding */
-#ghost-root,
-#ghost-root *,
-#ghost-root *::before,
-#ghost-root *::after {
+/* ── Reset ─────────────────────────────────────────────── */
+*, *::before, *::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-/* Safe-area helpers */
-.gp-safe-top    { padding-top:    env(safe-area-inset-top,    0px); }
-.gp-safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
-
-/* GPU promotion */
-.gp-gpu {
-  transform:           translateZ(0);
-  will-change:         transform;
-  backface-visibility: hidden;
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--black);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Remove tap flash on all touch platforms */
-button,
-.gp-btn,
-.gp-btn * {
-  -webkit-tap-highlight-color: transparent;
+/* ══ ROOT ═══════════════════════════════════════════════ */
+.ghost-root {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;          /* dvh: safe area em iOS */
+  overflow: hidden;
+  background: var(--near-black);
+  touch-action: none;
+  user-select: none;
 }
 
-/* Canvas: block removes inline gap */
-canvas {
-  display: block;
-}
-
-/* Hide native video controls on all browsers */
-video::-webkit-media-controls,
-video::-webkit-media-controls-enclosure,
-video::-webkit-media-controls-panel {
-  display: none !important;
-}
-
-/* Logo image: ensure no bleed or background */
-.gp-logo-img {
-  display: block;
+/* ── Vídeo de fundo ─────────────────────────────────────*/
+.ghost-video {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  z-index: 1;
+  transition: opacity 0.4s;
+}
+.ghost-video.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Canvas Three.js ─────────────────────────────────── */
+.ghost-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+.ghost-canvas.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Overlay canvas (scan) ───────────────────────────── */
+.ghost-overlay-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* ══ FASE IDLE ══════════════════════════════════════════ */
+.ghost-idle {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(
+    ellipse 80% 60% at 50% 40%,
+    #1a1400 0%,
+    #0a0a0a 60%,
+    #000 100%
+  );
+}
+
+/* Grade sutil de fundo */
+.ghost-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(212,175,55,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212,175,55,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+}
+
+.ghost-idle-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 40px 32px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+/* ── Logotipo ─────────────────────────────────────────── */
+.ghost-logo-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ghost-logo-img {
+  width: auto;
+  max-width: 220px;
+  max-height: 80px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 18px rgba(212,175,55,0.4));
+}
+
+.ghost-logo-svg {
+  width: 180px;
+  height: 56px;
+  filter: drop-shadow(0 0 14px rgba(212,175,55,0.35));
+}
+
+.ghost-logo-sub {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 6px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* ── Divisor ──────────────────────────────────────────── */
+.ghost-divider {
+  width: 48px;
+  height: 1px;
+  background: linear-gradient(
+    90deg, transparent, var(--gold-main), transparent
+  );
+}
+
+/* ── Tagline ──────────────────────────────────────────── */
+.ghost-tagline {
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(245,240,232,0.75);
+}
+.ghost-tagline-accent {
+  color: var(--gold-main);
+  font-style: italic;
+}
+
+/* ── Erro ──────────────────────────────────────────────── */
+.ghost-error {
+  background: rgba(180,30,30,0.15);
+  border: 1px solid rgba(220,60,60,0.3);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: #ff9090;
+  max-width: 320px;
+}
+
+/* ── CTA Principal ────────────────────────────────────── */
+.ghost-cta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 36px;
+  background: transparent;
+  border: 1px solid var(--gold-main);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  overflow: hidden;
+  transition: var(--transition);
+  margin-top: 8px;
+}
+.ghost-cta:hover,
+.ghost-cta:active {
+  background: rgba(212,175,55,0.08);
+  border-color: var(--gold-light);
+  box-shadow: 0 0 28px rgba(212,175,55,0.2);
+}
+.ghost-cta:active {
+  transform: scale(0.97);
+}
+
+.ghost-cta-ring {
+  position: absolute;
+  inset: -1px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(
+    135deg,
+    rgba(212,175,55,0.25),
+    transparent 50%,
+    rgba(212,175,55,0.1)
+  );
+  pointer-events: none;
+}
+
+.ghost-cta-text {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: var(--gold-main);
+  text-transform: uppercase;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Hint ─────────────────────────────────────────────── */
+.ghost-hint {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: rgba(212,175,55,0.3);
+}
+
+/* ══ OVERLAY DE LOADING ══════════════════════════════════ */
+.ghost-overlay-ui {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: rgba(0,0,0,0.85);
+}
+
+.ghost-spinner {
+  width: 36px;
+  height: 36px;
+  border: 2px solid rgba(212,175,55,0.15);
+  border-top-color: var(--gold-main);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.ghost-status-text {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* ══ HUD AR (streaming + scanning + ar) ═════════════════ */
+.ghost-ar-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0;
+  pointer-events: none;
+}
+.ghost-ar-hud.ar-active {
+  z-index: 6;
+}
+
+/* ── Header HUD ─────────────────────────────────────────*/
+.ghost-hud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 52px 20px 12px;
+  background: linear-gradient(
+    to bottom, rgba(0,0,0,0.65) 0%, transparent 100%
+  );
+  pointer-events: none;
+}
+
+.ghost-hud-logo {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 5px;
+  color: var(--gold-main);
+}
+
+.ghost-hud-badge {
+  font-family: var(--font-ui);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius-full);
+  padding: 3px 10px;
+}
+.ghost-hud-badge.scanning {
+  color: var(--gold-main);
+  border-color: var(--gold-main);
+  animation: pulse 1s ease-in-out infinite;
+}
+.ghost-hud-badge.live {
+  color: #70ff90;
+  border-color: rgba(80,200,80,0.4);
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+/* ── Frame de scan (cantos CSS) ──────────────────────── */
+.ghost-scan-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(320px, 80vw);
+  height: min(320px, 80vw);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ghost-scan-hint {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.ghost-scan-corner {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+}
+.ghost-scan-corner.tl { top: 0; left: 0;
+  border-top: 1.5px solid var(--gold-main);
+  border-left: 1.5px solid var(--gold-main); }
+.ghost-scan-corner.tr { top: 0; right: 0;
+  border-top: 1.5px solid var(--gold-main);
+  border-right: 1.5px solid var(--gold-main); }
+.ghost-scan-corner.bl { bottom: 0; left: 0;
+  border-bottom: 1.5px solid var(--gold-main);
+  border-left: 1.5px solid var(--gold-main); }
+.ghost-scan-corner.br { bottom: 0; right: 0;
+  border-bottom: 1.5px solid var(--gold-main);
+  border-right: 1.5px solid var(--gold-main); }
+
+/* ── Barra de progresso de scan ─────────────────────── */
+.ghost-scan-progress-wrap {
+  position: absolute;
+  bottom: 120px;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: rgba(212,175,55,0.12);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.ghost-scan-progress-bar {
+  height: 100%;
+  background: linear-gradient(
+    90deg, var(--gold-dark), var(--gold-light)
+  );
+  transition: width 0.08s linear;
+  box-shadow: 0 0 8px var(--gold-main);
+}
+
+.ghost-scan-label {
+  position: absolute;
+  bottom: 100px;
+  left: 0; right: 0;
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── Footer HUD ─────────────────────────────────────── */
+.ghost-hud-footer {
+  padding: 16px 20px 40px;
+  background: linear-gradient(
+    to top, rgba(0,0,0,0.7) 0%, transparent 100%
+  );
+  display: flex;
+  justify-content: center;
+  pointer-events: auto;
+}
+.ghost-hud-footer.ar-footer {
+  gap: 12px;
+}
+
+/* ── Botão ESCANEAR ─────────────────────────────────── */
+.ghost-scan-btn {
+  position: relative;
+  padding: 0;
   background: transparent;
   border: none;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.ghost-scan-btn-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 44px;
+  border: 1px solid var(--gold-main);
+  border-radius: var(--radius-full);
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: var(--gold-main);
+  text-transform: uppercase;
+  background: rgba(212,175,55,0.06);
+  transition: var(--transition);
+}
+.ghost-scan-btn:active .ghost-scan-btn-inner {
+  background: rgba(212,175,55,0.15);
+  transform: scale(0.96);
+}
+
+/* ── Botões secundários ─────────────────────────────── */
+.ghost-secondary-btn {
+  flex: 1;
+  max-width: 160px;
+  padding: 10px 0;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: var(--radius-full);
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: rgba(212,175,55,0.7);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: var(--transition);
+  pointer-events: auto;
+}
+.ghost-secondary-btn:active {
+  transform: scale(0.96);
+  background: rgba(212,175,55,0.1);
+}
+.ghost-secondary-btn.accent {
+  border-color: var(--gold-main);
+  color: var(--gold-main);
+  background: rgba(212,175,55,0.08);
+}
+
+/* ── Hint de controles AR ───────────────────────────── */
+.ghost-ar-controls-hint {
+  position: absolute;
+  top: 50%;
+  left: 0; right: 0;
+  transform: translateY(120px);
+  text-align: center;
+  pointer-events: none;
+  animation: fadeHint 3s ease 1.5s forwards;
+  opacity: 0;
+}
+@keyframes fadeHint {
+  0%   { opacity: 0; transform: translateY(120px); }
+  15%  { opacity: 1; transform: translateY(110px); }
+  70%  { opacity: 1; transform: translateY(110px); }
+  100% { opacity: 0; transform: translateY(110px); }
+}
+.ghost-ar-controls-hint span {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(212,175,55,0.55);
+  background: rgba(0,0,0,0.45);
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(212,175,55,0.15);
+}
+
+/* ══ UTILITÁRIOS ════════════════════════════════════════ */
+@media (max-width: 380px) {
+  .ghost-idle-content { padding: 32px 20px; gap: 18px; }
+  .ghost-cta { padding: 12px 28px; }
+  .ghost-tagline { font-size: 13px; }
+}
+
+/* Safe area para notch/home bar no iOS */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .ghost-hud-header {
+    padding-top: max(52px, calc(env(safe-area-inset-top) + 16px));
+  }
+  .ghost-hud-footer {
+    padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 20px));
+  }
 }
