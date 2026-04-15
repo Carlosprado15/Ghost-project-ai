@@ -1,41 +1,73 @@
 /* ============================================================
-   GHOST PROJECT — App.css (Versão Final Consolidada)
+   GHOST PROJECT — CSS DE EMERGÊNCIA (CORREÇÃO TOTAL)
    ============================================================ */
 
-:root {
-  --gold: #d4af37;
-  --black: #000000;
-  --near-black: #0a0a0a;
-  --text: #f5f0e8;
-}
-
-/* Reset Geral */
-* {
-  box-sizing: border-box;
+/* Forçar fundo preto em tudo para eliminar a tela branca */
+html, body, #root {
   margin: 0;
   padding: 0;
-}
-
-html, body, #root {
   width: 100%;
   height: 100%;
-  background-color: var(--black) !important;
-  color: var(--text);
-  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background-color: #000000 !important;
+  color: #f5f0e8;
   overflow: hidden;
+  font-family: sans-serif;
 }
 
-/* Estrutura Principal */
+/* Centralizar a tela inicial */
 .ghost-root {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  background: var(--black);
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #000000;
+  text-align: center;
 }
 
-/* Vídeo de Fundo (Câmera) */
+/* Corrigir o Logo (tirar o fundo cinza e centralizar) */
+.ghost-logo-wrapper {
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ghost-logo-img {
+  max-width: 180px;
+  height: auto;
+  background: transparent !important;
+  filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.5));
+}
+
+.ghost-logo-sub {
+  font-size: 10px;
+  letter-spacing: 5px;
+  color: #d4af37;
+  text-transform: uppercase;
+  margin-top: 10px;
+}
+
+/* Estilizar o botão que está "feio" no seu print */
+.ghost-cta {
+  background: transparent;
+  border: 1px solid #d4af37;
+  color: #d4af37;
+  padding: 14px 30px;
+  border-radius: 50px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: 0.3s;
+}
+
+.ghost-cta:active {
+  background: rgba(212, 175, 55, 0.2);
+  transform: scale(0.95);
+}
+
+/* Camadas de Câmera e 3D */
 .ghost-video {
   position: absolute;
   inset: 0;
@@ -45,11 +77,6 @@ html, body, #root {
   z-index: 1;
 }
 
-.ghost-video.hidden {
-  display: none;
-}
-
-/* Camada do Relógio 3D */
 .ghost-canvas {
   position: absolute;
   inset: 0;
@@ -57,94 +84,14 @@ html, body, #root {
   pointer-events: none;
 }
 
-/* Tela Inicial (Luxury Idle) */
-.ghost-idle {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle at center, #1a1400 0%, #000 100%);
-  padding: 20px;
-}
-
-.ghost-logo-wrapper {
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.ghost-logo-img {
-  max-width: 220px;
-  height: auto;
-  filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.4));
-  background: transparent !important; /* Garante fundo transparente no logo */
-}
-
-.ghost-logo-sub {
-  display: block;
-  font-size: 10px;
-  letter-spacing: 6px;
-  color: rgba(212, 175, 55, 0.6);
-  text-transform: uppercase;
-  margin-top: 15px;
-}
-
-/* Botão Iniciar (CTA) */
-.ghost-cta {
-  background: transparent;
-  border: 1px solid var(--gold);
-  color: var(--gold);
-  padding: 16px 40px;
-  border-radius: 100px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  z-index: 11;
-}
-
-.ghost-cta:active {
-  transform: scale(0.95);
-  background: rgba(212, 175, 55, 0.1);
-}
-
-/* HUD de Escaneamento */
+/* Texto de Status no AR */
 .ghost-status-text {
   position: absolute;
-  bottom: 120px;
+  bottom: 100px;
   width: 100%;
   text-align: center;
-  color: var(--gold);
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  z-index: 20;
-}
-
-.ghost-scan-btn {
-  position: absolute;
-  bottom: 50px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--gold);
-  color: #000;
-  border: none;
-  padding: 15px 35px;
-  border-radius: 50px;
-  font-weight: bold;
+  color: #d4af37;
+  z-index: 10;
+  font-size: 12px;
   letter-spacing: 1px;
-  z-index: 20;
-  cursor: pointer;
-}
-
-/* Suporte para Notch do iPhone */
-@supports (padding-top: env(safe-area-inset-top)) {
-  .ghost-idle {
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-  }
 }
