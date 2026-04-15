@@ -1,138 +1,114 @@
 // ============================================================
-// GHOST PROJECT — App.jsx
-// Motor: Three.js via CDN (sem bundler dependency)
-// Compatível: Safari iOS + Chrome Android + Desktop
-// Arquitetura: System Prompt = Cérebro | User Prompt = Voz
+// GHOST PROJECT — App.jsx — VERSÃO FINAL UNIFICADA
+// Correções:
+// • Hooks sempre no topo, sem condicionais (regra dos Hooks)
+// • Three.js CDN singleton (não re-injeta script)
+// • Câmera traseira/frontal com alternância
+// • Fundo preto garantido via CSS + inline fallback
+// • Safe area iOS/Android (env safe-area-inset)
 // ============================================================
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import "./App.css";
 
-// ── Constantes de sistema ──────────────────────────────────
-const SYSTEM = {
-  SCAN_DURATION_MS: 2800,
-  ROTATION_DAMPING: 0.92,
-  OBJECT_DISTANCE: 2.2,       // metros simulados de profundidade
-  AMBIENT_INTENSITY: 0.6,
-  POINT_LIGHT_INTENSITY: 3.0,
-  GOLD_COLOR: 0xd4af37,
-  GOLD_EMISSIVE: 0x3a2800,
-  BG_COLOR: 0x0a0a0a,
+// ── Constantes do Sistema (Cérebro) ───────────────────────
+const SYS = {
+  LOGO_URL:       "https://i.postimg.cc/RVQVdBx3/1776216880651.jpg",
+  THREE_CDN:      "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+  SCAN_MS:        2600,
+  DAMPING:        0.90,
+  GOLD:           0xd4af37,
+  GOLD_EMISSIVE:  0x3a2800,
+  AMBIENT_INT:    0.7,
+  KEY_INT:        3.2,
 };
 
-// ── Injetor de script Three.js (CDN) ──────────────────────
-function loadThreeJS() {
-  return new Promise((resolve, reject) => {
+// ── Singleton loader (não duplica o script) ───────────────
+let _threePromise = null;
+function ensureThree() {
+  if (_threePromise) return _threePromise;
+  _threePromise = new Promise((resolve, reject) => {
     if (window.THREE) return resolve(window.THREE);
-    const script = document.createElement("script");
-    script.src =
-      "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-    script.onload = () => resolve(window.THREE);
-    script.onerror = reject;
-    document.head.appendChild(script);
+    const s = document.createElement("script");
+    s.src     = SYS.THREE_CDN;
+    s.onload  = () => resolve(window.THREE);
+    s.onerror = () => reject(new Error("Three.js CDN falhou"));
+    document.head.appendChild(s);
   });
+  return _threePromise;
 }
 
-// ── Geometria: Relógio/Toroide dourado ─────────────────────
-function buildGoldObject(THREE) {
+// ── Geometria: Relógio dourado procedural ─────────────────
+function buildWatch(THREE) {
   const group = new THREE.Group();
 
-  // Anel externo (bezel)
-  const bezelGeo = new THREE.TorusGeometry(0.72, 0.09, 32, 100);
-  const goldMat = new THREE.MeshStandardMaterial({
-    color: SYSTEM.GOLD_COLOR,
-    emissive: SYSTEM.GOLD_EMISSIVE,
-    metalness: 1.0,
-    roughness: 0.18,
+  const gold = new THREE.MeshStandardMaterial({
+    color: SYS.GOLD, emissive: SYS.GOLD_EMISSIVE,
+    metalness: 1.0, roughness: 0.15,
   });
-  const bezel = new THREE.Mesh(bezelGeo, goldMat);
-  group.add(bezel);
+  const dark = new THREE.MeshStandardMaterial({
+    color: 0x0a0a0a, metalness: 0.3, roughness: 0.8,
+  });
+  const strap = new THREE.MeshStandardMaterial({
+    color: 0x1a1a1a, metalness: 0.15, roughness: 0.9,
+  });
 
-  // Face do relógio
-  const faceGeo = new THREE.CylinderGeometry(0.62, 0.62, 0.06, 64);
-  const faceMat = new THREE.MeshStandardMaterial({
-    color: 0x0d0d0d,
-    metalness: 0.4,
-    roughness: 0.7,
-  });
-  const face = new THREE.Mesh(faceGeo, faceMat);
+  // Bezel
+  group.add(new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.09, 32, 100), gold));
+
+  // Face
+  const face = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.06, 64), dark);
   face.rotation.x = Math.PI / 2;
   group.add(face);
 
-  // Marcadores de hora (12 bastões)
+  // Marcadores hora
   for (let i = 0; i < 12; i++) {
-    const angle = (i / 12) * Math.PI * 2;
-    const markGeo =
-      i % 3 === 0
-        ? new THREE.BoxGeometry(0.05, 0.16, 0.03)
-        : new THREE.BoxGeometry(0.025, 0.09, 0.03);
-    const mark = new THREE.Mesh(markGeo, goldMat);
-    mark.position.set(
-      Math.sin(angle) * 0.5,
-      Math.cos(angle) * 0.5,
-      0.05
+    const a = (i / 12) * Math.PI * 2;
+    const big = i % 3 === 0;
+    const m = new THREE.Mesh(
+      new THREE.BoxGeometry(big ? 0.05 : 0.025, big ? 0.15 : 0.08, 0.03), gold
     );
-    mark.rotation.z = -angle;
-    group.add(mark);
+    m.position.set(Math.sin(a) * 0.5, Math.cos(a) * 0.5, 0.05);
+    m.rotation.z = -a;
+    group.add(m);
   }
 
-  // Ponteiro de horas
-  const hourGeo = new THREE.BoxGeometry(0.04, 0.28, 0.025);
-  const hourHand = new THREE.Mesh(hourGeo, goldMat);
-  hourHand.position.set(0.06, 0.10, 0.07);
-  hourHand.rotation.z = -0.8;
-  group.add(hourHand);
+  // Ponteiro horas
+  const ph = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.28, 0.025), gold);
+  ph.position.set(0.06, 0.10, 0.07); ph.rotation.z = -0.8;
+  group.add(ph);
 
-  // Ponteiro de minutos
-  const minGeo = new THREE.BoxGeometry(0.025, 0.42, 0.025);
-  const minHand = new THREE.Mesh(minGeo, goldMat);
-  minHand.position.set(-0.05, 0.15, 0.07);
-  minHand.rotation.z = 0.4;
-  group.add(minHand);
+  // Ponteiro minutos
+  const pm = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.40, 0.025), gold);
+  pm.position.set(-0.04, 0.14, 0.07); pm.rotation.z = 0.4;
+  group.add(pm);
 
   // Coroa lateral
-  const crownGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.18, 16);
-  const crown = new THREE.Mesh(crownGeo, goldMat);
-  crown.rotation.z = Math.PI / 2;
-  crown.position.set(0.78, 0, 0);
+  const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.18, 16), gold);
+  crown.rotation.z = Math.PI / 2; crown.position.set(0.78, 0, 0);
   group.add(crown);
 
-  // Pulseira superior
-  const strapGeo = new THREE.BoxGeometry(0.42, 0.55, 0.06);
-  const strapMat = new THREE.MeshStandardMaterial({
-    color: 0x1a1a1a,
-    metalness: 0.2,
-    roughness: 0.9,
+  // Pulseiras
+  const sGeo = new THREE.BoxGeometry(0.42, 0.55, 0.06);
+  [-1.1, 1.1].forEach(y => {
+    const s = new THREE.Mesh(sGeo, strap);
+    s.position.set(0, y, 0);
+    group.add(s);
   });
-  const strapTop = new THREE.Mesh(strapGeo, strapMat);
-  strapTop.position.set(0, 1.1, 0);
-  group.add(strapTop);
 
-  // Pulseira inferior
-  const strapBot = new THREE.Mesh(strapGeo, strapMat);
-  strapBot.position.set(0, -1.1, 0);
-  group.add(strapBot);
-
-  // Partículas douradas de ambiente
-  const particleCount = 120;
-  const particleGeo = new THREE.BufferGeometry();
-  const positions = new Float32Array(particleCount * 3);
-  for (let i = 0; i < particleCount; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * 5;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 5;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 5;
+  // Partículas douradas
+  const n = 140;
+  const pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    pos[i*3]   = (Math.random() - 0.5) * 6;
+    pos[i*3+1] = (Math.random() - 0.5) * 6;
+    pos[i*3+2] = (Math.random() - 0.5) * 6;
   }
-  particleGeo.setAttribute(
-    "position",
-    new THREE.BufferAttribute(positions, 3)
-  );
-  const particleMat = new THREE.PointsMaterial({
-    color: SYSTEM.GOLD_COLOR,
-    size: 0.018,
-    transparent: true,
-    opacity: 0.55,
-  });
-  const particles = new THREE.Points(particleGeo, particleMat);
-  group.add(particles);
+  const pg = new THREE.BufferGeometry();
+  pg.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  group.add(new THREE.Points(pg, new THREE.PointsMaterial({
+    color: SYS.GOLD, size: 0.018, transparent: true, opacity: 0.5,
+  })));
 
   return group;
 }
@@ -141,548 +117,394 @@ function buildGoldObject(THREE) {
 // COMPONENTE PRINCIPAL
 // ══════════════════════════════════════════════════════════
 export default function App() {
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const overlayCanvasRef = useRef(null);
 
-  // Three.js refs
-  const threeRef = useRef({
-    renderer: null,
-    scene: null,
-    camera: null,
-    object: null,
-    animFrameId: null,
-  });
+  // ── Refs (declarados incondicionalmente no topo) ────────
+  const videoRef      = useRef(null);
+  const canvasRef     = useRef(null);
+  const overlayRef    = useRef(null);
+  const threeRef      = useRef({ renderer:null, scene:null, camera:null, object:null, raf:null, keyLight:null });
+  const orientRef     = useRef({ beta:0, gamma:0 });
+  const touchRef      = useRef({ active:false, lastX:0, lastY:0, vx:0, vy:0 });
+  const mouseRef      = useRef({ down:false, lastX:0, lastY:0 });
+  const facingRef     = useRef("environment");
 
-  // Orientação do dispositivo (ancoragem)
-  const orientRef = useRef({ alpha: 0, beta: 0, gamma: 0 });
+  // ── Estados ─────────────────────────────────────────────
+  const [phase,    setPhase]    = useState("loading");
+  const [scanPct,  setScanPct]  = useState(0);
+  const [camError, setCamError] = useState(null);
+  const [facing,   setFacing]   = useState("environment"); // usado para UI do botão
 
-  // Gestos touch
-  const touchRef = useRef({
-    active: false,
-    lastX: 0,
-    lastY: 0,
-    velX: 0,
-    velY: 0,
-  });
-
-  // Estados de UI
-  const [phase, setPhase] = useState("idle"); // idle | requesting | streaming | scanning | ar
-  const [scanProgress, setScanProgress] = useState(0);
-  const [threeLoaded, setThreeLoaded] = useState(false);
-  const [permissionError, setPermissionError] = useState(null);
-
-  // ── Pré-carrega Three.js na montagem ──────────────────
+  // ── 1. Pré-carrega Three.js ─────────────────────────────
   useEffect(() => {
-    loadThreeJS()
-      .then(() => setThreeLoaded(true))
-      .catch(() => console.warn("Three.js CDN falhou"));
+    ensureThree()
+      .then(()  => setPhase("idle"))
+      .catch(()  => setPhase("idle"));
   }, []);
 
-  // ── Orientação do dispositivo → ancoragem ─────────────
+  // ── 2. Sensor de orientação ─────────────────────────────
   useEffect(() => {
-    function handleOrientation(e) {
-      orientRef.current = {
-        alpha: e.alpha || 0,
-        beta: e.beta || 0,
-        gamma: e.gamma || 0,
-      };
-    }
-    window.addEventListener("deviceorientation", handleOrientation, true);
-    return () =>
-      window.removeEventListener("deviceorientation", handleOrientation, true);
+    const h = (e) => { orientRef.current = { beta: e.beta ?? 0, gamma: e.gamma ?? 0 }; };
+    window.addEventListener("deviceorientation", h, true);
+    return () => window.removeEventListener("deviceorientation", h, true);
   }, []);
 
-  // ── Inicia câmera ──────────────────────────────────────
-  const startCamera = useCallback(async () => {
+  // ── 3. Resize ───────────────────────────────────────────
+  useEffect(() => {
+    const onResize = () => {
+      const { renderer, camera } = threeRef.current;
+      const c = canvasRef.current;
+      if (!renderer || !c) return;
+      const W = c.clientWidth, H = c.clientHeight;
+      renderer.setSize(W, H, false);
+      if (camera) { camera.aspect = W / H; camera.updateProjectionMatrix(); }
+      const ol = overlayRef.current;
+      if (ol) { ol.width = W; ol.height = H; }
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  // ── 4. Cleanup geral ────────────────────────────────────
+  useEffect(() => {
+    return () => {
+      const { renderer, raf } = threeRef.current;
+      if (raf) cancelAnimationFrame(raf);
+      if (renderer) renderer.dispose();
+      if (videoRef.current?.srcObject) {
+        videoRef.current.srcObject.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, []);
+
+  // ── Inicia/alterna câmera ───────────────────────────────
+  const startCamera = useCallback(async (facingMode) => {
     setPhase("requesting");
-    setPermissionError(null);
+    setCamError(null);
+    if (videoRef.current?.srcObject) {
+      videoRef.current.srcObject.getTracks().forEach(t => t.stop());
+      videoRef.current.srcObject = null;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
+        video: { facingMode: { ideal: facingMode }, width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: false,
       });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
+      if (!videoRef.current) return;
+      videoRef.current.srcObject = stream;
+      await videoRef.current.play();
       setPhase("streaming");
     } catch (err) {
-      setPermissionError(
+      setCamError(
         err.name === "NotAllowedError"
-          ? "Permissão de câmera negada. Habilite nas configurações do navegador."
-          : "Câmera não disponível neste dispositivo."
+          ? "Permissão negada. Habilite a câmera nas configurações do navegador."
+          : "Câmera indisponível neste dispositivo."
       );
       setPhase("idle");
     }
   }, []);
 
-  // ── Dispara scan ──────────────────────────────────────
+  const toggleCamera = useCallback(() => {
+    const next = facingRef.current === "environment" ? "user" : "environment";
+    facingRef.current = next;
+    setFacing(next);
+    // Para o Three.js se estiver rodando
+    const { raf, renderer } = threeRef.current;
+    if (raf) cancelAnimationFrame(raf);
+    if (renderer) renderer.dispose();
+    threeRef.current = { renderer:null, scene:null, camera:null, object:null, raf:null, keyLight:null };
+    startCamera(next);
+  }, [startCamera]);
+
+  // ── Animação de scan (canvas 2D) ────────────────────────
+  const runScan = useCallback((onComplete) => {
+    const ol = overlayRef.current;
+    const ctx = ol?.getContext("2d");
+    if (!ol || !ctx) { onComplete(); return; }
+    ol.width  = ol.clientWidth  || window.innerWidth;
+    ol.height = ol.clientHeight || window.innerHeight;
+    const start = performance.now();
+
+    function frame(now) {
+      const p = Math.min((now - start) / SYS.SCAN_MS, 1);
+      setScanPct(p);
+      ctx.clearRect(0, 0, ol.width, ol.height);
+
+      const y = p * ol.height;
+      const g = ctx.createLinearGradient(0, y - 32, 0, y + 4);
+      g.addColorStop(0,   "rgba(212,175,55,0)");
+      g.addColorStop(0.7, "rgba(212,175,55,0.14)");
+      g.addColorStop(1,   "rgba(212,175,55,0.88)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, y - 32, ol.width, 36);
+      ctx.beginPath();
+      ctx.moveTo(0, y); ctx.lineTo(ol.width, y);
+      ctx.strokeStyle = "rgba(212,175,55,0.92)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // cantos
+      const L = 34, P = 26, alpha = 0.4 + p * 0.6;
+      ctx.strokeStyle = `rgba(212,175,55,${alpha})`;
+      ctx.lineWidth = 2;
+      [[P,P,1,1],[ol.width-P,P,-1,1],[P,ol.height-P,1,-1],[ol.width-P,ol.height-P,-1,-1]].forEach(([x,cy,dx,dy]) => {
+        ctx.beginPath();
+        ctx.moveTo(x, cy+dy*L); ctx.lineTo(x, cy); ctx.lineTo(x+dx*L, cy);
+        ctx.stroke();
+      });
+
+      if (p < 1) requestAnimationFrame(frame);
+      else { ctx.clearRect(0,0,ol.width,ol.height); onComplete(); }
+    }
+    requestAnimationFrame(frame);
+  }, []);
+
   const startScan = useCallback(() => {
     if (phase !== "streaming") return;
     setPhase("scanning");
-    setScanProgress(0);
+    setScanPct(0);
+    runScan(initAR);
+  }, [phase, runScan]); // eslint-disable-line
 
-    // Scan de overlay no canvas 2D
-    const overlay = overlayCanvasRef.current;
-    const ctx = overlay?.getContext("2d");
-    const start = performance.now();
-
-    function animateScan(now) {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / SYSTEM.SCAN_DURATION_MS, 1);
-      setScanProgress(progress);
-
-      if (ctx && overlay) {
-        ctx.clearRect(0, 0, overlay.width, overlay.height);
-        // Linha de scan
-        const y = progress * overlay.height;
-        const grad = ctx.createLinearGradient(0, y - 30, 0, y + 4);
-        grad.addColorStop(0, "rgba(212,175,55,0)");
-        grad.addColorStop(0.6, "rgba(212,175,55,0.18)");
-        grad.addColorStop(1, "rgba(212,175,55,0.85)");
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, y - 30, overlay.width, 34);
-
-        // Linha nítida
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(overlay.width, y);
-        ctx.strokeStyle = "rgba(212,175,55,0.95)";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        // Cantos do frame
-        drawCorners(ctx, overlay.width, overlay.height, progress);
-      }
-
-      if (progress < 1) {
-        requestAnimationFrame(animateScan);
-      } else {
-        if (ctx && overlay) ctx.clearRect(0, 0, overlay.width, overlay.height);
-        initThreeAR();
-      }
-    }
-    requestAnimationFrame(animateScan);
-  }, [phase]);
-
-  // ── Desenha cantos do frame de scan ───────────────────
-  function drawCorners(ctx, w, h, progress) {
-    const len = 36;
-    const pad = 28;
-    const alpha = 0.4 + progress * 0.6;
-    ctx.strokeStyle = `rgba(212,175,55,${alpha})`;
-    ctx.lineWidth = 2;
-
-    const corners = [
-      [pad, pad, 1, 1],
-      [w - pad, pad, -1, 1],
-      [pad, h - pad, 1, -1],
-      [w - pad, h - pad, -1, -1],
-    ];
-    corners.forEach(([x, y, dx, dy]) => {
-      ctx.beginPath();
-      ctx.moveTo(x, y + dy * len);
-      ctx.lineTo(x, y);
-      ctx.lineTo(x + dx * len, y);
-      ctx.stroke();
-    });
-  }
-
-  // ── Inicializa cena Three.js sobre o vídeo ────────────
-  function initThreeAR() {
-    if (!window.THREE) {
-      console.warn("Three.js não carregado");
-      setPhase("ar");
-      return;
-    }
-    const THREE = window.THREE;
+  // ── Inicia cena Three.js ────────────────────────────────
+  function initAR() {
+    const THREE  = window.THREE;
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!THREE || !canvas) { setPhase("ar"); return; }
 
-    const W = canvas.clientWidth;
-    const H = canvas.clientHeight;
-    canvas.width = W;
-    canvas.height = H;
+    const W = canvas.clientWidth  || window.innerWidth;
+    const H = canvas.clientHeight || window.innerHeight;
+    canvas.width = W; canvas.height = H;
 
-    // Renderer transparente sobre o vídeo
     const renderer = new THREE.WebGLRenderer({
-      canvas,
-      alpha: true,
-      antialias: true,
-      powerPreference: "high-performance",
+      canvas, alpha: true, antialias: true, powerPreference: "high-performance",
     });
-    renderer.setSize(W, H);
+    renderer.setSize(W, H, false);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    // Cena
-    const scene = new THREE.Scene();
-
-    // Câmera perspectiva
+    const scene  = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(55, W / H, 0.01, 100);
-    camera.position.set(0, 0, SYSTEM.OBJECT_DISTANCE);
+    camera.position.set(0, 0, 2.4);
 
-    // Luzes
-    const ambientLight = new THREE.AmbientLight(
-      0xffeedd,
-      SYSTEM.AMBIENT_INTENSITY
-    );
-    scene.add(ambientLight);
+    scene.add(new THREE.AmbientLight(0xffeedd, SYS.AMBIENT_INT));
+    const key = new THREE.PointLight(0xffd700, SYS.KEY_INT, 12);
+    key.position.set(2, 3, 3);
+    scene.add(key);
+    const fill = new THREE.PointLight(0xffffff, 1.2, 10);
+    fill.position.set(-2, -1, 2);
+    scene.add(fill);
+    scene.add(Object.assign(new THREE.PointLight(0xd4af37, 0.8, 8), { position: { x:0, y:-3, z:-1 } }));
 
-    const keyLight = new THREE.PointLight(
-      0xffd700,
-      SYSTEM.POINT_LIGHT_INTENSITY,
-      12
-    );
-    keyLight.position.set(2, 3, 3);
-    keyLight.castShadow = true;
-    scene.add(keyLight);
-
-    const fillLight = new THREE.PointLight(0xffffff, 1.2, 10);
-    fillLight.position.set(-2, -1, 2);
-    scene.add(fillLight);
-
-    const rimLight = new THREE.PointLight(0xd4af37, 0.8, 8);
-    rimLight.position.set(0, -3, -1);
-    scene.add(rimLight);
-
-    // Objeto 3D
-    const object = buildGoldObject(THREE);
-    object.position.set(0, 0, 0);
-    scene.add(object);
-
-    threeRef.current = { renderer, scene, camera, object, animFrameId: null };
+    const obj = buildWatch(THREE);
+    scene.add(obj);
+    threeRef.current = { renderer, scene, camera, object: obj, raf: null, keyLight: key };
     setPhase("ar");
 
-    // ── Loop de renderização ──────────────────────────
-    let autoRotY = 0;
+    function loop() {
+      threeRef.current.raf = requestAnimationFrame(loop);
+      const { vx, vy, active } = touchRef.current;
+      const { beta, gamma } = orientRef.current;
 
-    function animate() {
-      threeRef.current.animFrameId = requestAnimationFrame(animate);
-
-      const touch = touchRef.current;
-      const orient = orientRef.current;
-
-      if (touch.active) {
-        // Gesto manual: rotação direta
-        object.rotation.y += touch.velX * 0.012;
-        object.rotation.x += touch.velY * 0.012;
-        // Amortece velocidade
-        touch.velX *= SYSTEM.ROTATION_DAMPING;
-        touch.velY *= SYSTEM.ROTATION_DAMPING;
+      if (active) {
+        obj.rotation.y += vx * 0.013;
+        obj.rotation.x += vy * 0.013;
+        touchRef.current.vx *= SYS.DAMPING;
+        touchRef.current.vy *= SYS.DAMPING;
       } else {
-        // Ancoragem por orientação do dispositivo
-        const targetY = (orient.gamma / 45) * 0.6;
-        const targetX = ((orient.beta - 45) / 45) * 0.4;
-        object.rotation.y += (targetY - object.rotation.y) * 0.06;
-        object.rotation.x += (targetX - object.rotation.x) * 0.06;
-
-        // Auto-giro leve quando sem toque
-        autoRotY += 0.003;
-        object.rotation.y += 0.003;
+        const ty = (gamma / 45) * 0.55;
+        const tx = ((beta - 45) / 45) * 0.35;
+        obj.rotation.y += (ty - obj.rotation.y) * 0.06 + 0.003;
+        obj.rotation.x += (tx - obj.rotation.x) * 0.05;
       }
-
-      // Leve flutuação vertical
-      object.position.y = Math.sin(Date.now() * 0.0008) * 0.06;
-
-      // Luz pulsante
-      keyLight.intensity =
-        SYSTEM.POINT_LIGHT_INTENSITY +
-        Math.sin(Date.now() * 0.002) * 0.4;
-
+      obj.position.y = Math.sin(Date.now() * 0.0009) * 0.055;
+      key.intensity   = SYS.KEY_INT + Math.sin(Date.now() * 0.0018) * 0.35;
       renderer.render(scene, camera);
     }
-    animate();
+    loop();
   }
 
-  // ── Gestos touch ──────────────────────────────────────
-  const handleTouchStart = useCallback((e) => {
+  // ── Touch handlers ──────────────────────────────────────
+  const onTouchStart = useCallback((e) => {
     if (e.touches.length !== 1) return;
-    touchRef.current = {
-      active: true,
-      lastX: e.touches[0].clientX,
-      lastY: e.touches[0].clientY,
-      velX: 0,
-      velY: 0,
-    };
+    touchRef.current = { active:true, lastX:e.touches[0].clientX, lastY:e.touches[0].clientY, vx:0, vy:0 };
   }, []);
-
-  const handleTouchMove = useCallback((e) => {
+  const onTouchMove = useCallback((e) => {
     if (!touchRef.current.active || e.touches.length !== 1) return;
     e.preventDefault();
     const dx = e.touches[0].clientX - touchRef.current.lastX;
     const dy = e.touches[0].clientY - touchRef.current.lastY;
-    touchRef.current.velX = dx;
-    touchRef.current.velY = dy;
+    touchRef.current.vx = dx; touchRef.current.vy = dy;
     touchRef.current.lastX = e.touches[0].clientX;
     touchRef.current.lastY = e.touches[0].clientY;
-
-    if (threeRef.current.object) {
-      threeRef.current.object.rotation.y += dx * 0.012;
-      threeRef.current.object.rotation.x += dy * 0.012;
-    }
+    const o = threeRef.current.object;
+    if (o) { o.rotation.y += dx * 0.013; o.rotation.x += dy * 0.013; }
   }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    touchRef.current.active = false;
-  }, []);
-
-  // ── Mouse drag (desktop) ──────────────────────────────
-  const mouseRef = useRef({ down: false, lastX: 0, lastY: 0 });
-
-  const handleMouseDown = useCallback((e) => {
-    mouseRef.current = { down: true, lastX: e.clientX, lastY: e.clientY };
+  const onTouchEnd   = useCallback(() => { touchRef.current.active = false; }, []);
+  const onMouseDown  = useCallback((e) => {
+    mouseRef.current = { down:true, lastX:e.clientX, lastY:e.clientY };
     touchRef.current.active = true;
   }, []);
-
-  const handleMouseMove = useCallback((e) => {
+  const onMouseMove  = useCallback((e) => {
     if (!mouseRef.current.down) return;
     const dx = e.clientX - mouseRef.current.lastX;
     const dy = e.clientY - mouseRef.current.lastY;
-    mouseRef.current.lastX = e.clientX;
-    mouseRef.current.lastY = e.clientY;
-    touchRef.current.velX = dx;
-    touchRef.current.velY = dy;
-    if (threeRef.current.object) {
-      threeRef.current.object.rotation.y += dx * 0.010;
-      threeRef.current.object.rotation.x += dy * 0.010;
-    }
+    mouseRef.current.lastX = e.clientX; mouseRef.current.lastY = e.clientY;
+    touchRef.current.vx = dx; touchRef.current.vy = dy;
+    const o = threeRef.current.object;
+    if (o) { o.rotation.y += dx * 0.010; o.rotation.x += dy * 0.010; }
+  }, []);
+  const onMouseUp = useCallback(() => {
+    mouseRef.current.down = false; touchRef.current.active = false;
   }, []);
 
-  const handleMouseUp = useCallback(() => {
-    mouseRef.current.down = false;
-    touchRef.current.active = false;
-  }, []);
+  // ── Label do scan ───────────────────────────────────────
+  const scanLabel =
+    scanPct < 0.38 ? "Mapeando superfícies..." :
+    scanPct < 0.72 ? "Calculando profundidade..." :
+    "Ancorando objeto 3D...";
 
-  // ── Resize handler ────────────────────────────────────
-  useEffect(() => {
-    function onResize() {
-      const { renderer, camera } = threeRef.current;
-      const canvas = canvasRef.current;
-      if (!renderer || !canvas) return;
-      const W = canvas.clientWidth;
-      const H = canvas.clientHeight;
-      renderer.setSize(W, H);
-      if (camera) {
-        camera.aspect = W / H;
-        camera.updateProjectionMatrix();
-      }
-      // Overlay canvas
-      const ol = overlayCanvasRef.current;
-      if (ol) { ol.width = W; ol.height = H; }
-    }
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  // ── Cleanup ───────────────────────────────────────────
-  useEffect(() => {
-    return () => {
-      const { renderer, animFrameId } = threeRef.current;
-      if (animFrameId) cancelAnimationFrame(animFrameId);
-      if (renderer) renderer.dispose();
-      if (videoRef.current?.srcObject) {
-        videoRef.current.srcObject.getTracks().forEach((t) => t.stop());
-      }
-    };
-  }, []);
-
-  // ══════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════
   // RENDER
-  // ══════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════
   return (
-    <div className="ghost-root">
-      {/* ── Vídeo de câmera (background) ── */}
+    <div className="gp-root">
+
+      {/* Fundo de câmera */}
       <video
         ref={videoRef}
-        className={`ghost-video ${phase === "idle" || phase === "requesting" ? "hidden" : ""}`}
-        playsInline
-        muted
-        autoPlay
+        className={`gp-video${(phase==="idle"||phase==="loading"||phase==="requesting") ? " hidden" : ""}`}
+        playsInline muted autoPlay
       />
 
-      {/* ── Canvas Three.js (sobre o vídeo) ── */}
+      {/* Canvas Three.js */}
       <canvas
         ref={canvasRef}
-        className={`ghost-canvas ${phase === "ar" ? "visible" : ""}`}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
+        className={`gp-canvas${phase==="ar" ? " visible" : ""}`}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
       />
 
-      {/* ── Canvas de overlay / scan ── */}
-      <canvas
-        ref={overlayCanvasRef}
-        className="ghost-overlay-canvas"
-      />
+      {/* Canvas overlay / scan */}
+      <canvas ref={overlayRef} className="gp-overlay" />
 
-      {/* ══ FASE: IDLE ══ */}
+      {/* ══ LOADING ══ */}
+      {phase === "loading" && (
+        <div className="gp-loading">
+          <div className="gp-ring" />
+          <p className="gp-loading-text">Iniciando GHOST PROJECT...</p>
+        </div>
+      )}
+
+      {/* ══ IDLE ══ */}
       {phase === "idle" && (
-        <div className="ghost-idle">
-          <div className="ghost-bg-grid" />
-          <div className="ghost-idle-content">
-            {/* ── LOGOTIPO ──
-                Substitua a URL abaixo pela URL pública do seu logo:
-                Ex: "https://res.cloudinary.com/seu-id/image/upload/logo.png"
-            ─────────────────────────────────────────────────────── */}
-            <div className="ghost-logo-wrapper">
-              {/* OPÇÃO A: imagem externa (recomendado) */}
-              {/* <img src="URL_DO_SEU_LOGO_AQUI" alt="Ghost Project" className="ghost-logo-img" /> */}
-
-              {/* OPÇÃO B: logotipo SVG inline (substitua o path abaixo) */}
-              <svg
-                className="ghost-logo-svg"
-                viewBox="0 0 160 60"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <text
-                  x="50%"
-                  y="50%"
-                  dominantBaseline="middle"
-                  textAnchor="middle"
-                  fontFamily="'Georgia', serif"
-                  fontSize="22"
-                  letterSpacing="8"
-                  fill="url(#goldGrad)"
-                >
-                  GHOST
-                </text>
-                <defs>
-                  <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#a07830" />
-                    <stop offset="40%" stopColor="#f0d060" />
-                    <stop offset="70%" stopColor="#d4af37" />
-                    <stop offset="100%" stopColor="#8a6520" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div className="ghost-logo-sub">PROJECT · AR</div>
+        <div className="gp-idle">
+          <div className="gp-grid-bg" />
+          <div className="gp-idle-inner">
+            <div className="gp-logo-block">
+              <img
+                src={SYS.LOGO_URL}
+                alt="Ghost Project"
+                className="gp-logo"
+                onError={e => { e.currentTarget.style.display = "none"; }}
+              />
+              <span className="gp-logo-sub">PROJETO · RA</span>
             </div>
 
-            <div className="ghost-divider" />
+            <div className="gp-sep" />
 
-            <p className="ghost-tagline">
+            <p className="gp-tagline">
               Experimente antes de comprar.<br />
-              <span className="ghost-tagline-accent">Realidade Aumentada para e-commerce.</span>
+              <em>Realidade Aumentada para e-commerce.</em>
             </p>
 
-            {permissionError && (
-              <div className="ghost-error">{permissionError}</div>
-            )}
+            {camError && <div className="gp-error">{camError}</div>}
 
-            <button className="ghost-cta" onClick={startCamera}>
-              <span className="ghost-cta-ring" />
-              <span className="ghost-cta-text">INICIAR EXPERIÊNCIA AR</span>
+            <button className="gp-cta" onClick={() => startCamera(facingRef.current)}>
+              INICIAR EXPERIÊNCIA AR
             </button>
 
-            <p className="ghost-hint">
-              Câmera traseira · iOS Safari · Android Chrome
-            </p>
+            <p className="gp-hint">Câmera traseira · iOS Safari · Android Chrome</p>
           </div>
         </div>
       )}
 
-      {/* ══ FASE: REQUESTING ══ */}
+      {/* ══ REQUESTING ══ */}
       {phase === "requesting" && (
-        <div className="ghost-overlay-ui">
-          <div className="ghost-spinner" />
-          <p className="ghost-status-text">Solicitando câmera...</p>
+        <div className="gp-overlay-ui">
+          <div className="gp-spinner" />
+          <p className="gp-status">Solicitando câmera...</p>
         </div>
       )}
 
-      {/* ══ FASE: STREAMING ══ */}
+      {/* ══ STREAMING ══ */}
       {phase === "streaming" && (
-        <div className="ghost-ar-hud">
-          <div className="ghost-hud-header">
-            <div className="ghost-hud-logo">GHOST · AR</div>
-            <div className="ghost-hud-badge">● CÂMERA ATIVA</div>
+        <div className="gp-hud">
+          <div className="gp-hud-top">
+            <span className="gp-brand">GHOST · AR</span>
+            <div className="gp-hud-right">
+              <button className="gp-icon-btn" onClick={toggleCamera} title="Alternar câmera">
+                {facing === "environment" ? "🔄" : "🤳"}
+              </button>
+              <span className="gp-badge">● ATIVA</span>
+            </div>
           </div>
-
-          <div className="ghost-scan-frame">
-            <div className="ghost-scan-corner tl" />
-            <div className="ghost-scan-corner tr" />
-            <div className="ghost-scan-corner bl" />
-            <div className="ghost-scan-corner br" />
-            <p className="ghost-scan-hint">Aponte para o ambiente</p>
+          <div className="gp-frame">
+            <span className="gp-corner tl"/><span className="gp-corner tr"/>
+            <span className="gp-corner bl"/><span className="gp-corner br"/>
+            <p className="gp-frame-hint">Aponte para o ambiente</p>
           </div>
-
-          <div className="ghost-hud-footer">
-            <button className="ghost-scan-btn" onClick={startScan}>
-              <span className="ghost-scan-btn-inner">ESCANEAR</span>
-            </button>
+          <div className="gp-hud-bottom">
+            <button className="gp-scan-btn" onClick={startScan}>ESCANEAR</button>
           </div>
         </div>
       )}
 
-      {/* ══ FASE: SCANNING ══ */}
+      {/* ══ SCANNING ══ */}
       {phase === "scanning" && (
-        <div className="ghost-ar-hud">
-          <div className="ghost-hud-header">
-            <div className="ghost-hud-logo">GHOST · AR</div>
-            <div className="ghost-hud-badge scanning">◈ ANALISANDO</div>
+        <div className="gp-hud">
+          <div className="gp-hud-top">
+            <span className="gp-brand">GHOST · AR</span>
+            <span className="gp-badge scanning">◈ ANALISANDO</span>
           </div>
-          <div className="ghost-scan-progress-wrap">
-            <div
-              className="ghost-scan-progress-bar"
-              style={{ width: `${scanProgress * 100}%` }}
-            />
+          <div className="gp-prog-wrap">
+            <div className="gp-prog-bar" style={{ width: `${scanPct * 100}%` }} />
           </div>
-          <p className="ghost-scan-label">
-            {scanProgress < 0.4
-              ? "Mapeando superfícies..."
-              : scanProgress < 0.75
-              ? "Calculando profundidade..."
-              : "Ancorando objeto..."}
-          </p>
+          <p className="gp-scan-lbl">{scanLabel}</p>
         </div>
       )}
 
-      {/* ══ FASE: AR ══ */}
+      {/* ══ AR ══ */}
       {phase === "ar" && (
-        <div className="ghost-ar-hud ar-active">
-          <div className="ghost-hud-header">
-            <div className="ghost-hud-logo">GHOST · AR</div>
-            <div className="ghost-hud-badge live">◉ AO VIVO</div>
+        <div className="gp-hud">
+          <div className="gp-hud-top">
+            <span className="gp-brand">GHOST · AR</span>
+            <div className="gp-hud-right">
+              <button className="gp-icon-btn" onClick={toggleCamera}>
+                {facing === "environment" ? "🔄" : "🤳"}
+              </button>
+              <span className="gp-badge live">◉ AO VIVO</span>
+            </div>
           </div>
-
-          <div className="ghost-ar-controls-hint">
-            <span>↺ Arraste para girar</span>
-          </div>
-
-          <div className="ghost-hud-footer ar-footer">
-            <button
-              className="ghost-secondary-btn"
-              onClick={() => {
-                const { animFrameId, renderer } = threeRef.current;
-                if (animFrameId) cancelAnimationFrame(animFrameId);
-                if (renderer) renderer.dispose();
-                setPhase("streaming");
-              }}
-            >
-              REPOSICIONAR
-            </button>
-            <button
-              className="ghost-secondary-btn accent"
-              onClick={() => {
-                alert("Checkout integration: evento registrado.");
-              }}
-            >
+          <p className="gp-drag-hint">↺ Arraste para girar</p>
+          <div className="gp-hud-bottom ar-row">
+            <button className="gp-sec" onClick={() => {
+              const { raf, renderer } = threeRef.current;
+              if (raf) cancelAnimationFrame(raf);
+              if (renderer) renderer.dispose();
+              threeRef.current = { renderer:null, scene:null, camera:null, object:null, raf:null, keyLight:null };
+              setPhase("streaming");
+            }}>REPOSICIONAR</button>
+            <button className="gp-sec accent" onClick={() => alert("✓ Decisão validada. Evento registrado.")}>
               VALIDAR COMPRA
             </button>
           </div>
         </div>
       )}
+
     </div>
   );
 }
