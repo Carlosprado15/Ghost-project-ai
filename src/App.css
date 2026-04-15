@@ -1,11 +1,13 @@
 /*
- * Ghost Project AI — App.css
- * Scoped to #ghost-root to avoid conflicts with third-party e-commerce pages.
- * All global resets and keyframes live in App.jsx via injected <style> tag
- * so this file remains purely supplemental / widget-safe.
+ * Ghost Project AI — App.css  v2.0
+ * Supplemental scoped styles.
+ * All critical keyframes and resets are injected by App.jsx
+ * via the GLOBAL_CSS constant (avoids CSS-in-file loading race).
+ *
+ * Scoped under #ghost-root for future B2B widget embedding.
  */
 
-/* ── Scoped widget root (future B2B embed mode) ────────────────────── */
+/* ── Baseline widget scope ─────────────────────────────────────────── */
 #ghost-root,
 #ghost-root *,
 #ghost-root *::before,
@@ -13,33 +15,41 @@
   box-sizing: border-box;
 }
 
-/* ── Utility: hardware-accelerated layers ──────────────────────────── */
-#ghost-root .gpu {
-  transform: translateZ(0);
-  will-change: transform;
-}
-
-/* ── Scrollbar suppression ─────────────────────────────────────────── */
+/* ── Prevent scroll & bounce on mobile ────────────────────────────── */
 html,
 body {
-  overflow: hidden;
-  overscroll-behavior: none;
+  overflow:             hidden;
+  overscroll-behavior:  none;
   -webkit-overflow-scrolling: touch;
+  touch-action:         pan-x pan-y;
 }
 
-/* ── Safe area support (iPhone notch / Dynamic Island) ─────────────── */
-#ghost-root .safe-top    { padding-top:    env(safe-area-inset-top, 0px); }
-#ghost-root .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+/* ── Safe-area helpers ─────────────────────────────────────────────── */
+.gp-safe-top    { padding-top:    env(safe-area-inset-top,    0px); }
+.gp-safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
-/* ── Focus ring — accessible but styled ───────────────────────────── */
-#ghost-root button:focus-visible {
-  outline: 2px solid rgba(212, 175, 55, 0.6);
+/* ── GPU layer promotion ───────────────────────────────────────────── */
+.gp-gpu {
+  transform:    translateZ(0);
+  will-change:  transform;
+  backface-visibility: hidden;
+}
+
+/* ── Three.js canvas must NOT intercept pointer events on IDLE ─────── */
+canvas.gp-canvas-idle {
+  pointer-events: none !important;
+}
+
+/* ── Accessible focus ring for buttons ────────────────────────────── */
+.gp-btn:focus-visible {
+  outline:        2px solid rgba(212, 175, 55, 0.55);
   outline-offset: 3px;
 }
 
-/* ── Tap highlight removal (WebView / mobile) ──────────────────────── */
-#ghost-root button,
-#ghost-root a {
+/* ── Remove tap flash on Android WebView ──────────────────────────── */
+.gp-btn,
+.gp-btn * {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  user-select:  none;
 }
