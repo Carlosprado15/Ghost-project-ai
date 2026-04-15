@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 
-const SETTINGS = {
+// VERSAO_CONTROLE: 2.0_GHOST_FINAL
+const GHOST_CONFIG = {
   BRAND: "GHOST PROJECT",
   LOGO: "https://i.postimg.cc/RVQVdBx3/1776216880651.jpg",
-  // Relógio de Ouro Profissional via CDN estável
   MODEL: "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Watch/glTF-Binary/Watch.glb"
 };
 
@@ -11,99 +11,76 @@ export default function App() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
-  const [phase, setPhase] = useState("idle"); 
-  const [cameraMode, setCameraMode] = useState("environment");
+  const [status, setStatus] = useState("init"); 
+  const [isFront, setIsFront] = useState(false);
 
-  const loadEngine = () => {
-    return new Promise((resolve) => {
-      if (window.THREE && window.THREE.GLTFLoader) return resolve();
-      const s1 = document.createElement("script");
-      s1.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-      s1.onload = () => {
-        const s2 = document.createElement("script");
-        s2.src = "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/loaders/GLTFLoader.js";
-        s2.onload = resolve;
-        document.body.appendChild(s2);
+  const engineBoot = () => {
+    return new Promise((res) => {
+      if (window.THREE) return res();
+      const s = document.createElement("script");
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+      s.onload = () => {
+        const l = document.createElement("script");
+        l.src = "https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/loaders/GLTFLoader.js";
+        l.onload = res;
+        document.body.appendChild(l);
       };
-      document.body.appendChild(s1);
+      document.body.appendChild(s);
     });
   };
 
-  const initAR = async () => {
-    setPhase("loading");
-    await loadEngine();
+  const runAR = async () => {
+    setStatus("loading");
+    await engineBoot();
     try {
       if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: cameraMode }
+      const s = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: isFront ? "user" : "environment" }
       });
-      streamRef.current = stream;
-      videoRef.current.srcObject = stream;
-      setPhase("ar");
-      setTimeout(() => start3D(), 150);
+      streamRef.current = s;
+      videoRef.current.srcObject = s;
+      setStatus("active");
+      setTimeout(() => start3D(), 200);
     } catch (e) {
-      alert("Erro na câmera. Verifique as permissões.");
-      setPhase("idle");
+      alert("Câmera bloqueada.");
+      setStatus("init");
     }
   };
 
   const start3D = () => {
-    const THREE = window.THREE;
-    const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, alpha: true, antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 2;
-
-    scene.add(new THREE.AmbientLight(0xffffff, 1.5));
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(5, 5, 5);
-    scene.add(light);
-
-    new THREE.GLTFLoader().load(SETTINGS.MODEL, (gltf) => {
-      const model = gltf.scene;
-      model.scale.set(1.5, 1.5, 1.5);
-      scene.add(model);
-      const animate = () => {
-        requestAnimationFrame(animate);
-        model.rotation.y += 0.01;
-        renderer.render(scene, camera);
-      };
-      animate();
+    const T = window.THREE;
+    const r = new T.WebGLRenderer({ canvas: canvasRef.current, alpha: true, antialias: true });
+    r.setSize(window.innerWidth, window.innerHeight);
+    const scene = new T.Scene();
+    const cam = new T.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    cam.position.z = 2;
+    scene.add(new T.AmbientLight(0xffffff, 1.5));
+    new T.GLTFLoader().load(GHOST_CONFIG.MODEL, (gltf) => {
+      const m = gltf.scene;
+      m.scale.set(1.5, 1.5, 1.5);
+      scene.add(m);
+      const anim = () => { requestAnimationFrame(anim); m.rotation.y += 0.01; r.render(scene, cam); };
+      anim();
     });
   };
 
   return (
-    <div className="main-wrapper">
-      <video ref={videoRef} className="camera-layer" autoPlay playsInline muted />
-      <canvas ref={canvasRef} className="ar-layer" />
-
-      <div className="ui-layer">
-        <div className="header">
-          <img src={SETTINGS.LOGO} alt="Logo" className="logo-img" />
-        </div>
-
-        {phase === "idle" && (
-          <div className="hero">
-            <h1 className="title">{SETTINGS.BRAND}</h1>
-            <p className="subtitle">Luxury Retail Experience</p>
-            <button className="gold-button" onClick={initAR}>INICIAR EXPERIÊNCIA</button>
-            <button className="text-link" onClick={() => setCameraMode(c => c === "environment" ? "user" : "environment")}>
-              ALTERNAR PARA CÂMERA {cameraMode === "environment" ? "FRONTAL" : "TRASEIRA"}
+    <div className="ghost-main">
+      <video ref={videoRef} className="layer-v" autoPlay playsInline muted />
+      <canvas ref={canvasRef} className="layer-c" />
+      <div className="layer-ui">
+        <img src={GHOST_CONFIG.LOGO} className="logo-fixed" alt="GHOST" />
+        {status === "init" && (
+          <div className="center-box">
+            <h1 className="gold-t">{GHOST_CONFIG.BRAND}</h1>
+            <button className="gold-b" onClick={runAR}>INICIAR AR</button>
+            <button className="link-b" onClick={() => setIsFront(!isFront)}>
+               {isFront ? "CÂMERA TRASEIRA" : "CÂMERA FRONTAL"}
             </button>
           </div>
         )}
-
-        {phase === "loading" && (
-          <div className="hero">
-            <div className="loader-ring"></div>
-            <p>CONECTANDO AO GHOST PROJECT...</p>
-          </div>
-        )}
-
-        {phase === "ar" && (
-          <button className="cam-toggle" onClick={initAR}>🔄</button>
-        )}
+        {status === "loading" && <div className="loader">SINCRONIZANDO...</div>}
+        {status === "active" && <button className="sw-b" onClick={runAR}>🔄</button>}
       </div>
     </div>
   );
