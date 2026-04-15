@@ -1,21 +1,16 @@
 /* ============================================================
-   GHOST PROJECT — App.css
-   Estética: Luxury Dark · Gold · Minimal
+   GHOST PROJECT — App.css (Versão Final Consolidada)
    ============================================================ */
 
 :root {
-  --gold-light:   #f0d060;
-  --gold-main:    #d4af37;
-  --gold-dark:    #a07830;
-  --black:        #000000;
-  --near-black:   #080808;
-  --text-primary: #f5f0e8;
-  --text-muted:   rgba(212,175,55,0.55);
-  --font-ui:      'Helvetica Neue', 'Arial', sans-serif;
-  --transition:   0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --gold: #d4af37;
+  --black: #000000;
+  --near-black: #0a0a0a;
+  --text: #f5f0e8;
 }
 
-*, *::before, *::after {
+/* Reset Geral */
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -24,21 +19,23 @@
 html, body, #root {
   width: 100%;
   height: 100%;
+  background-color: var(--black) !important;
+  color: var(--text);
+  font-family: 'Helvetica Neue', Arial, sans-serif;
   overflow: hidden;
-  background: var(--black);
-  color: var(--text-primary);
-  font-family: var(--font-ui);
 }
 
+/* Estrutura Principal */
 .ghost-root {
   position: relative;
   width: 100vw;
   height: 100vh;
-  overflow: hidden;
-  background: var(--near-black);
+  background: var(--black);
+  display: flex;
+  flex-direction: column;
 }
 
-/* Vídeo e Canvas */
+/* Vídeo de Fundo (Câmera) */
 .ghost-video {
   position: absolute;
   inset: 0;
@@ -48,22 +45,19 @@ html, body, #root {
   z-index: 1;
 }
 
-.ghost-video.hidden { opacity: 0; }
+.ghost-video.hidden {
+  display: none;
+}
 
+/* Camada do Relógio 3D */
 .ghost-canvas {
   position: absolute;
   inset: 0;
-  z-index: 3;
-  opacity: 0;
+  z-index: 5;
   pointer-events: none;
 }
 
-.ghost-canvas.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* Landing Page (Idle) */
+/* Tela Inicial (Luxury Idle) */
 .ghost-idle {
   position: absolute;
   inset: 0;
@@ -72,58 +66,63 @@ html, body, #root {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle, #1a1400 0%, #000 100%);
-  text-align: center;
+  background: radial-gradient(circle at center, #1a1400 0%, #000 100%);
   padding: 20px;
 }
 
 .ghost-logo-wrapper {
-  margin-bottom: 30px;
+  text-align: center;
+  margin-bottom: 40px;
 }
 
 .ghost-logo-img {
-  max-width: 180px;
-  background: transparent !important;
-  filter: drop-shadow(0 0 15px rgba(212,175,55,0.3));
+  max-width: 220px;
+  height: auto;
+  filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.4));
+  background: transparent !important; /* Garante fundo transparente no logo */
 }
 
 .ghost-logo-sub {
+  display: block;
   font-size: 10px;
-  letter-spacing: 5px;
-  color: var(--text-muted);
-  margin-top: 10px;
+  letter-spacing: 6px;
+  color: rgba(212, 175, 55, 0.6);
   text-transform: uppercase;
+  margin-top: 15px;
 }
 
-/* Botão Principal */
+/* Botão Iniciar (CTA) */
 .ghost-cta {
   background: transparent;
-  border: 1px solid var(--gold-main);
-  color: var(--gold-main);
-  padding: 15px 35px;
-  border-radius: 50px;
-  font-size: 11px;
-  font-weight: bold;
-  letter-spacing: 2px;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 16px 40px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.3s ease;
+  z-index: 11;
 }
 
-.ghost-cta:hover {
-  background: rgba(212,175,55,0.1);
-  box-shadow: 0 0 20px rgba(212,175,55,0.2);
+.ghost-cta:active {
+  transform: scale(0.95);
+  background: rgba(212, 175, 55, 0.1);
 }
 
-/* HUD e Scan */
+/* HUD de Escaneamento */
 .ghost-status-text {
   position: absolute;
-  bottom: 15%;
+  bottom: 120px;
   width: 100%;
   text-align: center;
-  z-index: 20;
-  color: var(--gold-main);
+  color: var(--gold);
+  font-size: 11px;
   letter-spacing: 2px;
-  font-size: 12px;
+  text-transform: uppercase;
+  z-index: 20;
 }
 
 .ghost-scan-btn {
@@ -131,18 +130,21 @@ html, body, #root {
   bottom: 50px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 20;
-  background: rgba(212,175,55,0.8);
-  border: none;
+  background: var(--gold);
   color: #000;
-  padding: 15px 30px;
-  border-radius: 30px;
+  border: none;
+  padding: 15px 35px;
+  border-radius: 50px;
   font-weight: bold;
   letter-spacing: 1px;
+  z-index: 20;
   cursor: pointer;
 }
 
-/* Ajustes para iPhone */
+/* Suporte para Notch do iPhone */
 @supports (padding-top: env(safe-area-inset-top)) {
-  .ghost-idle { padding-bottom: env(safe-area-inset-bottom); }
+  .ghost-idle {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
