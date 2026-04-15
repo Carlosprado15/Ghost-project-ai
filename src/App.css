@@ -1,42 +1,73 @@
-html, body, #root {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #000000 !important;
+```css
+.app-container {
+  background-color: #000;
+  color: #d4af37;
+  height: 100vh;
   overflow: hidden;
+  font-family: Arial, sans-serif;
 }
 
-.ghost-root {
+.idle-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  background: #000;
-  color: #d4af37;
-  font-family: sans-serif;
+  height: 100%;
 }
 
-.ghost-logo-img {
-  max-width: 200px;
-  background: transparent !important;
-  filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.4));
-}
-
-.ghost-title {
-  font-size: 24px;
-  margin-top: 20px;
+.gold-text {
   letter-spacing: 4px;
+  margin-top: 20px;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
 }
 
-.ghost-cta {
-  margin-top: 40px;
+.subtitle {
+  opacity: 0.7;
+  margin-bottom: 30px;
+}
+
+.start-btn {
   background: transparent;
   border: 1px solid #d4af37;
   color: #d4af37;
   padding: 15px 40px;
-  border-radius: 50px;
   cursor: pointer;
-  letter-spacing: 2px;
+  transition: 0.3s;
 }
+
+.start-btn:hover {
+  background: #d4af37;
+  color: #000;
+}
+
+.ar-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.camera-feed {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.three-canvas {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+.ui-overlay {
+  position: absolute;
+  top: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  z-index: 3;
+  opacity: 0.8;
+}
+```
