@@ -1,59 +1,113 @@
-/*
- * Ghost Project AI — App.css v4.0
- * Supplemental styles. Core keyframes + resets live in App.jsx → GCSS.
- */
-
-html, body {
+/* Reset e Base */
+.gp-main-container {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #050505;
+  color: #D4AF37; /* Dourado Luxo */
+  font-family: 'Inter', sans-serif;
   overflow: hidden;
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
 }
 
-/* Widget isolation for future B2B embedding */
-#ghost-root,
-#ghost-root *,
-#ghost-root *::before,
-#ghost-root *::after {
-  box-sizing: border-box;
-}
-
-/* Safe-area helpers */
-.gp-safe-top    { padding-top:    env(safe-area-inset-top,    0px); }
-.gp-safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
-
-/* GPU promotion */
-.gp-gpu {
-  transform:           translateZ(0);
-  will-change:         transform;
-  backface-visibility: hidden;
-}
-
-/* Remove tap flash on all touch platforms */
-button,
-.gp-btn,
-.gp-btn * {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Canvas: block removes inline gap */
-canvas {
-  display: block;
-}
-
-/* Hide native video controls on all browsers */
-video::-webkit-media-controls,
-video::-webkit-media-controls-enclosure,
-video::-webkit-media-controls-panel {
-  display: none !important;
-}
-
-/* Logo image: ensure no bleed or background */
-.gp-logo-img {
-  display: block;
-  width: 100%;
+/* Landing Page */
+.gp-landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   height: 100%;
-  object-fit: cover;
-  background: transparent!important;
+  text-align: center;
+}
+
+.gp-logo-wrapper {
+  width: 150px;
+  margin-bottom: 20px;
+}
+
+.gp-logo-img {
+  width: 100%;
+  background: transparent !important;
   border: none !important;
   box-shadow: none !important;
+  display: block;
+}
+
+.gp-title {
+  font-size: 2rem;
+  letter-spacing: 5px;
+  margin: 10px 0;
+  font-weight: 800;
+}
+
+.gp-subtitle {
+  font-size: 0.8rem;
+  letter-spacing: 3px;
+  color: #888;
+  margin-bottom: 40px;
+}
+
+/* Botões Estilo Pílula */
+.gp-btn-primary {
+  background: transparent;
+  border: 2px solid #D4AF37;
+  color: #D4AF37;
+  padding: 15px 40px;
+  border-radius: 50px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.gp-btn-primary:hover {
+  background: #D4AF37;
+  color: #000;
+}
+
+/* Interface de AR */
+.gp-ar-overlay {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.gp-loading-screen {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  z-index: 10;
+}
+
+.gp-controls {
+  position: absolute;
+  bottom: 40px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  align-items: center;
+  z-index: 5;
+}
+
+.gp-btn-capture {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.8);
+  border: 4px solid #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.gp-btn-icon {
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: 1px solid #D4AF37;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
 }
