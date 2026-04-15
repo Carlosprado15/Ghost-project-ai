@@ -1,19 +1,15 @@
 /*
- * Ghost Project AI — App.css  v3.0  (Final MVP)
- * Supplemental scoped stylesheet.
- * Core keyframes + resets live in App.jsx → GCSS constant.
- * This file handles widget-scope isolation and native overrides.
+ * Ghost Project AI — App.css v4.0
+ * Supplemental styles. Core keyframes + resets live in App.jsx → GCSS.
  */
 
-/* ── Prevent scroll / bounce ────────────────────────────────────────── */
-html,
-body {
-  overflow:             hidden;
-  overscroll-behavior:  none;
+html, body {
+  overflow: hidden;
+  overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
 }
 
-/* ── Widget isolation scope (future B2B embed) ──────────────────────── */
+/* Widget isolation for future B2B embedding */
 #ghost-root,
 #ghost-root *,
 #ghost-root *::before,
@@ -21,38 +17,42 @@ body {
   box-sizing: border-box;
 }
 
-/* ── Safe-area utility classes ──────────────────────────────────────── */
+/* Safe-area helpers */
 .gp-safe-top    { padding-top:    env(safe-area-inset-top,    0px); }
 .gp-safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
-/* ── GPU compositing layer ──────────────────────────────────────────── */
+/* GPU promotion */
 .gp-gpu {
   transform:           translateZ(0);
   will-change:         transform;
   backface-visibility: hidden;
 }
 
-/* ── Remove tap flash on Android & iOS WebViews ─────────────────────── */
+/* Remove tap flash on all touch platforms */
+button,
 .gp-btn,
-.gp-btn *,
-button {
+.gp-btn * {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ── Accessible focus ring ──────────────────────────────────────────── */
-.gp-btn:focus-visible {
-  outline:        2px solid rgba(212, 175, 55, 0.5);
-  outline-offset: 3px;
+/* Canvas: block removes inline gap */
+canvas {
+  display: block;
 }
 
-/* ── Video element: never show native controls ──────────────────────── */
+/* Hide native video controls on all browsers */
 video::-webkit-media-controls,
 video::-webkit-media-controls-enclosure,
 video::-webkit-media-controls-panel {
   display: none !important;
 }
 
-/* ── Canvas: block-level to avoid inline-block gap ─────────────────── */
-canvas {
+/* Logo image: ensure no bleed or background */
+.gp-logo-img {
   display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: transparent;
+  border: none;
 }
