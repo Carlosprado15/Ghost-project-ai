@@ -1,13 +1,19 @@
 /*
- * Ghost Project AI — App.css  v2.0
- * Supplemental scoped styles.
- * All critical keyframes and resets are injected by App.jsx
- * via the GLOBAL_CSS constant (avoids CSS-in-file loading race).
- *
- * Scoped under #ghost-root for future B2B widget embedding.
+ * Ghost Project AI — App.css  v3.0  (Final MVP)
+ * Supplemental scoped stylesheet.
+ * Core keyframes + resets live in App.jsx → GCSS constant.
+ * This file handles widget-scope isolation and native overrides.
  */
 
-/* ── Baseline widget scope ─────────────────────────────────────────── */
+/* ── Prevent scroll / bounce ────────────────────────────────────────── */
+html,
+body {
+  overflow:             hidden;
+  overscroll-behavior:  none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Widget isolation scope (future B2B embed) ──────────────────────── */
 #ghost-root,
 #ghost-root *,
 #ghost-root *::before,
@@ -15,41 +21,38 @@
   box-sizing: border-box;
 }
 
-/* ── Prevent scroll & bounce on mobile ────────────────────────────── */
-html,
-body {
-  overflow:             hidden;
-  overscroll-behavior:  none;
-  -webkit-overflow-scrolling: touch;
-  touch-action:         pan-x pan-y;
-}
-
-/* ── Safe-area helpers ─────────────────────────────────────────────── */
+/* ── Safe-area utility classes ──────────────────────────────────────── */
 .gp-safe-top    { padding-top:    env(safe-area-inset-top,    0px); }
 .gp-safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
-/* ── GPU layer promotion ───────────────────────────────────────────── */
+/* ── GPU compositing layer ──────────────────────────────────────────── */
 .gp-gpu {
-  transform:    translateZ(0);
-  will-change:  transform;
+  transform:           translateZ(0);
+  will-change:         transform;
   backface-visibility: hidden;
 }
 
-/* ── Three.js canvas must NOT intercept pointer events on IDLE ─────── */
-canvas.gp-canvas-idle {
-  pointer-events: none !important;
+/* ── Remove tap flash on Android & iOS WebViews ─────────────────────── */
+.gp-btn,
+.gp-btn *,
+button {
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* ── Accessible focus ring for buttons ────────────────────────────── */
+/* ── Accessible focus ring ──────────────────────────────────────────── */
 .gp-btn:focus-visible {
-  outline:        2px solid rgba(212, 175, 55, 0.55);
+  outline:        2px solid rgba(212, 175, 55, 0.5);
   outline-offset: 3px;
 }
 
-/* ── Remove tap flash on Android WebView ──────────────────────────── */
-.gp-btn,
-.gp-btn * {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  user-select:  none;
+/* ── Video element: never show native controls ──────────────────────── */
+video::-webkit-media-controls,
+video::-webkit-media-controls-enclosure,
+video::-webkit-media-controls-panel {
+  display: none !important;
+}
+
+/* ── Canvas: block-level to avoid inline-block gap ─────────────────── */
+canvas {
+  display: block;
 }
