@@ -1,992 +1,686 @@
-/**
- * GHOST PROJECT AI — AR ENGINE v4.0
- * Brain: Three.js · GLTFLoader · DeviceOrientation · PWA
- * Voice: Ghost identity · Luxury black/gold · Universal AR
- */
+// ============================================================
+// GHOST PROJECT — App.jsx
+// Motor: Three.js via CDN (sem bundler dependency)
+// Compatível: Safari iOS + Chrome Android + Desktop
+// Arquitetura: System Prompt = Cérebro | User Prompt = Voz
+// ============================================================
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
-// ── Constants ─────────────────────────────────────────────────────────
-const S = { IDLE:"idle", LOADING:"loading", SCANNING:"scanning", AR:"ar", ERROR:"error" };
-const GOLD      = "#d4af37";
-const GOLD_DIM  = "rgba(212,175,55,0.42)";
-const DARK      = "#06090f";
-const LOGO_URL  = "https://i.ibb.co/JRcfKZhw/1776216880651.jpg";
-const GLB_URL   = "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/WaterBottle/glTF-Binary/WaterBottle.glb";
-const THREE_CDN = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-const GLTF_CDN  = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js";
+// ── Constantes de sistema ──────────────────────────────────
+const SYSTEM = {
+  SCAN_DURATION_MS: 2800,
+  ROTATION_DAMPING: 0.92,
+  OBJECT_DISTANCE: 2.2,       // metros simulados de profundidade
+  AMBIENT_INTENSITY: 0.6,
+  POINT_LIGHT_INTENSITY: 3.0,
+  GOLD_COLOR: 0xd4af37,
+  GOLD_EMISSIVE: 0x3a2800,
+  BG_COLOR: 0x0a0a0a,
+};
 
-// ── PWA + Head meta injection ─────────────────────────────────────────
-function injectHead() {
-  // Title
-  document.title = "Ghost Project";
-
-  // Remove stale gp-head if it exists (hot-reload safe)
-  document.getElementById("gp-head-block")?.remove();
-
-  const frag = document.createDocumentFragment();
-  const sentinel = document.createElement("meta");
-  sentinel.id = "gp-head-block";
-  frag.appendChild(sentinel);
-
-  const addMeta = (attrs) => {
-    const m = document.createElement("meta");
-    Object.entries(attrs).forEach(([k,v]) => m.setAttribute(k,v));
-    frag.appendChild(m);
-  };
-  const addLink = (attrs) => {
-    const l = document.createElement("link");
-    Object.entries(attrs).forEach(([k,v]) => l.setAttribute(k,v));
-    frag.appendChild(l);
-  };
-
-  addMeta({ name:"application-name",             content:"Ghost Project" });
-  addMeta({ name:"apple-mobile-web-app-title",   content:"Ghost Project" });
-  addMeta({ name:"apple-mobile-web-app-capable", content:"yes" });
-  addMeta({ name:"apple-mobile-web-app-status-bar-style", content:"black-translucent" });
-  addMeta({ name:"mobile-web-app-capable",       content:"yes" });
-  addMeta({ name:"theme-color",                  content:"#06090f" });
-
-  // ★ These two lines are what appear as the home-screen icon
-  addLink({ rel:"apple-touch-icon",          href:LOGO_URL });
-  addLink({ rel:"apple-touch-icon-precomposed", href:LOGO_URL });
-  addLink({ rel:"icon", type:"image/jpeg",   href:LOGO_URL });
-  addLink({ rel:"shortcut icon",             href:LOGO_URL });
-
-  document.head.appendChild(frag);
-}
-
-// ── CDN Loader (idempotent) ───────────────────────────────────────────
-function loadScript(id, src) {
+// ── Injetor de script Three.js (CDN) ──────────────────────
+function loadThreeJS() {
   return new Promise((resolve, reject) => {
-    if (document.getElementById(id)) { resolve(); return; }
-    const s = document.createElement("script");
-    s.id = id; s.src = src;
-    s.onload  = resolve;
-    s.onerror = () => reject(new Error(`Failed: ${src}`));
-    document.head.appendChild(s);
+    if (window.THREE) return resolve(window.THREE);
+    const script = document.createElement("script");
+    script.src =
+      "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+    script.onload = () => resolve(window.THREE);
+    script.onerror = reject;
+    document.head.appendChild(script);
   });
 }
 
-async function loadLibs() {
-  await loadScript("gp-three",   THREE_CDN);
-  await loadScript("gp-gltf",    GLTF_CDN);
-  return { THREE: window.THREE, GLTFLoader: window.THREE.GLTFLoader };
-}
+// ── Geometria: Relógio/Toroide dourado ─────────────────────
+function buildGoldObject(THREE) {
+  const group = new THREE.Group();
 
-// ── AR Scene ──────────────────────────────────────────────────────────
-class ARScene {
-  constructor(canvas, THREE, GLTFLoader) {
-    this.T          = THREE;
-    this.canvas     = canvas;
-    this.running    = false;
-    this.rafId      = null;
-    this._spawning  = false;
-    this._spawnT    = 0;
-    this.gyro       = { beta:0, gamma:0 };
-    this.gyroLerp   = { x:0, y:0 };
-    this.drag       = { on:false, x0:0, y0:0, rx:0, ry:0 };
-    this.rot        = { x:0.25, y:0.4 };
-    this.rotTarget  = { x:0.25, y:0.4 };
+  // Anel externo (bezel)
+  const bezelGeo = new THREE.TorusGeometry(0.72, 0.09, 32, 100);
+  const goldMat = new THREE.MeshStandardMaterial({
+    color: SYSTEM.GOLD_COLOR,
+    emissive: SYSTEM.GOLD_EMISSIVE,
+    metalness: 1.0,
+    roughness: 0.18,
+  });
+  const bezel = new THREE.Mesh(bezelGeo, goldMat);
+  group.add(bezel);
 
-    this._initRenderer();
-    this._initLights();
-    this._initAmbient();
-    this._bindGyro();
-    this._bindPointer();
-    this._loadGLB(GLTFLoader);
+  // Face do relógio
+  const faceGeo = new THREE.CylinderGeometry(0.62, 0.62, 0.06, 64);
+  const faceMat = new THREE.MeshStandardMaterial({
+    color: 0x0d0d0d,
+    metalness: 0.4,
+    roughness: 0.7,
+  });
+  const face = new THREE.Mesh(faceGeo, faceMat);
+  face.rotation.x = Math.PI / 2;
+  group.add(face);
+
+  // Marcadores de hora (12 bastões)
+  for (let i = 0; i < 12; i++) {
+    const angle = (i / 12) * Math.PI * 2;
+    const markGeo =
+      i % 3 === 0
+        ? new THREE.BoxGeometry(0.05, 0.16, 0.03)
+        : new THREE.BoxGeometry(0.025, 0.09, 0.03);
+    const mark = new THREE.Mesh(markGeo, goldMat);
+    mark.position.set(
+      Math.sin(angle) * 0.5,
+      Math.cos(angle) * 0.5,
+      0.05
+    );
+    mark.rotation.z = -angle;
+    group.add(mark);
   }
 
-  // ── Renderer / Camera / Scene ───────────────────────────────────────
-  _initRenderer() {
-    const T = this.T;
-    const w = window.innerWidth, h = window.innerHeight;
+  // Ponteiro de horas
+  const hourGeo = new THREE.BoxGeometry(0.04, 0.28, 0.025);
+  const hourHand = new THREE.Mesh(hourGeo, goldMat);
+  hourHand.position.set(0.06, 0.10, 0.07);
+  hourHand.rotation.z = -0.8;
+  group.add(hourHand);
 
-    this.renderer = new T.WebGLRenderer({
-      canvas: this.canvas,
+  // Ponteiro de minutos
+  const minGeo = new THREE.BoxGeometry(0.025, 0.42, 0.025);
+  const minHand = new THREE.Mesh(minGeo, goldMat);
+  minHand.position.set(-0.05, 0.15, 0.07);
+  minHand.rotation.z = 0.4;
+  group.add(minHand);
+
+  // Coroa lateral
+  const crownGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.18, 16);
+  const crown = new THREE.Mesh(crownGeo, goldMat);
+  crown.rotation.z = Math.PI / 2;
+  crown.position.set(0.78, 0, 0);
+  group.add(crown);
+
+  // Pulseira superior
+  const strapGeo = new THREE.BoxGeometry(0.42, 0.55, 0.06);
+  const strapMat = new THREE.MeshStandardMaterial({
+    color: 0x1a1a1a,
+    metalness: 0.2,
+    roughness: 0.9,
+  });
+  const strapTop = new THREE.Mesh(strapGeo, strapMat);
+  strapTop.position.set(0, 1.1, 0);
+  group.add(strapTop);
+
+  // Pulseira inferior
+  const strapBot = new THREE.Mesh(strapGeo, strapMat);
+  strapBot.position.set(0, -1.1, 0);
+  group.add(strapBot);
+
+  // Partículas douradas de ambiente
+  const particleCount = 120;
+  const particleGeo = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 5;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 5;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 5;
+  }
+  particleGeo.setAttribute(
+    "position",
+    new THREE.BufferAttribute(positions, 3)
+  );
+  const particleMat = new THREE.PointsMaterial({
+    color: SYSTEM.GOLD_COLOR,
+    size: 0.018,
+    transparent: true,
+    opacity: 0.55,
+  });
+  const particles = new THREE.Points(particleGeo, particleMat);
+  group.add(particles);
+
+  return group;
+}
+
+// ══════════════════════════════════════════════════════════
+// COMPONENTE PRINCIPAL
+// ══════════════════════════════════════════════════════════
+export default function App() {
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const overlayCanvasRef = useRef(null);
+
+  // Three.js refs
+  const threeRef = useRef({
+    renderer: null,
+    scene: null,
+    camera: null,
+    object: null,
+    animFrameId: null,
+  });
+
+  // Orientação do dispositivo (ancoragem)
+  const orientRef = useRef({ alpha: 0, beta: 0, gamma: 0 });
+
+  // Gestos touch
+  const touchRef = useRef({
+    active: false,
+    lastX: 0,
+    lastY: 0,
+    velX: 0,
+    velY: 0,
+  });
+
+  // Estados de UI
+  const [phase, setPhase] = useState("idle"); // idle | requesting | streaming | scanning | ar
+  const [scanProgress, setScanProgress] = useState(0);
+  const [threeLoaded, setThreeLoaded] = useState(false);
+  const [permissionError, setPermissionError] = useState(null);
+
+  // ── Pré-carrega Three.js na montagem ──────────────────
+  useEffect(() => {
+    loadThreeJS()
+      .then(() => setThreeLoaded(true))
+      .catch(() => console.warn("Three.js CDN falhou"));
+  }, []);
+
+  // ── Orientação do dispositivo → ancoragem ─────────────
+  useEffect(() => {
+    function handleOrientation(e) {
+      orientRef.current = {
+        alpha: e.alpha || 0,
+        beta: e.beta || 0,
+        gamma: e.gamma || 0,
+      };
+    }
+    window.addEventListener("deviceorientation", handleOrientation, true);
+    return () =>
+      window.removeEventListener("deviceorientation", handleOrientation, true);
+  }, []);
+
+  // ── Inicia câmera ──────────────────────────────────────
+  const startCamera = useCallback(async () => {
+    setPhase("requesting");
+    setPermissionError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+      setPhase("streaming");
+    } catch (err) {
+      setPermissionError(
+        err.name === "NotAllowedError"
+          ? "Permissão de câmera negada. Habilite nas configurações do navegador."
+          : "Câmera não disponível neste dispositivo."
+      );
+      setPhase("idle");
+    }
+  }, []);
+
+  // ── Dispara scan ──────────────────────────────────────
+  const startScan = useCallback(() => {
+    if (phase !== "streaming") return;
+    setPhase("scanning");
+    setScanProgress(0);
+
+    // Scan de overlay no canvas 2D
+    const overlay = overlayCanvasRef.current;
+    const ctx = overlay?.getContext("2d");
+    const start = performance.now();
+
+    function animateScan(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / SYSTEM.SCAN_DURATION_MS, 1);
+      setScanProgress(progress);
+
+      if (ctx && overlay) {
+        ctx.clearRect(0, 0, overlay.width, overlay.height);
+        // Linha de scan
+        const y = progress * overlay.height;
+        const grad = ctx.createLinearGradient(0, y - 30, 0, y + 4);
+        grad.addColorStop(0, "rgba(212,175,55,0)");
+        grad.addColorStop(0.6, "rgba(212,175,55,0.18)");
+        grad.addColorStop(1, "rgba(212,175,55,0.85)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, y - 30, overlay.width, 34);
+
+        // Linha nítida
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(overlay.width, y);
+        ctx.strokeStyle = "rgba(212,175,55,0.95)";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Cantos do frame
+        drawCorners(ctx, overlay.width, overlay.height, progress);
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(animateScan);
+      } else {
+        if (ctx && overlay) ctx.clearRect(0, 0, overlay.width, overlay.height);
+        initThreeAR();
+      }
+    }
+    requestAnimationFrame(animateScan);
+  }, [phase]);
+
+  // ── Desenha cantos do frame de scan ───────────────────
+  function drawCorners(ctx, w, h, progress) {
+    const len = 36;
+    const pad = 28;
+    const alpha = 0.4 + progress * 0.6;
+    ctx.strokeStyle = `rgba(212,175,55,${alpha})`;
+    ctx.lineWidth = 2;
+
+    const corners = [
+      [pad, pad, 1, 1],
+      [w - pad, pad, -1, 1],
+      [pad, h - pad, 1, -1],
+      [w - pad, h - pad, -1, -1],
+    ];
+    corners.forEach(([x, y, dx, dy]) => {
+      ctx.beginPath();
+      ctx.moveTo(x, y + dy * len);
+      ctx.lineTo(x, y);
+      ctx.lineTo(x + dx * len, y);
+      ctx.stroke();
+    });
+  }
+
+  // ── Inicializa cena Three.js sobre o vídeo ────────────
+  function initThreeAR() {
+    if (!window.THREE) {
+      console.warn("Three.js não carregado");
+      setPhase("ar");
+      return;
+    }
+    const THREE = window.THREE;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const W = canvas.clientWidth;
+    const H = canvas.clientHeight;
+    canvas.width = W;
+    canvas.height = H;
+
+    // Renderer transparente sobre o vídeo
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
       alpha: true,
       antialias: true,
       powerPreference: "high-performance",
     });
-    this.renderer.setSize(w, h);
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-    this.renderer.outputEncoding  = T.sRGBEncoding;
-    this.renderer.toneMapping     = T.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.4;
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    this.scene  = new T.Scene();
-    this.camera = new T.PerspectiveCamera(55, w / h, 0.01, 100);
-    this.camera.position.set(0, 0, 3.5);
+    // Cena
+    const scene = new THREE.Scene();
 
-    // Single pivot receives all rotation — never recreated between loads
-    this.pivot = new T.Group();
-    this.pivot.scale.setScalar(0.001);
-    this.scene.add(this.pivot);
-  }
+    // Câmera perspectiva
+    const camera = new THREE.PerspectiveCamera(55, W / H, 0.01, 100);
+    camera.position.set(0, 0, SYSTEM.OBJECT_DISTANCE);
 
-  _initLights() {
-    const T = this.T;
-    this.scene.add(new T.AmbientLight(0xffffff, 0.55));
-    const key = new T.DirectionalLight(0xffd580, 2.2);
-    key.position.set(3, 5, 4);
-    this.scene.add(key);
-    const rim = new T.DirectionalLight(0xd4af37, 0.9);
-    rim.position.set(-4, -2, -3);
-    this.scene.add(rim);
-    const fill = new T.PointLight(0x4466aa, 0.7, 20);
-    fill.position.set(0, -2, 3);
-    this.scene.add(fill);
-  }
-
-  _initAmbient() {
-    const T = this.T;
-
-    // Floating particles
-    const N = 70, pos = new Float32Array(N * 3);
-    this._pVel = [];
-    for (let i = 0; i < N; i++) {
-      const r = 1.6 + Math.random() * 1.2;
-      const θ = Math.random() * Math.PI * 2;
-      const φ = Math.random() * Math.PI;
-      pos[i*3]   = r * Math.sin(φ) * Math.cos(θ);
-      pos[i*3+1] = r * Math.sin(φ) * Math.sin(θ) * 0.4;
-      pos[i*3+2] = r * Math.cos(φ);
-      this._pVel.push({ r, θ, spd: 0.003 + Math.random() * 0.004 });
-    }
-    const pGeo = new T.BufferGeometry();
-    pGeo.setAttribute("position", new T.BufferAttribute(pos, 3));
-    this._particles = new T.Points(pGeo,
-      new T.PointsMaterial({ color:0xd4af37, size:0.032, transparent:true, opacity:0.55, sizeAttenuation:true }));
-    this.scene.add(this._particles);
-
-    // Holo rings
-    const rMat = new T.MeshBasicMaterial({ color:0xd4af37, transparent:true, opacity:0.32 });
-    this._ring1 = new T.Mesh(new T.TorusGeometry(1.4, 0.007, 6, 80), rMat);
-    this._ring1.rotation.x = Math.PI / 2;
-    this._ring1.position.y = -1.5;
-    this.scene.add(this._ring1);
-
-    this._ring2 = new T.Mesh(new T.TorusGeometry(0.85, 0.005, 6, 60), rMat.clone());
-    this._ring2.rotation.x = Math.PI / 2;
-    this._ring2.position.y = -1.5;
-    this.scene.add(this._ring2);
-  }
-
-  // ── GLB loader — clears previous model first ──────────────────────
-  _clearModel() {
-    if (!this._model) return;
-    this.pivot.remove(this._model);
-    this._model.traverse(c => {
-      if (c.isMesh) {
-        c.geometry?.dispose();
-        if (Array.isArray(c.material)) c.material.forEach(m => m.dispose());
-        else c.material?.dispose();
-      }
-    });
-    this._model = null;
-  }
-
-  _loadGLB(GLTFLoader) {
-    this._clearModel();
-    const loader = new GLTFLoader();
-    loader.load(
-      GLB_URL,
-      (gltf) => {
-        const model = gltf.scene;
-
-        // Normalise to fit 1.8-unit box
-        const box   = new this.T.Box3().setFromObject(model);
-        const size  = new this.T.Vector3();
-        box.getSize(size);
-        const maxDim = Math.max(size.x, size.y, size.z);
-        model.scale.setScalar(1.8 / maxDim);
-
-        // Centre
-        box.setFromObject(model);
-        const centre = new this.T.Vector3();
-        box.getCenter(centre);
-        model.position.sub(centre);
-
-        // Luxury PBR boost
-        model.traverse(child => {
-          if (child.isMesh && child.material) {
-            [].concat(child.material).forEach(m => {
-              if (m.metalness !== undefined) {
-                m.metalness = Math.min(1, m.metalness + 0.3);
-                m.roughness = Math.max(0.05, m.roughness - 0.2);
-              }
-              m.needsUpdate = true;
-            });
-          }
-        });
-
-        this._model = model;
-        this.pivot.add(model);
-      },
-      undefined,
-      (err) => {
-        console.warn("GLB failed, using fallback:", err.message);
-        this._buildFallback();
-      }
+    // Luzes
+    const ambientLight = new THREE.AmbientLight(
+      0xffeedd,
+      SYSTEM.AMBIENT_INTENSITY
     );
-  }
+    scene.add(ambientLight);
 
-  _buildFallback() {
-    const T = this.T;
-    const gold  = new T.MeshStandardMaterial({ color:0xd4af37, metalness:0.95, roughness:0.1 });
-    const dark  = new T.MeshStandardMaterial({ color:0x0a0e1a, metalness:0.3,  roughness:0.6 });
-    const glass = new T.MeshStandardMaterial({ color:0x88aacc, metalness:0.1,  roughness:0, transparent:true, opacity:0.3 });
-    const glow  = new T.MeshStandardMaterial({ color:0x4ade80, emissive:0x4ade80, emissiveIntensity:1.2 });
+    const keyLight = new THREE.PointLight(
+      0xffd700,
+      SYSTEM.POINT_LIGHT_INTENSITY,
+      12
+    );
+    keyLight.position.set(2, 3, 3);
+    keyLight.castShadow = true;
+    scene.add(keyLight);
 
-    const grp   = new T.Group();
-    grp.add(new T.Mesh(new T.BoxGeometry(1.1,1.3,0.22), gold));
-    const bezel = new T.Mesh(new T.BoxGeometry(0.9,1.08,0.12), dark);
-    bezel.position.z = 0.07; grp.add(bezel);
-    const scr   = new T.Mesh(new T.BoxGeometry(0.82,0.98,0.06), glass);
-    scr.position.z = 0.12; grp.add(scr);
-    const crown = new T.Mesh(new T.CylinderGeometry(0.06,0.06,0.28,12), gold);
-    crown.rotation.z = Math.PI/2; crown.position.set(0.62,0.2,0); grp.add(crown);
-    const ring  = new T.Mesh(new T.TorusGeometry(0.3,0.04,8,40), glow);
-    ring.position.z = 0.16; grp.add(ring);
-    this._glowRing = ring;
+    const fillLight = new THREE.PointLight(0xffffff, 1.2, 10);
+    fillLight.position.set(-2, -1, 2);
+    scene.add(fillLight);
 
-    this._model = grp;
-    this.pivot.add(grp);
-  }
+    const rimLight = new THREE.PointLight(0xd4af37, 0.8, 8);
+    rimLight.position.set(0, -3, -1);
+    scene.add(rimLight);
 
-  // ── Public: trigger spawn animation ──────────────────────────────
-  spawnObject() {
-    this.pivot.scale.setScalar(0.001);
-    this.rot       = { x:0.25, y:0.4 };
-    this.rotTarget = { x:0.25, y:0.4 };
-    this._spawnT   = performance.now();
-    this._spawning = true;
-  }
+    // Objeto 3D
+    const object = buildGoldObject(THREE);
+    object.position.set(0, 0, 0);
+    scene.add(object);
 
-  // ── Render loop ───────────────────────────────────────────────────
-  start() { this.running = true; this._tick(); }
+    threeRef.current = { renderer, scene, camera, object, animFrameId: null };
+    setPhase("ar");
 
-  _tick() {
-    if (!this.running) return;
-    this.rafId = requestAnimationFrame(() => this._tick());
-    const t = performance.now() * 0.001;
+    // ── Loop de renderização ──────────────────────────
+    let autoRotY = 0;
 
-    // Spawn elastic ease
-    if (this._spawning) {
-      const p    = Math.min((performance.now() - this._spawnT) / 1100, 1);
-      const ease = p < 0.5 ? 4*p*p*p : 1 - Math.pow(-2*p+2, 3)/2;
-      const over = Math.sin(p * Math.PI * 2.2) * 0.07 * (1 - p);
-      this.pivot.scale.setScalar(ease + over);
-      if (p >= 1) { this.pivot.scale.setScalar(1); this._spawning = false; }
+    function animate() {
+      threeRef.current.animFrameId = requestAnimationFrame(animate);
+
+      const touch = touchRef.current;
+      const orient = orientRef.current;
+
+      if (touch.active) {
+        // Gesto manual: rotação direta
+        object.rotation.y += touch.velX * 0.012;
+        object.rotation.x += touch.velY * 0.012;
+        // Amortece velocidade
+        touch.velX *= SYSTEM.ROTATION_DAMPING;
+        touch.velY *= SYSTEM.ROTATION_DAMPING;
+      } else {
+        // Ancoragem por orientação do dispositivo
+        const targetY = (orient.gamma / 45) * 0.6;
+        const targetX = ((orient.beta - 45) / 45) * 0.4;
+        object.rotation.y += (targetY - object.rotation.y) * 0.06;
+        object.rotation.x += (targetX - object.rotation.x) * 0.06;
+
+        // Auto-giro leve quando sem toque
+        autoRotY += 0.003;
+        object.rotation.y += 0.003;
+      }
+
+      // Leve flutuação vertical
+      object.position.y = Math.sin(Date.now() * 0.0008) * 0.06;
+
+      // Luz pulsante
+      keyLight.intensity =
+        SYSTEM.POINT_LIGHT_INTENSITY +
+        Math.sin(Date.now() * 0.002) * 0.4;
+
+      renderer.render(scene, camera);
     }
-
-    // Auto-spin when not dragging
-    if (!this.drag.on) this.rotTarget.y += 0.005;
-
-    // Lerp rotation
-    this.rot.x += (this.rotTarget.x - this.rot.x) * 0.09;
-    this.rot.y += (this.rotTarget.y - this.rot.y) * 0.09;
-
-    // Gyro depth shift
-    const gx = (this.gyro.gamma || 0) * 0.0025;
-    const gy = ((this.gyro.beta  || 45) - 45) * 0.002;
-    this.gyroLerp.x += (gx - this.gyroLerp.x) * 0.06;
-    this.gyroLerp.y += (gy - this.gyroLerp.y) * 0.06;
-
-    this.pivot.rotation.x = this.rot.x + this.gyroLerp.y * 0.5;
-    this.pivot.rotation.y = this.rot.y + this.gyroLerp.x * 0.5;
-    this.pivot.position.y = Math.sin(t * 1.05) * 0.065;
-
-    if (this._glowRing)
-      this._glowRing.material.emissiveIntensity = 0.9 + Math.sin(t * 3) * 0.5;
-
-    if (this._ring1) this._ring1.rotation.z += 0.006;
-    if (this._ring2) this._ring2.rotation.z -= 0.009;
-
-    if (this._particles) {
-      const pos = this._particles.geometry.attributes.position.array;
-      this._pVel.forEach((v, i) => {
-        v.θ += v.spd;
-        pos[i*3]   = v.r * Math.cos(v.θ);
-        pos[i*3+1] = v.r * Math.sin(v.θ) * 0.32;
-        pos[i*3+2] = v.r * Math.sin(v.θ);
-      });
-      this._particles.geometry.attributes.position.needsUpdate = true;
-    }
-
-    this.renderer.render(this.scene, this.camera);
+    animate();
   }
 
-  resize(w, h) {
-    this.camera.aspect = w / h;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(w, h);
-  }
-
-  // ── Input bindings ────────────────────────────────────────────────
-  _bindGyro() {
-    this._gyroH = e => { this.gyro.beta = e.beta||0; this.gyro.gamma = e.gamma||0; };
-    window.addEventListener("deviceorientation", this._gyroH, true);
-  }
-
-  _bindPointer() {
-    const el = this.canvas;
-    const start = (cx, cy) => {
-      this.drag = { on:true, x0:cx, y0:cy, rx:this.rotTarget.x, ry:this.rotTarget.y };
+  // ── Gestos touch ──────────────────────────────────────
+  const handleTouchStart = useCallback((e) => {
+    if (e.touches.length !== 1) return;
+    touchRef.current = {
+      active: true,
+      lastX: e.touches[0].clientX,
+      lastY: e.touches[0].clientY,
+      velX: 0,
+      velY: 0,
     };
-    const move = (cx, cy) => {
-      if (!this.drag.on) return;
-      this.rotTarget.y = this.drag.ry + (cx - this.drag.x0) * 0.011;
-      this.rotTarget.x = Math.max(-1.3, Math.min(1.3,
-        this.drag.rx + (cy - this.drag.y0) * 0.011));
-    };
-    const end = () => { this.drag.on = false; };
-
-    this._th = e => { if (e.touches.length===1) start(e.touches[0].clientX, e.touches[0].clientY); };
-    this._tm = e => { e.preventDefault(); if (e.touches.length===1) move(e.touches[0].clientX, e.touches[0].clientY); };
-    this._te = () => end();
-    this._md = e => start(e.clientX, e.clientY);
-    this._mm = e => move(e.clientX, e.clientY);
-    this._mu = () => end();
-
-    el.addEventListener("touchstart",  this._th, { passive:true });
-    el.addEventListener("touchmove",   this._tm, { passive:false });
-    el.addEventListener("touchend",    this._te, { passive:true });
-    el.addEventListener("mousedown",   this._md);
-    window.addEventListener("mousemove", this._mm);
-    window.addEventListener("mouseup",   this._mu);
-  }
-
-  destroy() {
-    this.running = false;
-    if (this.rafId) cancelAnimationFrame(this.rafId);
-    this._clearModel();
-    window.removeEventListener("deviceorientation", this._gyroH, true);
-    this.canvas.removeEventListener("touchstart",  this._th);
-    this.canvas.removeEventListener("touchmove",   this._tm);
-    this.canvas.removeEventListener("touchend",    this._te);
-    this.canvas.removeEventListener("mousedown",   this._md);
-    window.removeEventListener("mousemove", this._mm);
-    window.removeEventListener("mouseup",   this._mu);
-    this.renderer.dispose();
-  }
-}
-
-// ── Camera stream cascade ─────────────────────────────────────────────
-async function getCameraStream(facingMode) {
-  const opts = [
-    { video:{ facingMode:{ ideal:facingMode }, width:{ ideal:1280 }, height:{ ideal:720 } }, audio:false },
-    { video:{ facingMode:{ exact:facingMode } }, audio:false },
-    { video:true, audio:false },
-  ];
-  let last;
-  for (const c of opts) {
-    try { return await navigator.mediaDevices.getUserMedia(c); }
-    catch(e) {
-      last = e;
-      if (e.name==="NotAllowedError"||e.name==="PermissionDeniedError") throw e;
-    }
-  }
-  throw last;
-}
-
-// ── Global CSS ────────────────────────────────────────────────────────
-const GCSS = `
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap');
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body,#root{height:100%;width:100%;overflow:hidden;background:${DARK};}
-@keyframes fadeUp   {from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-@keyframes spin     {from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes pulseRing{0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.06);opacity:.85}}
-@keyframes blink    {0%,100%{opacity:1}50%{opacity:.1}}
-@keyframes scanDown {0%{top:-3px;opacity:0}5%{opacity:1}95%{opacity:.85}100%{top:100%;opacity:0}}
-@keyframes scanFade {0%{opacity:0}15%{opacity:1}85%{opacity:1}100%{opacity:0}}
-@keyframes ripple   {0%{transform:translate(-50%,-50%) scale(0);opacity:.5}100%{transform:translate(-50%,-50%) scale(2.8);opacity:0}}
-@keyframes flipIn   {from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
-@keyframes glowBtn  {0%,100%{box-shadow:0 0 18px rgba(212,175,55,.1)}50%{box-shadow:0 0 36px rgba(212,175,55,.3)}}
-.gp-btn{font-family:'Share Tech Mono',monospace;letter-spacing:.16em;cursor:pointer;border:none;outline:none;
-  transition:opacity .18s,transform .14s;-webkit-tap-highlight-color:transparent;
-  touch-action:manipulation;user-select:none;}
-.gp-btn:active{transform:scale(.94);opacity:.7;}
-.gp-btn:focus-visible{outline:2px solid rgba(212,175,55,.5);outline-offset:3px;}
-`;
-
-// ── Logo component ────────────────────────────────────────────────────
-function GhostLogo({ size = 72, showText = true }) {
-  const [imgOk, setImgOk] = useState(true);
-
-  return (
-    <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"10px" }}>
-      {/* Container: transparent bg, no grey box */}
-      <div style={{
-        width: size, height: size,
-        borderRadius: "50%",
-        overflow: "hidden",
-        border: "1.5px solid rgba(212,175,55,0.4)",
-        boxShadow: "0 0 26px rgba(212,175,55,0.16)",
-        background: "transparent",   // ← no grey
-        display: "flex", alignItems: "center", justifyContent: "center",
-        flexShrink: 0,
-      }}>
-        {imgOk ? (
-          <img
-            src={LOGO_URL}
-            alt="Ghost Project"
-            crossOrigin="anonymous"
-            onError={() => setImgOk(false)}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              display: "block",
-              background: "transparent",
-            }}
-          />
-        ) : (
-          <svg width={size * 0.62} height={size * 0.62} viewBox="0 0 120 120" fill="none">
-            <defs>
-              <linearGradient id="fgG" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#f5e070"/>
-                <stop offset="100%" stopColor="#8a6010"/>
-              </linearGradient>
-            </defs>
-            <path d="M95 60 A35 35 0 1 0 95 61 Z" stroke="url(#fgG)" strokeWidth="10"
-              fill="none" strokeLinecap="round" strokeDasharray="180 40"/>
-            <path d="M80 60 L60 60 L60 75" stroke="#d4af37" strokeWidth="9"
-              fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-            <ellipse cx="38" cy="92" rx="7"  ry="10" fill="#d4af37" opacity=".8"/>
-            <ellipse cx="60" cy="95" rx="8"  ry="11" fill="#d4af37"/>
-            <ellipse cx="82" cy="92" rx="7"  ry="10" fill="#d4af37" opacity=".8"/>
-          </svg>
-        )}
-      </div>
-
-      {showText && (
-        <div style={{ textAlign:"center" }}>
-          <div style={{
-            fontSize:"clamp(18px,5vw,26px)", fontWeight:700,
-            letterSpacing:".3em", color:GOLD,
-            fontFamily:"'Rajdhani',sans-serif", lineHeight:1,
-            textShadow:"0 0 28px rgba(212,175,55,.28)",
-          }}>GHOST PROJECT</div>
-          <div style={{
-            fontSize:"8.5px", letterSpacing:".48em", color:GOLD_DIM,
-            marginTop:"5px", fontFamily:"'Share Tech Mono',monospace",
-          }}>AI · AR · E-COMMERCE</div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Scan overlay ──────────────────────────────────────────────────────
-function ScanOverlay({ onComplete }) {
-  useEffect(() => {
-    const t = setTimeout(onComplete, 2800);
-    return () => clearTimeout(t);
-  }, [onComplete]);
-
-  return (
-    <div style={{
-      position:"fixed", inset:0, zIndex:30,
-      background:"rgba(6,9,15,0.9)",
-      display:"flex", flexDirection:"column",
-      alignItems:"center", justifyContent:"center",
-      animation:"scanFade 2.8s ease both",
-    }}>
-      <div style={{
-        position:"relative",
-        width:"min(260px,66vw)", height:"min(260px,66vw)",
-        border:"1px solid rgba(212,175,55,.2)",
-        borderRadius:"12px",
-      }}>
-        {[
-          {top:0,left:0,borderTop:"2px solid",borderLeft:"2px solid",borderTopLeftRadius:8},
-          {top:0,right:0,borderTop:"2px solid",borderRight:"2px solid",borderTopRightRadius:8},
-          {bottom:0,left:0,borderBottom:"2px solid",borderLeft:"2px solid",borderBottomLeftRadius:8},
-          {bottom:0,right:0,borderBottom:"2px solid",borderRight:"2px solid",borderBottomRightRadius:8},
-        ].map((s,i) => (
-          <div key={i} style={{ position:"absolute", width:24, height:24, borderColor:GOLD, ...s }}/>
-        ))}
-        <div style={{
-          position:"absolute", left:0, right:0, height:"2px",
-          borderRadius:"1px",
-          background:`linear-gradient(90deg,transparent,${GOLD},transparent)`,
-          animation:"scanDown 1.4s ease-in-out infinite",
-          boxShadow:"0 0 12px rgba(212,175,55,.6)",
-        }}/>
-        <div style={{
-          position:"absolute", top:"50%", left:"50%",
-          transform:"translate(-50%,-50%)",
-          width:42, height:42,
-          border:"1px solid rgba(212,175,55,.35)", borderRadius:"50%",
-        }}>
-          <div style={{
-            position:"absolute", inset:"-22px",
-            border:"1px solid rgba(212,175,55,.1)", borderRadius:"50%",
-            animation:"ripple 1.6s ease-out infinite",
-          }}/>
-        </div>
-      </div>
-      <div style={{
-        marginTop:"24px", color:"rgba(212,175,55,.6)", fontSize:"10px",
-        letterSpacing:".32em", fontFamily:"'Share Tech Mono',monospace",
-      }}>
-        CALIBRANDO AR
-        <span style={{animation:"blink 1s infinite 0s"}}>.</span>
-        <span style={{animation:"blink 1s infinite .3s"}}>.</span>
-        <span style={{animation:"blink 1s infinite .6s"}}>.</span>
-      </div>
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════════════
-// MAIN APP
-// ══════════════════════════════════════════════════════════════════════
-export default function App() {
-  const [stage,    setStage]    = useState(S.IDLE);
-  const [facing,   setFacing]   = useState("environment");
-  const [errMsg,   setErrMsg]   = useState("");
-  const [mirrored, setMirrored] = useState(false);
-
-  const videoRef  = useRef(null);
-  const canvasRef = useRef(null);
-  const streamRef = useRef(null);
-  const sceneRef  = useRef(null);
-  const libsRef   = useRef(null); // cached { THREE, GLTFLoader }
-
-  // ── One-time boot ─────────────────────────────────────────────────
-  useEffect(() => {
-    injectHead();
-    if (!document.getElementById("gp-css")) {
-      const el = document.createElement("style");
-      el.id = "gp-css"; el.textContent = GCSS;
-      document.head.appendChild(el);
-    }
-    // Pre-load Three.js libs in background so they're ready instantly
-    loadLibs().then(libs => { libsRef.current = libs; }).catch(() => {});
-    return () => { _stopAll(); };
   }, []);
 
+  const handleTouchMove = useCallback((e) => {
+    if (!touchRef.current.active || e.touches.length !== 1) return;
+    e.preventDefault();
+    const dx = e.touches[0].clientX - touchRef.current.lastX;
+    const dy = e.touches[0].clientY - touchRef.current.lastY;
+    touchRef.current.velX = dx;
+    touchRef.current.velY = dy;
+    touchRef.current.lastX = e.touches[0].clientX;
+    touchRef.current.lastY = e.touches[0].clientY;
+
+    if (threeRef.current.object) {
+      threeRef.current.object.rotation.y += dx * 0.012;
+      threeRef.current.object.rotation.x += dy * 0.012;
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    touchRef.current.active = false;
+  }, []);
+
+  // ── Mouse drag (desktop) ──────────────────────────────
+  const mouseRef = useRef({ down: false, lastX: 0, lastY: 0 });
+
+  const handleMouseDown = useCallback((e) => {
+    mouseRef.current = { down: true, lastX: e.clientX, lastY: e.clientY };
+    touchRef.current.active = true;
+  }, []);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!mouseRef.current.down) return;
+    const dx = e.clientX - mouseRef.current.lastX;
+    const dy = e.clientY - mouseRef.current.lastY;
+    mouseRef.current.lastX = e.clientX;
+    mouseRef.current.lastY = e.clientY;
+    touchRef.current.velX = dx;
+    touchRef.current.velY = dy;
+    if (threeRef.current.object) {
+      threeRef.current.object.rotation.y += dx * 0.010;
+      threeRef.current.object.rotation.x += dy * 0.010;
+    }
+  }, []);
+
+  const handleMouseUp = useCallback(() => {
+    mouseRef.current.down = false;
+    touchRef.current.active = false;
+  }, []);
+
+  // ── Resize handler ────────────────────────────────────
   useEffect(() => {
-    const onResize = () => sceneRef.current?.resize(innerWidth, innerHeight);
+    function onResize() {
+      const { renderer, camera } = threeRef.current;
+      const canvas = canvasRef.current;
+      if (!renderer || !canvas) return;
+      const W = canvas.clientWidth;
+      const H = canvas.clientHeight;
+      renderer.setSize(W, H);
+      if (camera) {
+        camera.aspect = W / H;
+        camera.updateProjectionMatrix();
+      }
+      // Overlay canvas
+      const ol = overlayCanvasRef.current;
+      if (ol) { ol.width = W; ol.height = H; }
+    }
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // ── Helpers ───────────────────────────────────────────────────────
-  function _stopAll() {
-    streamRef.current?.getTracks().forEach(t => t.stop());
-    streamRef.current = null;
-    if (videoRef.current) videoRef.current.srcObject = null;
-    sceneRef.current?.destroy();
-    sceneRef.current = null;
-  }
-
-  const attachVideo = (stream) => {
-    let n = 0;
-    const go = () => {
-      const v = videoRef.current;
-      if (v) {
-        v.srcObject = stream;
-        v.setAttribute("playsinline", "");
-        v.setAttribute("webkit-playsinline", "");
-        v.muted = true;
-        v.play().catch(() => {});
-      } else if (++n < 25) setTimeout(go, 80);
+  // ── Cleanup ───────────────────────────────────────────
+  useEffect(() => {
+    return () => {
+      const { renderer, animFrameId } = threeRef.current;
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+      if (renderer) renderer.dispose();
+      if (videoRef.current?.srcObject) {
+        videoRef.current.srcObject.getTracks().forEach((t) => t.stop());
+      }
     };
-    go();
-  };
-
-  const startCamera = async (facingMode) => {
-    streamRef.current?.getTracks().forEach(t => t.stop());
-    streamRef.current = null;
-    const stream = await getCameraStream(facingMode);
-    streamRef.current = stream;
-    const settings = stream.getVideoTracks()[0]?.getSettings?.() ?? {};
-    setMirrored((settings.facingMode ?? facingMode) === "user");
-    return stream;
-  };
-
-  /**
-   * buildScene — always creates a FRESH ARScene on the current canvas.
-   * Called every time AR mode activates (including after camera flip).
-   */
-  const buildScene = async () => {
-    // Destroy previous scene fully (disposes WebGL context + event listeners)
-    if (sceneRef.current) {
-      sceneRef.current.destroy();
-      sceneRef.current = null;
-    }
-
-    // Get or load libs
-    if (!libsRef.current) {
-      libsRef.current = await loadLibs();
-    }
-    const { THREE, GLTFLoader } = libsRef.current;
-
-    const canvas = canvasRef.current;
-    if (!canvas) return null;
-
-    const sc = new ARScene(canvas, THREE, GLTFLoader);
-    sceneRef.current = sc;
-    sc.start();
-    return sc;
-  };
-
-  // ── State machine ─────────────────────────────────────────────────
-  const handleActivate = async () => {
-    setStage(S.LOADING);
-    setErrMsg("");
-    try {
-      const stream = await startCamera(facing);
-      // Mount video + canvas, then build scene during scan animation
-      setStage(S.SCANNING);
-      attachVideo(stream);
-      await buildScene();
-    } catch(e) {
-      const n = e.name || "";
-      setErrMsg(
-        (n==="NotAllowedError"||n==="PermissionDeniedError")
-          ? "ACESSO À CÂMERA NEGADO.\n\n1. Toque no 🔒 na barra de endereço\n2. Permissões → Câmera → Permitir\n3. Recarregue a página"
-          : n==="NotFoundError"
-          ? "NENHUMA CÂMERA ENCONTRADA."
-          : `ERRO: ${n || e.message}`
-      );
-      setStage(S.ERROR);
-    }
-  };
-
-  const handleScanDone = useCallback(() => {
-    setStage(S.AR);
-    setTimeout(() => sceneRef.current?.spawnObject(), 100);
   }, []);
 
-  // Camera flip: restart stream AND rebuild 3D scene on new canvas state
-  const handleFlip = async () => {
-    const next = facing === "environment" ? "user" : "environment";
-    setFacing(next);
-    if (stage === S.AR || stage === S.SCANNING) {
-      try {
-        const stream = await startCamera(next);
-        attachVideo(stream);
-        // Rebuild scene so canvas/renderer align with new orientation
-        await buildScene();
-        sceneRef.current?.spawnObject();
-      } catch {
-        setFacing(facing); // revert on failure
-      }
-    }
-  };
-
-  const handleDeactivate = () => {
-    _stopAll();
-    setStage(S.IDLE);
-  };
-
-  // ── Render ────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════
+  // RENDER
+  // ══════════════════════════════════════════════════════
   return (
-    <div style={{
-      position:"fixed", inset:0, background:DARK,
-      display:"flex", flexDirection:"column",
-      alignItems:"center", justifyContent:"center",
-      fontFamily:"'Rajdhani','Share Tech Mono',sans-serif",
-      overflow:"hidden",
-    }}>
-      {/* Grid bg */}
-      <div style={{
-        position:"absolute", inset:0, pointerEvents:"none",
-        backgroundImage:`
-          linear-gradient(rgba(212,175,55,.026) 1px,transparent 1px),
-          linear-gradient(90deg,rgba(212,175,55,.026) 1px,transparent 1px)`,
-        backgroundSize:"44px 44px", zIndex:0,
-      }}/>
-      <div style={{
-        position:"absolute", top:"50%", left:"50%",
-        transform:"translate(-50%,-50%)",
-        width:"80vmax", height:"80vmax",
-        background:"radial-gradient(circle,rgba(212,175,55,.04) 0%,transparent 65%)",
-        pointerEvents:"none", zIndex:0,
-      }}/>
+    <div className="ghost-root">
+      {/* ── Vídeo de câmera (background) ── */}
+      <video
+        ref={videoRef}
+        className={`ghost-video ${phase === "idle" || phase === "requesting" ? "hidden" : ""}`}
+        playsInline
+        muted
+        autoPlay
+      />
 
-      {/* ══ IDLE ══════════════════════════════════════════════════ */}
-      {stage === S.IDLE && (
-        <div style={{
-          position:"relative", zIndex:1,
-          display:"flex", flexDirection:"column",
-          alignItems:"center", padding:"44px 28px",
-          width:"100%", maxWidth:"380px",
-          animation:"fadeUp .6s ease both",
-        }}>
-          {/* Logo with orbit rings */}
-          <div style={{
-            position:"relative", marginBottom:"30px",
-            display:"flex", alignItems:"center", justifyContent:"center",
-          }}>
-            <div style={{
-              position:"absolute", inset:"-18px",
-              border:"1px dashed rgba(212,175,55,.12)", borderRadius:"50%",
-              animation:"spin 22s linear infinite",
-            }}/>
-            <div style={{
-              position:"absolute", inset:"-7px",
-              border:"1px solid rgba(212,175,55,.2)", borderRadius:"50%",
-              animation:"pulseRing 3s ease-in-out infinite",
-            }}/>
-            <GhostLogo size={82} showText={false}/>
-          </div>
+      {/* ── Canvas Three.js (sobre o vídeo) ── */}
+      <canvas
+        ref={canvasRef}
+        className={`ghost-canvas ${phase === "ar" ? "visible" : ""}`}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+      />
 
-          {/* Brand text */}
-          <div style={{ textAlign:"center", marginBottom:"4px" }}>
-            <div style={{
-              fontSize:"clamp(20px,5.5vw,27px)", fontWeight:700,
-              letterSpacing:".32em", color:GOLD,
-              fontFamily:"'Rajdhani',sans-serif", lineHeight:1,
-              textShadow:"0 0 30px rgba(212,175,55,.26)",
-            }}>GHOST PROJECT</div>
-            <div style={{
-              fontSize:"8.5px", letterSpacing:".5em", color:GOLD_DIM,
-              marginTop:"6px", fontFamily:"'Share Tech Mono',monospace",
-            }}>AI · AR · E-COMMERCE</div>
-          </div>
+      {/* ── Canvas de overlay / scan ── */}
+      <canvas
+        ref={overlayCanvasRef}
+        className="ghost-overlay-canvas"
+      />
 
-          <div style={{
-            width:"100%", height:"1px",
-            background:"linear-gradient(90deg,transparent,rgba(212,175,55,.17),transparent)",
-            margin:"22px 0",
-          }}/>
+      {/* ══ FASE: IDLE ══ */}
+      {phase === "idle" && (
+        <div className="ghost-idle">
+          <div className="ghost-bg-grid" />
+          <div className="ghost-idle-content">
+            {/* ── LOGOTIPO ──
+                Substitua a URL abaixo pela URL pública do seu logo:
+                Ex: "https://res.cloudinary.com/seu-id/image/upload/logo.png"
+            ─────────────────────────────────────────────────────── */}
+            <div className="ghost-logo-wrapper">
+              {/* OPÇÃO A: imagem externa (recomendado) */}
+              {/* <img src="URL_DO_SEU_LOGO_AQUI" alt="Ghost Project" className="ghost-logo-img" /> */}
 
-          <div style={{
-            textAlign:"center", color:GOLD_DIM, fontSize:"10px",
-            letterSpacing:".09em", lineHeight:"1.8",
-            fontFamily:"'Share Tech Mono',monospace", marginBottom:"30px",
-          }}>
-            VISUALIZAÇÃO 3D EM REALIDADE AUMENTADA<br/>
-            VALIDAÇÃO DE PRODUTO EM TEMPO REAL
-          </div>
+              {/* OPÇÃO B: logotipo SVG inline (substitua o path abaixo) */}
+              <svg
+                className="ghost-logo-svg"
+                viewBox="0 0 160 60"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <text
+                  x="50%"
+                  y="50%"
+                  dominantBaseline="middle"
+                  textAnchor="middle"
+                  fontFamily="'Georgia', serif"
+                  fontSize="22"
+                  letterSpacing="8"
+                  fill="url(#goldGrad)"
+                >
+                  GHOST
+                </text>
+                <defs>
+                  <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#a07830" />
+                    <stop offset="40%" stopColor="#f0d060" />
+                    <stop offset="70%" stopColor="#d4af37" />
+                    <stop offset="100%" stopColor="#8a6520" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div className="ghost-logo-sub">PROJECT · AR</div>
+            </div>
 
-          {/* CTA pill */}
-          <button className="gp-btn" onClick={handleActivate} style={{
-            width:"100%", padding:"17px 24px",
-            borderRadius:"50px",
-            border:"1.5px solid rgba(212,175,55,.48)",
-            background:"linear-gradient(135deg,rgba(212,175,55,.14),rgba(212,175,55,.04))",
-            color:GOLD, fontSize:"12px",
-            animation:"glowBtn 3.5s ease-in-out infinite",
-          }}>
-            ◈ &nbsp;ATIVAR GHOST AR
-          </button>
+            <div className="ghost-divider" />
 
-          {/* Camera pills */}
-          <div style={{ marginTop:"15px", display:"flex", gap:"10px" }}>
-            {["environment","user"].map(f => (
-              <button key={f} className="gp-btn" onClick={() => setFacing(f)} style={{
-                padding:"9px 20px", borderRadius:"50px",
-                border:`1px solid ${facing===f?"rgba(212,175,55,.44)":"rgba(212,175,55,.1)"}`,
-                background: facing===f ? "rgba(212,175,55,.1)" : "transparent",
-                color: facing===f ? GOLD : "rgba(212,175,55,.25)",
-                fontSize:"9px",
-              }}>
-                {f==="environment" ? "TRASEIRA" : "FRONTAL"}
-              </button>
-            ))}
+            <p className="ghost-tagline">
+              Experimente antes de comprar.<br />
+              <span className="ghost-tagline-accent">Realidade Aumentada para e-commerce.</span>
+            </p>
+
+            {permissionError && (
+              <div className="ghost-error">{permissionError}</div>
+            )}
+
+            <button className="ghost-cta" onClick={startCamera}>
+              <span className="ghost-cta-ring" />
+              <span className="ghost-cta-text">INICIAR EXPERIÊNCIA AR</span>
+            </button>
+
+            <p className="ghost-hint">
+              Câmera traseira · iOS Safari · Android Chrome
+            </p>
           </div>
         </div>
       )}
 
-      {/* ══ LOADING ═══════════════════════════════════════════════ */}
-      {stage === S.LOADING && (
-        <div style={{
-          position:"relative", zIndex:1,
-          display:"flex", flexDirection:"column",
-          alignItems:"center", gap:"22px",
-          animation:"fadeUp .35s ease both",
-        }}>
-          <div style={{
-            width:"52px", height:"52px", borderRadius:"50%",
-            border:"1.5px solid rgba(212,175,55,.1)",
-            borderTop:"1.5px solid rgba(212,175,55,.78)",
-            animation:"spin .85s linear infinite",
-          }}/>
-          <div style={{
-            color:"rgba(212,175,55,.5)", fontSize:"10px",
-            letterSpacing:".3em", fontFamily:"'Share Tech Mono',monospace",
-          }}>
-            INICIALIZANDO
-            <span style={{animation:"blink 1s infinite 0s"}}>.</span>
-            <span style={{animation:"blink 1s infinite .3s"}}>.</span>
-            <span style={{animation:"blink 1s infinite .6s"}}>.</span>
+      {/* ══ FASE: REQUESTING ══ */}
+      {phase === "requesting" && (
+        <div className="ghost-overlay-ui">
+          <div className="ghost-spinner" />
+          <p className="ghost-status-text">Solicitando câmera...</p>
+        </div>
+      )}
+
+      {/* ══ FASE: STREAMING ══ */}
+      {phase === "streaming" && (
+        <div className="ghost-ar-hud">
+          <div className="ghost-hud-header">
+            <div className="ghost-hud-logo">GHOST · AR</div>
+            <div className="ghost-hud-badge">● CÂMERA ATIVA</div>
+          </div>
+
+          <div className="ghost-scan-frame">
+            <div className="ghost-scan-corner tl" />
+            <div className="ghost-scan-corner tr" />
+            <div className="ghost-scan-corner bl" />
+            <div className="ghost-scan-corner br" />
+            <p className="ghost-scan-hint">Aponte para o ambiente</p>
+          </div>
+
+          <div className="ghost-hud-footer">
+            <button className="ghost-scan-btn" onClick={startScan}>
+              <span className="ghost-scan-btn-inner">ESCANEAR</span>
+            </button>
           </div>
         </div>
       )}
 
-      {/* ══ SCANNING + AR  (video + canvas always mounted together) */}
-      {(stage === S.SCANNING || stage === S.AR) && (
-        <div style={{
-          position:"fixed", inset:0, zIndex:10,
-          background:"#000",
-          animation:"flipIn .3s ease both",
-        }}>
-          {/* Camera video */}
-          <video ref={videoRef} autoPlay playsInline muted style={{
-            position:"absolute", inset:0,
-            width:"100%", height:"100%",
-            objectFit:"cover",
-            transform: mirrored ? "scaleX(-1)" : "none",
-            background:"#000",
-          }}/>
-
-          {/* Three.js canvas */}
-          <canvas ref={canvasRef} style={{
-            position:"absolute", inset:0,
-            width:"100%", height:"100%",
-            pointerEvents: stage===S.AR ? "auto" : "none",
-            zIndex:1,
-            display:"block",
-          }}/>
-
-          {/* Scan animation */}
-          {stage === S.SCANNING && <ScanOverlay onComplete={handleScanDone}/>}
-
-          {/* AR HUD */}
-          {stage === S.AR && (
-            <>
-              {/* Non-interactive overlays */}
-              <div style={{ position:"absolute", inset:0, zIndex:2, pointerEvents:"none" }}>
-                {/* Corner brackets */}
-                {[
-                  {top:14,left:14,borderTop:"2px solid",borderLeft:"2px solid",borderTopLeftRadius:4},
-                  {top:14,right:14,borderTop:"2px solid",borderRight:"2px solid",borderTopRightRadius:4},
-                  {bottom:72,left:14,borderBottom:"2px solid",borderLeft:"2px solid",borderBottomLeftRadius:4},
-                  {bottom:72,right:14,borderBottom:"2px solid",borderRight:"2px solid",borderBottomRightRadius:4},
-                ].map((s,i) => (
-                  <div key={i} style={{ position:"absolute", width:22, height:22,
-                    borderColor:"rgba(212,175,55,.55)", ...s }}/>
-                ))}
-
-                {/* Top bar */}
-                <div style={{
-                  position:"absolute", top:0, left:0, right:0,
-                  padding:"max(env(safe-area-inset-top,14px),14px) 18px 14px",
-                  background:"linear-gradient(to bottom,rgba(6,9,15,.75),transparent)",
-                  display:"flex", alignItems:"center", justifyContent:"space-between",
-                }}>
-                  <GhostLogo size={30} showText={false}/>
-                  <div style={{
-                    fontSize:"11px", fontWeight:700, letterSpacing:".26em",
-                    color:GOLD, fontFamily:"'Rajdhani',sans-serif",
-                    textShadow:"0 0 14px rgba(212,175,55,.38)",
-                  }}>GHOST PROJECT</div>
-                  <div style={{ display:"flex", alignItems:"center", gap:"5px" }}>
-                    <div style={{
-                      width:6, height:6, borderRadius:"50%", background:"#4ade80",
-                      boxShadow:"0 0 8px rgba(74,222,128,.9)",
-                      animation:"blink 1.6s ease-in-out infinite",
-                    }}/>
-                    <span style={{
-                      fontSize:"8px", letterSpacing:".2em",
-                      color:"rgba(74,222,128,.8)", fontFamily:"'Share Tech Mono',monospace",
-                    }}>LIVE</span>
-                  </div>
-                </div>
-
-                {/* Drag hint */}
-                <div style={{
-                  position:"absolute", bottom:"100px", left:"50%",
-                  transform:"translateX(-50%)",
-                  color:"rgba(212,175,55,.28)", fontSize:"9px",
-                  letterSpacing:".15em", fontFamily:"'Share Tech Mono',monospace",
-                  whiteSpace:"nowrap",
-                }}>
-                  ↔ &nbsp;ARRASTE PARA GIRAR
-                </div>
-              </div>
-
-              {/* Bottom control bar (interactive) */}
-              <div style={{
-                position:"absolute", bottom:0, left:0, right:0, zIndex:3,
-                padding:`18px 20px max(env(safe-area-inset-bottom,22px),22px)`,
-                background:"linear-gradient(to top,rgba(6,9,15,.88),transparent)",
-                display:"flex", alignItems:"center", justifyContent:"center", gap:"20px",
-              }}>
-                {/* Close */}
-                <button className="gp-btn" onClick={handleDeactivate} style={{
-                  width:"50px", height:"50px", borderRadius:"50%",
-                  border:"1.5px solid rgba(212,175,55,.26)",
-                  background:"rgba(212,175,55,.07)",
-                  color:"rgba(212,175,55,.58)",
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
-                </button>
-
-                {/* Validate */}
-                <button className="gp-btn" style={{
-                  width:"70px", height:"70px", borderRadius:"50%",
-                  border:`2px solid ${GOLD}`,
-                  background:"linear-gradient(135deg,rgba(212,175,55,.2),rgba(212,175,55,.05))",
-                  color:GOLD, fontSize:"8px", letterSpacing:".12em",
-                  display:"flex", flexDirection:"column",
-                  alignItems:"center", justifyContent:"center", gap:"3px",
-                  boxShadow:"0 0 28px rgba(212,175,55,.18)",
-                }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                  OK
-                </button>
-
-                {/* Flip */}
-                <button className="gp-btn" onClick={handleFlip} style={{
-                  width:"50px", height:"50px", borderRadius:"50%",
-                  border:"1.5px solid rgba(212,175,55,.26)",
-                  background:"rgba(212,175,55,.07)",
-                  color:"rgba(212,175,55,.58)",
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                    <path d="M20 7h-3a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/>
-                    <circle cx="12" cy="13" r="3"/>
-                  </svg>
-                </button>
-              </div>
-            </>
-          )}
+      {/* ══ FASE: SCANNING ══ */}
+      {phase === "scanning" && (
+        <div className="ghost-ar-hud">
+          <div className="ghost-hud-header">
+            <div className="ghost-hud-logo">GHOST · AR</div>
+            <div className="ghost-hud-badge scanning">◈ ANALISANDO</div>
+          </div>
+          <div className="ghost-scan-progress-wrap">
+            <div
+              className="ghost-scan-progress-bar"
+              style={{ width: `${scanProgress * 100}%` }}
+            />
+          </div>
+          <p className="ghost-scan-label">
+            {scanProgress < 0.4
+              ? "Mapeando superfícies..."
+              : scanProgress < 0.75
+              ? "Calculando profundidade..."
+              : "Ancorando objeto..."}
+          </p>
         </div>
       )}
 
-      {/* ══ ERROR ════════════════════════════════════════════════ */}
-      {stage === S.ERROR && (
-        <div style={{
-          position:"relative", zIndex:1,
-          display:"flex", flexDirection:"column",
-          alignItems:"center", gap:"20px",
-          padding:"0 32px", maxWidth:"340px",
-          textAlign:"center",
-          animation:"fadeUp .4s ease both",
-        }}>
-          <div style={{ fontSize:"28px", color:"rgba(212,175,55,.2)" }}>⊘</div>
-          <div style={{
-            color:"rgba(212,175,55,.7)", fontSize:"10.5px",
-            letterSpacing:".08em", lineHeight:"1.9",
-            fontFamily:"'Share Tech Mono',monospace", whiteSpace:"pre-line",
-          }}>{errMsg}</div>
-          <button className="gp-btn" onClick={() => setStage(S.IDLE)} style={{
-            padding:"13px 30px", borderRadius:"50px",
-            border:"1px solid rgba(212,175,55,.3)",
-            background:"rgba(212,175,55,.07)",
-            color:"rgba(212,175,55,.64)",
-            fontSize:"10px", letterSpacing:".2em", marginTop:"4px",
-          }}>
-            TENTAR NOVAMENTE
-          </button>
+      {/* ══ FASE: AR ══ */}
+      {phase === "ar" && (
+        <div className="ghost-ar-hud ar-active">
+          <div className="ghost-hud-header">
+            <div className="ghost-hud-logo">GHOST · AR</div>
+            <div className="ghost-hud-badge live">◉ AO VIVO</div>
+          </div>
+
+          <div className="ghost-ar-controls-hint">
+            <span>↺ Arraste para girar</span>
+          </div>
+
+          <div className="ghost-hud-footer ar-footer">
+            <button
+              className="ghost-secondary-btn"
+              onClick={() => {
+                const { animFrameId, renderer } = threeRef.current;
+                if (animFrameId) cancelAnimationFrame(animFrameId);
+                if (renderer) renderer.dispose();
+                setPhase("streaming");
+              }}
+            >
+              REPOSICIONAR
+            </button>
+            <button
+              className="ghost-secondary-btn accent"
+              onClick={() => {
+                alert("Checkout integration: evento registrado.");
+              }}
+            >
+              VALIDAR COMPRA
+            </button>
+          </div>
         </div>
       )}
     </div>
