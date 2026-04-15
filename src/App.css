@@ -1,113 +1,148 @@
-/* Reset e Base */
-.gp-main-container {
-  margin: 0;
-  padding: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: #050505;
-  color: #D4AF37; /* Dourado Luxo */
-  font-family: 'Inter', sans-serif;
-  overflow: hidden;
+/* ============================================================
+   GHOST PROJECT — App.css
+   Estética: Luxury Dark · Gold · Minimal
+   ============================================================ */
+
+:root {
+  --gold-light:   #f0d060;
+  --gold-main:    #d4af37;
+  --gold-dark:    #a07830;
+  --black:        #000000;
+  --near-black:   #080808;
+  --text-primary: #f5f0e8;
+  --text-muted:   rgba(212,175,55,0.55);
+  --font-ui:      'Helvetica Neue', 'Arial', sans-serif;
+  --transition:   0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Landing Page */
-.gp-landing {
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--black);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+}
+
+.ghost-root {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--near-black);
+}
+
+/* Vídeo e Canvas */
+.ghost-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.ghost-video.hidden { opacity: 0; }
+
+.ghost-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ghost-canvas.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Landing Page (Idle) */
+.ghost-idle {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  background: radial-gradient(circle, #1a1400 0%, #000 100%);
   text-align: center;
+  padding: 20px;
 }
 
-.gp-logo-wrapper {
-  width: 150px;
-  margin-bottom: 20px;
+.ghost-logo-wrapper {
+  margin-bottom: 30px;
 }
 
-.gp-logo-img {
-  width: 100%;
+.ghost-logo-img {
+  max-width: 180px;
   background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  display: block;
+  filter: drop-shadow(0 0 15px rgba(212,175,55,0.3));
 }
 
-.gp-title {
-  font-size: 2rem;
+.ghost-logo-sub {
+  font-size: 10px;
   letter-spacing: 5px;
-  margin: 10px 0;
-  font-weight: 800;
+  color: var(--text-muted);
+  margin-top: 10px;
+  text-transform: uppercase;
 }
 
-.gp-subtitle {
-  font-size: 0.8rem;
-  letter-spacing: 3px;
-  color: #888;
-  margin-bottom: 40px;
-}
-
-/* Botões Estilo Pílula */
-.gp-btn-primary {
+/* Botão Principal */
+.ghost-cta {
   background: transparent;
-  border: 2px solid #D4AF37;
-  color: #D4AF37;
-  padding: 15px 40px;
+  border: 1px solid var(--gold-main);
+  color: var(--gold-main);
+  padding: 15px 35px;
   border-radius: 50px;
+  font-size: 11px;
   font-weight: bold;
   letter-spacing: 2px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
-.gp-btn-primary:hover {
-  background: #D4AF37;
-  color: #000;
+.ghost-cta:hover {
+  background: rgba(212,175,55,0.1);
+  box-shadow: 0 0 20px rgba(212,175,55,0.2);
 }
 
-/* Interface de AR */
-.gp-ar-overlay {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.gp-loading-screen {
+/* HUD e Scan */
+.ghost-status-text {
   position: absolute;
-  top: 50%;
+  bottom: 15%;
+  width: 100%;
+  text-align: center;
+  z-index: 20;
+  color: var(--gold-main);
+  letter-spacing: 2px;
+  font-size: 12px;
+}
+
+.ghost-scan-btn {
+  position: absolute;
+  bottom: 50px;
   left: 50%;
-  transform: translate(-50%, -50%);
-  color: #fff;
-  z-index: 10;
-}
-
-.gp-controls {
-  position: absolute;
-  bottom: 40px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  align-items: center;
-  z-index: 5;
-}
-
-.gp-btn-capture {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: rgba(212, 175, 55, 0.8);
-  border: 4px solid #fff;
-  font-size: 1.5rem;
+  transform: translateX(-50%);
+  z-index: 20;
+  background: rgba(212,175,55,0.8);
+  border: none;
+  color: #000;
+  padding: 15px 30px;
+  border-radius: 30px;
+  font-weight: bold;
+  letter-spacing: 1px;
   cursor: pointer;
 }
 
-.gp-btn-icon {
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  border: 1px solid #D4AF37;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  cursor: pointer;
+/* Ajustes para iPhone */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .ghost-idle { padding-bottom: env(safe-area-inset-bottom); }
 }
