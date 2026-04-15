@@ -1,64 +1,30 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
-
-// --- Constantes de sistema ---
-const SYSTEM = {
-  SCAN_DURATION_MS: 2800,
-  GOLD_COLOR: 0xd4af37,
-  BG_COLOR: 0x000000,
-};
+import React, { useState } from "react";
+import "./App.css";
 
 function App() {
-  const [loading, setLoading] = useState(false);
   const [arActive, setArActive] = useState(false);
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-
-  // Iniciar Câmera
-  const startCamera = async () => {
-    setLoading(true);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setArActive(true);
-      }
-    } catch (err) {
-      alert("Por favor, permita o acesso à câmera para a experiência AR.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="ghost-root">
       {!arActive ? (
         <div className="ghost-idle">
           <div className="ghost-logo-wrapper">
-             <img 
+            <img 
               src="https://raw.githubusercontent.com/Carlosprado15/Ghost-project-ai/main/src/assets/1776216880651.jpg" 
-              alt="Ghost Logo" 
+              alt="Logo Ghost" 
               className="ghost-logo-img" 
             />
-            <span className="ghost-logo-sub">Augmented Reality</span>
+            <h1 className="ghost-title">GHOST PROJECT</h1>
+            <span className="ghost-logo-sub">REALIDADE AUMENTADA</span>
           </div>
-          <button className="ghost-cta" onClick={startCamera}>
-            INICIAR EXPERIÊNCIA AR
+          <button className="ghost-cta" onClick={() => setArActive(true)}>
+            INICIAR EXPERIÊNCIA
           </button>
         </div>
       ) : (
         <div className="ghost-ar-container">
-          <video 
-            ref={videoRef} 
-            autoPlay 
-            playsInline 
-            className="ghost-video"
-          />
-          <div className="ghost-status-text">AMBIENTE IDENTIFICADO</div>
-          <button className="ghost-scan-btn" onClick={() => window.location.reload()}>
-            SAIR
-          </button>
+          <div className="ghost-status-text">CARREGANDO CÂMERA...</div>
+          <button className="ghost-scan-btn" onClick={() => setArActive(false)}>VOLTAR</button>
         </div>
       )}
     </div>
