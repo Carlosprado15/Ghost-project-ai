@@ -59,26 +59,51 @@ export default function App() {
   }
 
   function initScene() {
-    const THREE = window.THREE;
-const scene = new THREE.Scene();
+  const THREE = window.THREE;
 
-const loader = new GLTFLoader();
+  const scene = new THREE.Scene();
 
-loader.load(
-  'model.glb',
-  (gltf) => {
-    const model = gltf.scene;
+  const camera = new THREE.PerspectiveCamera(
+    60,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    100
+  );
+  camera.position.z = 2.5;
 
-    model.scale.set(1, 1, 1);
-    model.position.set(0, 0, 0);
+  const renderer = new THREE.WebGLRenderer({
+    canvas: canvasRef.current,
+    alpha: true
+  });
+  renderer.setSize(window.innerWidth, window.innerHeight);
 
-    scene.add(model);
-  },
-  undefined,
-  (error) => {
-    console.log('ERROR LOADING MODEL:', error);
+  const light = new THREE.PointLight(0xffffff, 1);
+  light.position.set(5, 5, 5);
+  scene.add(light);
+
+  const loader = new GLTFLoader();
+
+  loader.load(
+    'model.glb',
+    (gltf) => {
+      const model = gltf.scene;
+      model.scale.set(1, 1, 1);
+      model.position.set(0, 0, 0);
+      scene.add(model);
+    },
+    undefined,
+    (error) => {
+      console.log('ERROR LOADING MODEL:', error);
+    }
+  );
+
+  function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
   }
-);
+
+  animate();
+}
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.z = 2.5;
