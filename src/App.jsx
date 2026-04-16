@@ -91,8 +91,8 @@ const loader = new GLTFloader();
       // roughness: 0.2
     });
 
-    // const mesh = new THREE.Mesh(geometry, material);
-    // scene.add(mesh);
+     const mesh = new THREE.Mesh(geometry, material);
+     scene.add(mesh);
 
     function animate() {
       requestAnimationFrame(animate);
