@@ -129,3 +129,4 @@ const loader = new GLTFloader();
     </div>
   );
 }
+export default app;
