@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
 const GOLD = "#d4af37";
 const DARK = "#06090f";
 
@@ -54,6 +54,9 @@ export default function App() {
   function start3D() {
     const script = document.createElement("script");
     script.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+    const loaderScript = document.createElement("script");
+loaderScript.src = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js";
+document.body.appendChild(loaderScript);
     script.onload = () => initScene();
     document.body.appendChild(script);
   }
@@ -81,7 +84,7 @@ export default function App() {
   light.position.set(5, 5, 5);
   scene.add(light);
 
-  const loader = new GLTFLoader();
+  const loader = new THREE.GLTFLoader();
 
   loader.load(
     'model.glb',
