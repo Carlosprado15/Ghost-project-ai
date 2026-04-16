@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 const GOLD = "#d4af37";
 const DARK = "#06090f";
 
@@ -60,7 +60,7 @@ export default function App() {
 
   function initScene() {
     const THREE = window.THREE;
-const loader = new THREE.GLTFloader();
+const loader = new GLTFloader();
    loader.load('/model.glb', function (gltf) {
   console.log('MODEL LOADED');
 
