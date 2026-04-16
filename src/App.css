@@ -1,71 +1,82 @@
-html, body, #root {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #000000;
-  color: #ffffff;
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body, html, #root {
+  background-color: #000 !important;
+  color: #fff;
   font-family: 'Inter', sans-serif;
+  height: 100vh;
+  width: 100vw;
   overflow: hidden;
 }
 
-.container {
+.app-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  justify-content: space-between;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.title {
-  font-size: 1.8rem;
-  letter-spacing: 0.6rem;
-  text-align: center;
-  margin: 0;
-}
-
-.subtitle {
-  text-align: center;
-  color: #888;
-  font-size: 0.8rem;
-  letter-spacing: 0.2rem;
-}
-
-.viewfinder {
-  flex: 1;
-  border: 1px solid #333;
-  margin: 20px 0;
-  display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle, #111 0%, #000 100%);
+  background: black;
 }
 
-.controls {
+.brand-name {
+  font-size: 1.5rem;
+  letter-spacing: 0.6rem;
+  font-weight: 200;
+  text-align: center;
+}
+
+.edition {
+  font-size: 0.5rem;
+  letter-spacing: 0.2rem;
+  color: #555;
+  display: block;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.btn-main {
+  background: transparent;
+  color: #fff;
+  border: 1px solid #fff;
+  padding: 15px 30px;
+  letter-spacing: 0.2rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+
+.ar-scanner-mode {
+  position: relative;
+  width: 80vw;
+  height: 60vh;
+  border: 1px solid #222;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  align-items: center;
+  justify-content: center;
 }
 
-.ar-button {
-  background: #ffffff;
-  color: #000000;
+.ar-clock {
+  text-align: center;
+}
+
+.digital-time {
+  font-size: 1.2rem;
+  display: block;
+  letter-spacing: 0.3rem;
+}
+
+.label {
+  font-size: 0.4rem;
+  color: #0f0; /* Verde neon estilo scanner */
+}
+
+.btn-close {
+  position: absolute;
+  bottom: -50px;
+  background: none;
   border: none;
-  padding: 15px;
-  font-weight: bold;
+  color: #666;
+  font-size: 0.6rem;
   letter-spacing: 0.1rem;
   cursor: pointer;
-}
-
-.ar-button.secondary {
-  background: transparent;
-  color: #ffffff;
-  border: 1px solid #ffffff;
-}
-
-.footer {
-  text-align: center;
-  font-size: 0.6rem;
-  color: #444;
 }
