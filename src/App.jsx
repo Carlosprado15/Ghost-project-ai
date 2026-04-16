@@ -60,7 +60,7 @@ export default function App() {
 
   function initScene() {
     const THREE = window.THREE;
-const loader = new three.GLTFloader();
+const loader = new THREE.GLTFloader();
    loader.load('/model.glb', function (gltf) {
   console.log('MODEL LOADED');
 
