@@ -85,10 +85,10 @@ const loader = new GLTFloader();
     scene.add(light);
 
     // const geometry = new THREE.TorusKnotGeometry(0.6, 0.2, 100, 16);
-    // const material = new THREE.MeshStandardMaterial({
-      // color: 0xd4af37,
-      // metalness: 1,
-      // roughness: 0.2
+     const material = new THREE.MeshStandardMaterial({
+       color: 0xd4af37,
+       metalness: 1,
+       roughness: 0.2
     });
 
      const mesh = new THREE.Mesh(geometry, material);
