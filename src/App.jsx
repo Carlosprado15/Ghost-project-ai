@@ -1,46 +1,119 @@
-import React, { useState, useEffect } from 'react';
-import './App.css';
+import { useState, useRef, useEffect } from "react";
 
-function App() {
-  const [arActive, setArActive] = useState(false);
-  const [time, setTime] = useState(new Date().toLocaleTimeString());
+const GOLD = "#d4af37";
+const DARK = "#06090f";
 
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+// LOGO (já preparado pra fundo transparente depois)
+const LOGO = "https://i.postimg.cc/RVQVdBx3/1776216880651.jpg";
+
+// RELÓGIO 3D (modelo premium público confiável)
+const MODEL = "https://modelviewer.dev/shared-assets/models/Astronaut.glb"; 
+// (vamos trocar por relógio real depois — esse é estável pra demo)
+
+export default function App() {
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [active, setActive] = useState(false);
+  const [facing, setFacing] = useState("environment");
+
+  // CAMERA
+  async function startCamera(mode) {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: mode },
+      audio: false
+    });
+
+    videoRef.current.srcObject = stream;
+    videoRef.current.play();
+  }
+
+  function stopCamera() {
+    const tracks = videoRef.current?.srcObject?.getTracks();
+    tracks?.forEach(t => t.stop());
+  }
+
+  async function activate() {
+    setActive(true);
+    await startCamera("environment");
+    start3D();
+  }
+
+  function deactivate() {
+    stopCamera();
+    setActive(false);
+  }
+
+  async function flipCamera() {
+    const newMode = facing === "environment" ? "user" : "environment";
+    setFacing(newMode);
+    stopCamera();
+    await startCamera(newMode);
+  }
+
+  // THREE.JS
+  function start3D() {
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+    script.onload = () => initScene();
+    document.body.appendChild(script);
+  }
+
+  function initScene() {
+    const THREE = window.THREE;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.z = 2.5;
+
+    const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    const light = new THREE.PointLight(0xffffff, 1);
+    light.position.set(5, 5, 5);
+    scene.add(light);
+
+    const geometry = new THREE.TorusKnotGeometry(0.6, 0.2, 100, 16);
+    const material = new THREE.MeshStandardMaterial({
+      color: 0xd4af37,
+      metalness: 1,
+      roughness: 0.2
+    });
+
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      mesh.rotation.y += 0.01;
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  }
 
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <h1 className="brand-name">GHOST PROJECT</h1>
-        <span className="edition">LUXURY AR EDITION</span>
-      </header>
+    <div className="app">
 
-      <main className="viewport">
-        {!arActive ? (
-          <div className="welcome-screen">
-            <button className="btn-main" onClick={() => setArActive(true)}>
-              ATIVAR SCANNER AR
-            </button>
-          </div>
-        ) : (
-          <div className="ar-scanner-mode">
-            <div className="scanner-line"></div>
-            <div className="corner-tl"></div><div className="corner-tr"></div>
-            <div className="corner-bl"></div><div className="corner-br"></div>
-            
-            <div className="ar-clock">
-              <span className="digital-time">{time}</span>
-              <span className="label">SCANNING...</span>
-            </div>
+      {!active && (
+        <div className="home">
+          <img src={LOGO} className="logo" />
+          <h1>GHOST PROJECT</h1>
+          <button onClick={activate}>ATIVAR AR</button>
+        </div>
+      )}
 
-            <button className="btn-close" onClick={() => setArActive(false)}>FECHAR</button>
+      {active && (
+        <div className="ar">
+          <video ref={videoRef} className="video" playsInline />
+          <canvas ref={canvasRef} className="canvas" />
+
+          <div className="controls">
+            <button onClick={deactivate}>✕</button>
+            <button onClick={flipCamera}>↺</button>
           </div>
-        )}
-      </main>
+        </div>
+      )}
+
     </div>
   );
 }
-
-export default App;
