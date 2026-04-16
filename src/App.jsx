@@ -61,13 +61,17 @@ export default function App() {
   function initScene() {
     const THREE = window.THREE;
 const loader = new three.GLTFloader();
-    loader.load('/model.glb', function (gltf) {
+   loader.load('/model.glb', function (gltf) {
+  console.log('MODEL LOADED');
+
   const model = gltf.scene;
 
   model.scale.set(1, 1, 1);
   model.position.set(0, 0, 0);
 
   scene.add(model);
+}, undefined, function (error) {
+  console.log('ERROR LOADING MODEL:', error);
 });
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
