@@ -135,4 +135,3 @@ loader.load(
     </div>
   );
 }
-export default App;
