@@ -1,82 +1,66 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #06090f;
+  font-family: sans-serif;
+}
 
-body, html, #root {
-  background-color: #000 !important;
-  color: #fff;
-  font-family: 'Inter', sans-serif;
+.app {
+  width: 100%;
   height: 100vh;
-  width: 100vw;
   overflow: hidden;
 }
 
-.app-container {
+/* HOME */
+
+.home {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   height: 100vh;
-  align-items: center;
-  justify-content: center;
-  background: black;
+  color: #d4af37;
 }
 
-.brand-name {
-  font-size: 1.5rem;
-  letter-spacing: 0.6rem;
-  font-weight: 200;
-  text-align: center;
+.logo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin-bottom: 20px;
 }
 
-.edition {
-  font-size: 0.5rem;
-  letter-spacing: 0.2rem;
-  color: #555;
-  display: block;
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.btn-main {
+button {
+  padding: 15px 25px;
+  border-radius: 30px;
+  border: 1px solid #d4af37;
   background: transparent;
-  color: #fff;
-  border: 1px solid #fff;
-  padding: 15px 30px;
-  letter-spacing: 0.2rem;
+  color: #d4af37;
   cursor: pointer;
-  font-size: 0.7rem;
 }
 
-.ar-scanner-mode {
-  position: relative;
-  width: 80vw;
-  height: 60vh;
-  border: 1px solid #222;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+/* AR */
+
+.ar {
+  position: fixed;
+  inset: 0;
 }
 
-.ar-clock {
-  text-align: center;
-}
-
-.digital-time {
-  font-size: 1.2rem;
-  display: block;
-  letter-spacing: 0.3rem;
-}
-
-.label {
-  font-size: 0.4rem;
-  color: #0f0; /* Verde neon estilo scanner */
-}
-
-.btn-close {
+.video {
   position: absolute;
-  bottom: -50px;
-  background: none;
-  border: none;
-  color: #666;
-  font-size: 0.6rem;
-  letter-spacing: 0.1rem;
-  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.canvas {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.controls {
+  position: absolute;
+  bottom: 30px;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
 }
