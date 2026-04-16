@@ -1,129 +1,38 @@
-import React, { useState, useRef, useEffect } from 'react';
-
-const STAGES = {
-  IDLE: 'IDLE',
-  LOADING: 'LOADING',
-  ACTIVE: 'ACTIVE',
-  ERROR: 'ERROR'
-};
-
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100vh',
-    backgroundColor: '#1a1a1a',
-    color: '#fff',
-    fontFamily: 'Arial, sans-serif'
-  },
-  title: {
-    fontSize: '2.5rem',
-    marginBottom: '1rem',
-    color: '#d4af37',
-    textTransform: 'uppercase',
-    letterSpacing: '5px'
-  },
-  subtitle: {
-    fontSize: '1rem',
-    marginBottom: '2rem',
-    color: '#888'
-  },
-  ctaButton: {
-    padding: '15px 40px',
-    fontSize: '1.2rem',
-    backgroundColor: 'transparent',
-    color: '#d4af37',
-    border: '2px solid #d4af37',
-    borderRadius: '30px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    textTransform: 'uppercase',
-    fontWeight: 'bold'
-  },
-  circle: {
-    width: '150px',
-    height: '150px',
-    borderRadius: '50%',
-    border: '2px solid #d4af37',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: '2rem'
-  },
-  innerCircle: {
-    width: '100px',
-    height: '100px',
-    borderRadius: '50%',
-    border: '1px solid #d4af37'
-  }
-};
-
-function App() {
-  const [stage, setStage] = useState(STAGES.IDLE);
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
-
-  const startCamera = async () => {
-    setStage(STAGES.LOADING);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'user' } 
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      setStage(STAGES.ACTIVE);
-    } catch (err) {
-      console.error(err);
-      setStage(STAGES.ERROR);
-    }
-  };
-
-  return (
-    <div style={styles.container}>
-      <div style={styles.circle}>
-        <div style={styles.innerCircle}></div>
-      </div>
-      
-      <h1 style={styles.title}>GHOST PROJECT</h1>
-      <p style={styles.subtitle}>AI TECHNOLOGY</p>
-
-      {stage === STAGES.IDLE && (
-        <button 
-          style={styles.ctaButton}
-          onClick={startCamera}
-        >
-          ATIVAR GHOST AI
-        </button>
-      )}
-
-      {stage === STAGES.ACTIVE && (
-        <div>
-          <video 
-            ref={videoRef} 
-            autoPlay 
-            playsInline 
-            style={{ width: '100%', maxWidth: '400px', borderRadius: '10px', border: '2px solid #d4af37' }} 
-          />
-          <button 
-            style={{...styles.ctaButton, marginTop: '20px'}}
-            onClick={() => {
-              streamRef.current.getTracks().forEach(t => t.stop());
-              setStage(STAGES.IDLE);
-            }}
-          >
-            DESATIVAR
-          </button>
-        </div>
-      )}
-
-      {stage === STAGES.LOADING && <div style={{color: '#d4af37'}}>INICIALIZANDO...</div>}
-      {stage === STAGES.ERROR && <div style={{color: '#d4af37'}}>ERRO NA CÂMERA. CHEQUE AS PERMISSÕES.</div>}
-    </div>
-  );
+/* Reset total para fundo preto absoluto */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000000 !important;
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
 }
 
-export default App;
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #000000;
+}
+
+.header {
+  text-align: center;
+}
+
+.logo {
+  width: 150px;
+  height: auto;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 1.5rem;
+  letter-spacing: 0.5rem;
+  text-transform: uppercase;
+  font-weight: 300;
+  color: #ffffff;
+}
