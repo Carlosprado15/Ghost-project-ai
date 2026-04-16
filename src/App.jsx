@@ -13,7 +13,7 @@ function App() {
 
       <main className="app-content">
         <div className="viewfinder">
-          <p>{status}</p>
+          <p className="status-text">{status}</p>
         </div>
 
         <div className="controls">
