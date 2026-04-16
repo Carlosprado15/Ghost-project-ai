@@ -60,7 +60,15 @@ export default function App() {
 
   function initScene() {
     const THREE = window.THREE;
+const loader = new three.GLTFloader();
+    loader.load('/model.glb', function (gltf) {
+  const model = gltf.scene;
 
+  model.scale.set(1, 1, 1);
+  model.position.set(0, 0, 0);
+
+  scene.add(model);
+});
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.z = 2.5;
@@ -72,15 +80,15 @@ export default function App() {
     light.position.set(5, 5, 5);
     scene.add(light);
 
-    const geometry = new THREE.TorusKnotGeometry(0.6, 0.2, 100, 16);
-    const material = new THREE.MeshStandardMaterial({
-      color: 0xd4af37,
-      metalness: 1,
-      roughness: 0.2
+    // const geometry = new THREE.TorusKnotGeometry(0.6, 0.2, 100, 16);
+    // const material = new THREE.MeshStandardMaterial({
+      // color: 0xd4af37,
+      // metalness: 1,
+      // roughness: 0.2
     });
 
-    const mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
+    // const mesh = new THREE.Mesh(geometry, material);
+    // scene.add(mesh);
 
     function animate() {
       requestAnimationFrame(animate);
