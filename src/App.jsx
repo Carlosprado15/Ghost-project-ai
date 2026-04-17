@@ -52,7 +52,7 @@ scene.add(ambientLight);
       const loader = new THREE.GLTFLoader();
 
       loader.load(
-       "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
+    "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb",
         (gltf) => {
           const model = gltf.scene;
           model.scale.set(1, 1, 1);
