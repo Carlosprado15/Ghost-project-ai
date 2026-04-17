@@ -64,8 +64,9 @@ scene.add(ambientLight);
         },
         undefined,
         (error) => {
-          console.log("Erro ao carregar modelo:", error);
-        }
+  console.log("ERRO REAL:", error);
+  alert("Erro ao carregar modelo");
+}
       );
 
       function animate() {
