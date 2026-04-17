@@ -67,10 +67,12 @@ scene.add(ambientLight);
       );
 
       function animate() {
-        requestAnimationFrame(animate);
-        renderer.render(scene, camera);
-      }
+  requestAnimationFrame(animate);
 
+  scene.rotation.y += 0.01;
+
+  renderer.render(scene, camera);
+}
       animate();
     }
 
