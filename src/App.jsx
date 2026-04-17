@@ -46,11 +46,16 @@ export default function App() {
       const light = new THREE.PointLight(0xffffff, 1);
       light.position.set(5, 5, 5);
       scene.add(light);
-
+      const geometry = new THREE.BoxGeometry();
+const materialTest = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+const cube = new THREE.Mesh(geometry, materialTest);
+scene.add(cube);
+const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+scene.add(ambientLight);
       const loader = new THREE.GLTFLoader();
 
       loader.load(
-        "model.glb",
+        "/model.glb",
         (gltf) => {
           const model = gltf.scene;
           model.scale.set(1, 1, 1);
