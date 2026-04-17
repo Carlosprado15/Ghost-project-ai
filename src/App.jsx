@@ -55,7 +55,7 @@ scene.add(ambientLight);
       const loader = new THREE.GLTFLoader();
 
       loader.load(
-        "/model.glb",
+       "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
         (gltf) => {
           const model = gltf.scene;
           model.scale.set(1, 1, 1);
