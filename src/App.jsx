@@ -35,7 +35,7 @@ export default function App() {
         0.1,
         100
       );
-      camera.position.z = 2.5;
+      camera.position.z = 5;
 
       const renderer = new THREE.WebGLRenderer({
         canvas: canvasRef.current,
