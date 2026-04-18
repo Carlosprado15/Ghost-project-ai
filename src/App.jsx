@@ -652,19 +652,7 @@ function ARView({{ cam, onBack }}) {{
         </div>
       )}}
     </div>
-  );
-}}
 
-/* ══ ROOT ════════════════════════════════════════════════════════════════ */
-export default function App() {{
-  const [screen, setScreen] = useState("splash");
-  const [cam, setCam]       = useState("environment");
-  return (
-    <>
-      <style>{{CSS}}</style>
-      {{screen==="splash" && <Splash onDone={{()=>setScreen("home")}}/>}}
-      {{screen==="home"   && <Home onStart={{()=>setScreen("ar")}} cam={{cam}} setCam={{setCam}}/>}}
-      {{screen==="ar"     && <ARView cam={{cam}} onBack={{()=>setScreen("home")}}/>}}
-    </>
   );
-}}
+}
+export defaut App;
