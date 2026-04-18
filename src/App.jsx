@@ -22,7 +22,7 @@ const CSS = [
 function Logo({ size }) {
   return (
     <img
-      src={LOGO}
+      src="/logo-1.png" />
       alt="Ghost Project AI"
       style={{
         width: size || "min(55vw, 200px)",
