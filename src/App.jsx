@@ -22,15 +22,9 @@ const CSS = [
 function Logo({ size }) {
   return (
     <img
-      src="/logo-1.png" />
+      src="/logo-1.png" 
       alt="Ghost Project AI"
-      style={{
-        width: size || "min(55vw, 200px)",
-        height: "auto",
-        display: "block",
-        mixBlendMode: "multiply",
-        filter: "contrast(1.1)",
-      }}
+      style={{ width: size }}
     />
   );
 }
