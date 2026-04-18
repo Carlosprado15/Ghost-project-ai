@@ -41,7 +41,7 @@ function Logo({ width, isSplash, style }) {
           width: width || "min(50vw, 185px)",
           height: "auto",
           display: "block",
-          mixBlendMode: "multiply",
+          mixBlendMode: "screen",
           ...style,
         }}
       />
@@ -349,7 +349,7 @@ function ARView({ cam, onBack }) {
         const loader = new T.GLTFLoader();
 
         loader.load(
-          "/relógio.glb",
+          "/Watch.glb",
           (gltf) => {
             const model = gltf.scene;
 
@@ -430,8 +430,8 @@ function ARView({ cam, onBack }) {
           },
           /* Erro ao carregar GLB */
           (err) => {
-            console.error("Erro ao carregar relógio.glb:", err);
-            setError("Erro ao carregar modelo 3D. Verifique se relógio.glb está na pasta public/");
+            console.error("Erro ao carregar Watch.glb:", err);
+            setError("Erro ao carregar Watch.glb. Verifique se o arquivo está na pasta public/");
             setLoading(false);
           }
         );
