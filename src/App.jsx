@@ -647,12 +647,9 @@ function ARView({{ cam, onBack }}) {{
             border:"1px solid rgba(201,168,76,.4)",background:"transparent",
             color:"var(--gold)",cursor:"pointer",
             fontFamily:"'Montserrat',sans-serif",letterSpacing:".1em",fontSize:11}}}}>
-            ← Voltar
-          </button>
-        </div>
-      )}}
+          
+      )}
     </div>
-
   );
 }
 export defaut App;
