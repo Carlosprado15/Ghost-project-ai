@@ -100,10 +100,10 @@ function Splash({ onDone }) {
             src={BRAND_IMG}
             alt="Ghost Project AI"
             style={{
-              width:"170%",
-              marginLeft:"-35%",
-              marginTop:"-5%",
-              mixBlendMode:"lighten",
+              width:"100%",
+              height:"100%",
+              objectFit:"cover",
+              objectPosition:"center 42%",
             }}
           />
         </div>
@@ -161,7 +161,7 @@ function Home({ onStart, cam, setCam }) {
 
         {/* LOGO — imagem recortada em círculo */}
         <div style={{
-          width:"min(46vw,175px)", height:"min(46vw,175px)",
+          width:"min(56vw,210px)", height:"min(56vw,210px)",
           borderRadius:"50%", overflow:"hidden",
           boxShadow:"0 0 32px rgba(212,175,55,.5), 0 0 64px rgba(212,175,55,.15)",
           border:"1px solid rgba(212,175,55,.28)",
@@ -173,10 +173,10 @@ function Home({ onStart, cam, setCam }) {
             src={BRAND_IMG}
             alt="Ghost Project AI"
             style={{
-              width:"170%",
-              marginLeft:"-35%",
-              marginTop:"-5%",
-              mixBlendMode:"lighten",
+              width:"100%",
+              height:"100%",
+              objectFit:"cover",
+              objectPosition:"center 42%",
             }}
           />
         </div>
@@ -395,7 +395,7 @@ function ARView({ cam, onBack }) {
         scene.background=vtex;
 
         const cam3=new T.PerspectiveCamera(50,window.innerWidth/window.innerHeight,0.01,100);
-        cam3.position.set(0,0,2.8);
+        cam3.position.set(0,0,1.8);
         refs.cam3=cam3;
 
         /* Iluminação premium */
@@ -429,7 +429,7 @@ function ARView({ cam, onBack }) {
           const center=new T.Vector3(); box.getCenter(center);
           model.position.sub(center);
           const maxDim=Math.max(size.x,size.y,size.z);
-          model.scale.setScalar(0.32/maxDim);
+          model.scale.setScalar(0.65/maxDim);
           model.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});
           const wg=new T.Group();
           wg.add(model);scene.add(wg);refs.wg=wg;
