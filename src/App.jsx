@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 
 /* ─────────────────────────────────────────────────────────────────────────
    GHOST PROJECT AI — MVP
-   Logo: coloque "logo.png" dentro da pasta PUBLIC do seu projeto GitHub
+   Arquivos necessários na pasta PUBLIC:
+     - logo.png  (logo com fundo transparente/removebg)
+     - Watch.glb (modelo 3D do relógio — 14MB)
    Build: Vite 5 + React 18
 ───────────────────────────────────────────────────────────────────────── */
 
@@ -19,34 +21,27 @@ const CSS = [
   "@keyframes glow    { 0%,100%{box-shadow:0 0 20px rgba(201,168,76,.3)} 50%{box-shadow:0 0 55px rgba(201,168,76,.8)} }",
   "@keyframes scan    { 0%{top:0%} 100%{top:100%} }",
   "@keyframes pop     { 0%{opacity:0;transform:scale(.4)} 80%{transform:scale(1.06)} 100%{opacity:1;transform:scale(1)} }",
-  "@keyframes lglow   { 0%,100%{filter:drop-shadow(0 0 14px rgba(201,168,76,.5))} 50%{filter:drop-shadow(0 0 32px rgba(201,168,76,1))} }",
+  "@keyframes lglow   { 0%,100%{filter:drop-shadow(0 0 20px rgba(201,168,76,.6))} 50%{filter:drop-shadow(0 0 40px rgba(201,168,76,1)) brightness(1.1)} }",
 ].join("\n");
 
-/* ══ Logo — fundo cinza/xadrez some com mix-blend-mode screen ═══════════ */
+/* ══ ALTERAÇÃO 1: Logo novo com fundo preto — Ghost Project AI ══════════ */
+/* Logo tem fundo preto nativo — exibe diretamente sem blend tricks        */
+const LOGO_SRC = "data:image/jpeg;base64,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";
+
 function Logo({ width, style }) {
   return (
-    <div style={{
-      width: width || "min(52vw, 190px)",
-      background: "#07090D",
-      borderRadius: 8,
-      overflow: "hidden",
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      ...style,
-    }}>
-      <img
-        src="/logo.png"
-        alt="Ghost Project AI"
-        style={{
-          width: "100%",
-          height: "auto",
-          display: "block",
-          mixBlendMode: "screen",
-          filter: "brightness(1.15) contrast(1.1) saturate(0.85)",
-        }}
-      />
-    </div>
+    <img
+      src={LOGO_SRC}
+      alt="Ghost Project AI"
+      style={{
+        width: width || "min(52vw, 190px)",
+        height: "auto",
+        display: "block",
+        objectFit: "contain",
+        animation: "lglow 2.8s ease-in-out infinite",
+        ...style,
+      }}
+    />
   );
 }
 
@@ -116,7 +111,7 @@ function Home({ onStart, cam, setCam }) {
       }} />
 
       <div style={{ marginBottom: 10, animation: "fadeUp .8s ease both" }}>
-        <Logo style={{ animation: "lglow 2.8s ease-in-out infinite" }} />
+        <Logo />
       </div>
 
       <h1 style={{
@@ -251,7 +246,11 @@ function ARLoading({ pct }) {
   );
 }
 
-/* ══ AR View ═════════════════════════════════════════════════════════════ */
+/* ══ ALTERAÇÃO 2: AR View — Watch.glb real com GLTFLoader ════════════════
+   O arquivo Watch.glb deve estar em: public/Watch.glb
+   Tamanho natural calibrado pela bounding box do modelo
+   Câmera ajustada para sincronizar com o frame do scanner
+════════════════════════════════════════════════════════════════════════ */
 function ARView({ cam, onBack }) {
   const canvasRef = useRef(null);
   const [loading, setLoading] = useState(true);
@@ -265,8 +264,8 @@ function ARView({ cam, onBack }) {
     const refs = R.current;
 
     const tick = setInterval(() => {
-      setPct((p) => { if (p >= 88) { clearInterval(tick); return p; } return p + Math.random() * 13; });
-    }, 170);
+      setPct((p) => { if (p >= 75) { clearInterval(tick); return p; } return p + Math.random() * 8; });
+    }, 200);
 
     function loadScript(src) {
       return new Promise((resolve, reject) => {
@@ -281,9 +280,14 @@ function ARView({ cam, onBack }) {
 
     async function init() {
       try {
+        /* Carregar Three.js r128 */
         await loadScript("https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js");
+        /* GLTFLoader compatível com r128 */
+        await loadScript("https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js");
+
         const T = window.THREE;
 
+        /* ── Câmera do dispositivo ──────────────────────────────────── */
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: cam, width: { ideal: 1920 }, height: { ideal: 1080 } },
           audio: false,
@@ -293,213 +297,142 @@ function ARView({ cam, onBack }) {
         await new Promise((res) => { vid.onloadedmetadata = res; });
         await vid.play();
 
+        /* ── Renderer ─────────────────────────────────────────────── */
         const renderer = new T.WebGLRenderer({
           canvas: canvasRef.current, alpha: true, antialias: true,
           powerPreference: "high-performance",
         });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = T.PCFSoftShadowMap;
         renderer.toneMapping = T.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.8;
+        renderer.toneMappingExposure = 1.6;
 
+        /* ── Cena + fundo de vídeo ────────────────────────────────── */
         const scene = new T.Scene();
         const vtex = new T.VideoTexture(vid);
         vtex.minFilter = T.LinearFilter;
         scene.background = vtex;
 
+        /* ── Câmera 3D calibrada para o frame do scanner ────────────
+           FOV 52° + posição z=2.0 colocam o modelo exatamente dentro
+           dos cantos dourados do scanner (inset 17%)                  */
         const cam3 = new T.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.01, 100);
-        cam3.position.set(0, 0, 2.6);
+        cam3.position.set(0, 0, 2.0);
+        refs.cam3 = cam3;
 
-        /* Iluminação de showroom — sem ambient forte (mata o metal) */
-        scene.add(new T.AmbientLight(0xffffff, 0.08));
+        /* ── Iluminação de showroom de relojoaria ─────────────────── */
+        scene.add(new T.AmbientLight(0xffffff, 0.5));
 
-        const kL = new T.DirectionalLight(0xfff6e8, 4.0);
-        kL.position.set(-3, 6, 4); kL.castShadow = true; scene.add(kL);
+        const kL = new T.DirectionalLight(0xfff6e8, 3.0);
+        kL.position.set(-2, 5, 3); kL.castShadow = true; scene.add(kL);
 
-        const fL = new T.DirectionalLight(0xd8eaff, 0.5);
-        fL.position.set(5, 1, 3); scene.add(fL);
+        const fL = new T.DirectionalLight(0xd8eaff, 0.8);
+        fL.position.set(4, 1, 2); scene.add(fL);
 
-        const rL = new T.DirectionalLight(0xffffff, 1.4);
-        rL.position.set(1, -2, -6); scene.add(rL); refs.rL = rL;
+        const rL = new T.DirectionalLight(0xffffff, 1.2);
+        rL.position.set(1, -2, -4); scene.add(rL); refs.rL = rL;
 
-        const sG = new T.SpotLight(0xC9A84C, 5, 9, Math.PI / 3.5, 0.25, 1.2);
+        const sG = new T.SpotLight(0xC9A84C, 4, 8, Math.PI / 3.5, 0.25, 1.2);
         sG.position.set(1, 3, 2); scene.add(sG); refs.sG = sG;
 
-        const dL = new T.PointLight(0xffffff, 3, 3);
-        dL.position.set(0.4, 0.4, 1.4); scene.add(dL); refs.dL = dL;
+        const dL = new T.PointLight(0xffffff, 2.5, 3);
+        dL.position.set(0.3, 0.3, 1.2); scene.add(dL); refs.dL = dL;
 
-        /* Grupo do relógio */
-        const wg = new T.Group();
-        scene.add(wg); refs.wg = wg;
+        /* ── Carregar Watch.glb ───────────────────────────────────── */
+        setPct(78);
+        const loader = new T.GLTFLoader();
 
-        /* Materiais */
-        const mPol  = new T.MeshStandardMaterial({ color: 0xD2D8DE, metalness: 1.0, roughness: 0.03 });
-        const mBru  = new T.MeshStandardMaterial({ color: 0xBCC3C9, metalness: 0.97, roughness: 0.22 });
-        const mSat  = new T.MeshStandardMaterial({ color: 0xC8CED4, metalness: 0.97, roughness: 0.11 });
-        const mDial = new T.MeshStandardMaterial({ color: 0x080A0D, roughness: 0.04, metalness: 0.6, emissive: new T.Color(0x030507), emissiveIntensity: 1 });
-        const mGold = new T.MeshStandardMaterial({ color: 0xCDA040, metalness: 1.0, roughness: 0.02, emissive: new T.Color(0xC9A030), emissiveIntensity: 0.4 });
-        const mHand = new T.MeshStandardMaterial({ color: 0xECF2F8, metalness: 1.0, roughness: 0.02, emissive: new T.Color(0xffffff), emissiveIntensity: 0.1 });
-        const mSec  = new T.MeshStandardMaterial({ color: 0xFF1A1A, metalness: 0.3, roughness: 0.12, emissive: new T.Color(0xFF0000), emissiveIntensity: 0.9 });
-        const mIdxG = new T.MeshStandardMaterial({ color: 0xD4A84C, metalness: 1.0, roughness: 0.02, emissive: new T.Color(0xC9A030), emissiveIntensity: 0.6 });
-        const mIdxW = new T.MeshStandardMaterial({ color: 0xF0F4F8, metalness: 0.98, roughness: 0.03, emissive: new T.Color(0xffffff), emissiveIntensity: 0.4 });
+        loader.load(
+          "/Watch.glb",
+          (gltf) => {
+            const model = gltf.scene;
 
-        /* Pulseira de aço integrada */
-        const gBig = new T.BoxGeometry(0.295, 0.088, 0.050);
-        const gSml = new T.BoxGeometry(0.135, 0.068, 0.040);
+            /* Calcular bounding box para escala natural */
+            const box = new T.Box3().setFromObject(model);
+            const size = new T.Vector3();
+            box.getSize(size);
+            const center = new T.Vector3();
+            box.getCenter(center);
 
-        function elo(y, dir) {
-          const b = new T.Mesh(gBig, mBru); b.position.set(0, y, 0); b.castShadow = true; wg.add(b);
-          const el = new T.Mesh(gSml, mPol); el.position.set(-0.098, y + dir * 0.048, 0.004); wg.add(el);
-          const er = new T.Mesh(gSml, mPol); er.position.set( 0.098, y + dir * 0.048, 0.004); wg.add(er);
-          const gr = new T.Mesh(new T.BoxGeometry(0.298, 0.003, 0.052), new T.MeshStandardMaterial({ color: 0x080A0D, metalness: 0.2, roughness: 0.9 }));
-          gr.position.set(0, y + dir * 0.044, 0); wg.add(gr);
-        }
-        for (let i = 0; i < 6; i++) { elo( 0.44 + i * 0.100,  1); }
-        for (let i = 0; i < 6; i++) { elo(-0.44 - i * 0.100, -1); }
+            /* Centralizar o modelo na origem */
+            model.position.sub(center);
 
-        const fc = new T.Mesh(new T.BoxGeometry(0.295, 0.105, 0.044), mSat); fc.position.set(0, -1.08, 0); wg.add(fc);
-        const fl = new T.Mesh(new T.BoxGeometry(0.263, 0.032, 0.024), mGold); fl.position.set(0, -1.08, 0.034); wg.add(fl);
+            /* Escala: o maior eixo do modelo ocupa ~0.7 unidades
+               Isso garante tamanho natural no campo de visão da câmera */
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scale = 0.7 / maxDim;
+            model.scale.setScalar(scale);
 
-        /* Caixa octogonal */
-        const wcase = new T.Mesh(new T.CylinderGeometry(0.44, 0.44, 0.120, 8, 1), mBru);
-        wcase.rotation.x = Math.PI / 2; wcase.rotation.z = Math.PI / 8;
-        wcase.castShadow = true; wg.add(wcase);
+            /* Sombras em todos os meshes */
+            model.traverse((child) => {
+              if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+              }
+            });
 
-        /* Parafusos hexagonais (Royal Oak signature) */
-        for (let i = 0; i < 8; i++) {
-          const ang = (i / 8) * Math.PI * 2;
-          const sc = new T.Mesh(new T.CylinderGeometry(0.018, 0.018, 0.008, 6), mGold);
-          sc.rotation.x = Math.PI / 2;
-          sc.position.set(Math.cos(ang) * 0.40, Math.sin(ang) * 0.40, 0.064);
-          wg.add(sc);
-        }
+            const wg = new T.Group();
+            wg.add(model);
+            scene.add(wg);
+            refs.wg = wg;
 
-        /* Bisel */
-        const gBev = new T.TorusGeometry(0.44, 0.020, 8, 8);
-        const bT = new T.Mesh(gBev, mPol); bT.position.z =  0.060; bT.rotation.z = Math.PI / 8; wg.add(bT);
-        const bB = new T.Mesh(gBev, mPol); bB.position.z = -0.060; bB.rotation.z = Math.PI / 8; wg.add(bB);
-        const bE = new T.Mesh(new T.TorusGeometry(0.44, 0.028, 6, 8), mSat); bE.position.z = 0.064; bE.rotation.z = Math.PI / 8; wg.add(bE);
+            /* Posição inicial z=0, levemente abaixo do centro */
+            wg.position.set(0, -0.05, 0);
+            /* Inclinação inicial para revelar o mostrador */
+            wg.rotation.x = -0.15;
 
-        /* Lugs */
-        const gLug = new T.BoxGeometry(0.078, 0.162, 0.090);
-        [[-0.172, 0.455], [0.172, 0.455], [-0.172, -0.455], [0.172, -0.455]].forEach(([lx, ly]) => {
-          const lug = new T.Mesh(gLug, mBru); lug.position.set(lx, ly, 0); lug.castShadow = true; wg.add(lug);
-        });
+            setPct(100);
+            setTimeout(() => { setLoading(false); setBadge(true); }, 300);
 
-        /* Mostrador */
-        const dial = new T.Mesh(new T.CircleGeometry(0.40, 80), mDial); dial.position.z = 0.062; wg.add(dial);
-        const dRing = new T.Mesh(new T.TorusGeometry(0.35, 0.008, 6, 80), new T.MeshStandardMaterial({ color: 0x141820, metalness: 0.4, roughness: 0.5 }));
-        dRing.position.z = 0.063; wg.add(dRing);
+            /* ── Loop de animação ─────────────────────────────────
+               Movimento de pedestal giratório de joalheria:
+               - Rotação Y lenta e suave (showroom)
+               - Leve inclinação X (revela espessura)
+               - Flutuação Y suave (produto "vivo")
+               - Luzes orbitando (reflexos reais no metal)       */
+            const t0 = Date.now();
+            function loop() {
+              raf = requestAnimationFrame(loop);
+              const t = (Date.now() - t0) / 1000;
 
-        /* Índices de hora */
-        for (let ii = 0; ii < 12; ii++) {
-          const a = (ii / 12) * Math.PI * 2 - Math.PI / 2;
-          const isMain = ii % 3 === 0;
-          const iGeo = new T.BoxGeometry(isMain ? 0.024 : 0.013, isMain ? 0.080 : 0.052, 0.010);
-          const idx = new T.Mesh(iGeo, isMain ? mIdxG : mIdxW);
-          idx.position.set(Math.cos(a) * 0.308, Math.sin(a) * 0.308, 0.068);
-          idx.rotation.z = a + Math.PI / 2;
-          wg.add(idx);
-        }
+              /* Rotação showroom elegante */
+              wg.rotation.y = Math.sin(t * 0.18) * 0.40;
+              wg.rotation.x = -0.15 + Math.sin(t * 0.11) * 0.06;
+              wg.position.y = -0.05 + Math.sin(t * 0.9) * 0.04;
 
-        /* Janela de data */
-        const dwin = new T.Mesh(new T.BoxGeometry(0.068, 0.048, 0.004), new T.MeshStandardMaterial({ color: 0xF0F2F5, roughness: 0.1, metalness: 0.15 }));
-        dwin.position.set(0.265, 0, 0.069); wg.add(dwin);
-        const dwinB = new T.Mesh(new T.BoxGeometry(0.074, 0.054, 0.003), mGold);
-        dwinB.position.set(0.265, 0, 0.067); wg.add(dwinB);
+              /* Spot dourado orbita — reflexo vivo no aço */
+              refs.sG.position.set(Math.sin(t * 0.22) * 2.2, 2.5 + Math.cos(t * 0.18) * 0.6, 2.0);
+              refs.sG.intensity = 3.5 + Math.sin(t * 0.6) * 0.8;
 
-        /* Ponteiros Dauphine */
-        function dauphine(len, w, d) {
-          const g = new T.BufferGeometry();
-          const hw = w / 2, hd = d / 2;
-          const v = new Float32Array([
-            -hw, 0, -hd,  hw, 0, -hd,  0, len, -hd,
-            -hw, 0,  hd,  hw, 0,  hd,  0, len,  hd,
-          ]);
-          g.setAttribute("position", new T.BufferAttribute(v, 3));
-          g.setIndex([0,1,2, 3,5,4, 0,3,4,4,1,0, 1,4,5,5,2,1, 2,5,3,3,0,2]);
-          g.computeVertexNormals();
-          return g;
-        }
+              /* Ponto no mostrador migra suavemente */
+              refs.dL.position.set(Math.cos(t * 0.35) * 0.5, Math.sin(t * 0.35) * 0.5, 1.2);
+              refs.dL.intensity = 2.0 + Math.sin(t * 0.9) * 0.5;
 
-        const hH = new T.Mesh(dauphine(0.195, 0.034, 0.010), mHand);
-        hH.position.set(0, 0.005, 0.074); wg.add(hH); refs.hH = hH;
+              /* Rim sutil */
+              refs.rL.intensity = 1.0 + Math.sin(t * 0.4) * 0.25;
 
-        const mH = new T.Mesh(dauphine(0.275, 0.022, 0.010), mHand);
-        mH.position.set(0, 0.005, 0.075); wg.add(mH); refs.mH = mH;
+              renderer.render(scene, cam3);
+            }
+            loop();
+          },
+          /* Progresso do carregamento do GLB */
+          (xhr) => {
+            if (xhr.lengthComputable) {
+              const p = Math.round((xhr.loaded / xhr.total) * 100);
+              setPct(Math.max(78, p));
+            }
+          },
+          /* Erro ao carregar GLB */
+          (err) => {
+            console.error("Erro ao carregar Watch.glb:", err);
+            setError("Erro ao carregar modelo 3D. Verifique se Watch.glb está na pasta public/");
+            setLoading(false);
+          }
+        );
 
-        const sH = new T.Mesh(new T.CylinderGeometry(0.0025, 0.0025, 0.330, 8), mSec);
-        sH.rotation.x = Math.PI / 2; sH.position.set(0, 0.060, 0.077); wg.add(sH); refs.sH = sH;
-
-        const cw = new T.Mesh(new T.CylinderGeometry(0.020, 0.020, 0.008, 16), mSec);
-        cw.rotation.x = Math.PI / 2; cw.position.set(0, -0.085, 0.077); wg.add(cw);
-
-        /* Tampa central */
-        const cap = new T.Mesh(new T.CircleGeometry(0.022, 20), mGold); cap.position.z = 0.080; wg.add(cap);
-        const capR = new T.Mesh(new T.TorusGeometry(0.022, 0.005, 8, 20), mPol); capR.position.z = 0.080; wg.add(capR);
-
-        /* Cristal */
-        const glass = new T.Mesh(new T.CircleGeometry(0.40, 80), new T.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.06, roughness: 0, metalness: 0 }));
-        glass.position.z = 0.084; wg.add(glass);
-
-        /* Coroa */
-        const crn = new T.Mesh(new T.CylinderGeometry(0.027, 0.029, 0.058, 18), mSat); crn.position.set(0.480, 0.075, 0); crn.rotation.z = Math.PI / 2; wg.add(crn);
-        const crnK = new T.Mesh(new T.CylinderGeometry(0.031, 0.031, 0.036, 18), mBru); crnK.position.set(0.513, 0.075, 0); crnK.rotation.z = Math.PI / 2; wg.add(crnK);
-
-        /* Partículas sutis */
-        const pgeo = new T.BufferGeometry();
-        const pp = new Float32Array(50 * 3);
-        for (let pi = 0; pi < 50; pi++) { pp[pi*3]=(Math.random()-.5)*1.4; pp[pi*3+1]=(Math.random()-.5)*1.4; pp[pi*3+2]=(Math.random()-.5)*.25; }
-        pgeo.setAttribute("position", new T.BufferAttribute(pp, 3));
-        const pts = new T.Points(pgeo, new T.PointsMaterial({ color: 0xE0B840, size: 0.007, transparent: true, opacity: 0.5 }));
-        wg.add(pts); refs.pts = pts;
-
-        wg.scale.setScalar(0.01);
-        wg.position.set(0, -0.08, 0);
-
-        clearInterval(tick); setPct(100);
-        setTimeout(() => { setLoading(false); setBadge(true); }, 360);
-
-        /* Loop de animação — pedestal giratório de joalheria */
-        const t0 = Date.now();
-        function loop() {
-          raf = requestAnimationFrame(loop);
-          const t = (Date.now() - t0) / 1000;
-
-          /* Entrada */
-          const sc = t < 1.3 ? 1 - Math.pow(1 - Math.min(1, t / 1.3), 3) : 1;
-          wg.scale.setScalar(sc);
-
-          /* Rotação showroom elegante */
-          wg.rotation.y = Math.sin(t * 0.16) * 0.38;
-          wg.rotation.x = -0.18 + Math.sin(t * 0.11) * 0.07;
-          wg.position.y = -0.08 + Math.sin(t * 0.85) * 0.055;
-          wg.position.x = Math.sin(t * 0.20) * 0.035;
-
-          /* Hora real */
-          const now = new Date();
-          const hr = now.getHours() % 12;
-          const mn = now.getMinutes();
-          const sc2 = now.getSeconds() + now.getMilliseconds() / 1000;
-          refs.sH.rotation.z = -(sc2 / 60) * Math.PI * 2;
-          refs.mH.rotation.z = -((mn + sc2 / 60) / 60) * Math.PI * 2;
-          refs.hH.rotation.z = -((hr + mn / 60) / 12) * Math.PI * 2;
-
-          /* Luz dinâmica — reflexos vivos */
-          refs.sG.position.set(Math.sin(t * 0.22) * 2.5, 2.5 + Math.cos(t * 0.18) * 0.8, 2.2);
-          refs.sG.intensity = 4.5 + Math.sin(t * 0.55) * 0.8;
-          refs.dL.position.set(Math.cos(t * 0.35) * 0.7, Math.sin(t * 0.35) * 0.7, 1.4);
-          refs.dL.intensity = 2.5 + Math.sin(t * 0.9) * 0.6;
-          refs.rL.intensity = 1.2 + Math.sin(t * 0.4) * 0.3;
-          refs.pts.material.opacity = 0.35 + Math.sin(t * 1.5) * 0.15;
-          refs.pts.rotation.z = t * 0.05;
-
-          renderer.render(scene, cam3);
-        }
-        loop();
-
+        /* ── Resize ────────────────────────────────────────────────── */
         function onResize() {
           cam3.aspect = window.innerWidth / window.innerHeight;
           cam3.updateProjectionMatrix();
@@ -508,11 +441,20 @@ function ARView({ cam, onBack }) {
         window.addEventListener("resize", onResize);
         refs.onResize = onResize;
 
+        /* ── Touch para girar ─────────────────────────────────────── */
         let ltx = 0;
         function onTS(e) { ltx = e.touches[0].clientX; }
-        function onTM(e) { wg.rotation.y += (e.touches[0].clientX - ltx) * 0.011; ltx = e.touches[0].clientX; }
+        function onTM(e) {
+          if (refs.wg) refs.wg.rotation.y += (e.touches[0].clientX - ltx) * 0.012;
+          ltx = e.touches[0].clientX;
+        }
         const cv = canvasRef.current;
-        if (cv) { cv.addEventListener("touchstart", onTS); cv.addEventListener("touchmove", onTM); refs.onTS = onTS; refs.onTM = onTM; }
+        if (cv) {
+          cv.addEventListener("touchstart", onTS);
+          cv.addEventListener("touchmove", onTM);
+          refs.onTS = onTS;
+          refs.onTM = onTM;
+        }
 
       } catch (err) {
         clearInterval(tick);
@@ -529,7 +471,10 @@ function ARView({ cam, onBack }) {
       if (stream) stream.getTracks().forEach((t) => t.stop());
       window.removeEventListener("resize", refs.onResize);
       const cv = canvasRef.current;
-      if (cv) { cv.removeEventListener("touchstart", refs.onTS); cv.removeEventListener("touchmove", refs.onTM); }
+      if (cv) {
+        cv.removeEventListener("touchstart", refs.onTS);
+        cv.removeEventListener("touchmove",  refs.onTM);
+      }
     };
   }, [cam]);
 
@@ -570,9 +515,11 @@ function ARView({ cam, onBack }) {
       {error && !loading && (
         <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:20, padding:30, background:"rgba(7,9,13,.98)" }}>
           <div style={{ fontSize:36 }}>📷</div>
-          <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:21, color:"var(--wh)", textAlign:"center" }}>Câmera não autorizada</div>
-          <p style={{ fontSize:12, color:"var(--sv)", textAlign:"center", lineHeight:1.75, maxWidth:260 }}>
-            Permita acesso à câmera nas configurações do navegador e recarregue a página.
+          <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:21, color:"var(--wh)", textAlign:"center" }}>Erro no Scanner AR</div>
+          <p style={{ fontSize:12, color:"var(--sv)", textAlign:"center", lineHeight:1.75, maxWidth:270 }}>
+            {error.includes("Watch.glb")
+              ? "Coloque o arquivo Watch.glb na pasta public/ do projeto."
+              : "Permita acesso à câmera e recarregue a página."}
             <br /><br />
             <span style={{ fontSize:9, color:"rgba(168,180,192,.4)" }}>{error}</span>
           </p>
