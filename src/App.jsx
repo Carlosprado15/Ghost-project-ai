@@ -25,27 +25,22 @@ const CSS = [
 ].join("\n");
 
 /* ══ Logo ═══════════════════════════════════════════════════════════════ */
-/* mix-blend-mode: multiply faz o fundo branco/cinza do PNG desaparecer   */
-/* sobre qualquer fundo escuro — solução universal sem depender do alpha   */
-function Logo({ width, isSplash, style }) {
-  /* Gradientes idênticos aos das telas — o logo "faz parte" do fundo      */
-  const bg = isSplash
-    ? "radial-gradient(ellipse at 50% 45%, #0E1522 0%, #07090D 100%)"
-    : "radial-gradient(ellipse at 38% 12%, #101828 0%, #07090D 80%)";
+/* PNG com canal alpha (fundo transparente) — funde perfeitamente com     */
+/* qualquer fundo sem nenhum truque de blend ou container adicional        */
+function Logo({ width, style }) {
   return (
-    <div style={{ display: "inline-block", background: bg, lineHeight: 0 }}>
-      <img
-        src="/logo.png"
-        alt="Ghost Project AI"
-        style={{
-          width: width || "min(50vw, 185px)",
-          height: "auto",
-          display: "block",
-          mixBlendMode: "multiply",
-          ...style,
-        }}
-      />
-    </div>
+    <img
+      src="/logo.png"
+      alt="Ghost Project AI"
+      style={{
+        width: width || "min(50vw, 185px)",
+        height: "auto",
+        display: "block",
+        objectFit: "contain",
+        animation: "lglow 2.8s ease-in-out infinite",
+        ...style,
+      }}
+    />
   );
 }
 
@@ -323,7 +318,7 @@ function ARView({ cam, onBack }) {
            FOV 52° + posição z=2.0 colocam o modelo exatamente dentro
            dos cantos dourados do scanner (inset 17%)                  */
         const cam3 = new T.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.01, 100);
-        cam3.position.set(0, 0, 2.8);
+        cam3.position.set(0, 0, 2.0);
         refs.cam3 = cam3;
 
         /* ── Iluminação de showroom de relojoaria ─────────────────── */
@@ -349,7 +344,7 @@ function ARView({ cam, onBack }) {
         const loader = new T.GLTFLoader();
 
         loader.load(
-          "/relógio.glb",
+          "/Watch.glb",
           (gltf) => {
             const model = gltf.scene;
 
@@ -366,7 +361,7 @@ function ARView({ cam, onBack }) {
             /* Escala: o maior eixo do modelo ocupa ~0.7 unidades
                Isso garante tamanho natural no campo de visão da câmera */
             const maxDim = Math.max(size.x, size.y, size.z);
-            const scale = 0.35 / maxDim;
+            const scale = 0.7 / maxDim;
             model.scale.setScalar(scale);
 
             /* Sombras em todos os meshes */
@@ -404,7 +399,7 @@ function ARView({ cam, onBack }) {
               /* Rotação showroom elegante */
               wg.rotation.y = Math.sin(t * 0.18) * 0.40;
               wg.rotation.x = -0.15 + Math.sin(t * 0.11) * 0.06;
-              wg.position.y = -0.02 + Math.sin(t * 0.9) * 0.025;
+              wg.position.y = -0.05 + Math.sin(t * 0.9) * 0.04;
 
               /* Spot dourado orbita — reflexo vivo no aço */
               refs.sG.position.set(Math.sin(t * 0.22) * 2.2, 2.5 + Math.cos(t * 0.18) * 0.6, 2.0);
@@ -430,8 +425,8 @@ function ARView({ cam, onBack }) {
           },
           /* Erro ao carregar GLB */
           (err) => {
-            console.error("Erro ao carregar relógio.glb:", err);
-            setError("Erro ao carregar modelo 3D. Verifique se relógio.glb está na pasta public/");
+            console.error("Erro ao carregar Watch.glb:", err);
+            setError("Erro ao carregar modelo 3D. Verifique se Watch.glb está na pasta public/");
             setLoading(false);
           }
         );
