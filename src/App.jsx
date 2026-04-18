@@ -647,9 +647,24 @@ function ARView({{ cam, onBack }}) {{
             border:"1px solid rgba(201,168,76,.4)",background:"transparent",
             color:"var(--gold)",cursor:"pointer",
             fontFamily:"'Montserrat',sans-serif",letterSpacing:".1em",fontSize:11}}}}>
-          
-      )}
+            ← Voltar
+          </button>
+        </div>
+      )}}
     </div>
   );
-}
-export defaut App;
+}}
+
+/* ══ ROOT ════════════════════════════════════════════════════════════════ */
+export default function App() {{
+  const [screen, setScreen] = useState("splash");
+  const [cam, setCam]       = useState("environment");
+  return (
+    <>
+      <style>{{CSS}}</style>
+      {{screen==="splash" && <Splash onDone={{()=>setScreen("home")}}/>}}
+      {{screen==="home"   && <Home onStart={{()=>setScreen("ar")}} cam={{cam}} setCam={{setCam}}/>}}
+      {{screen==="ar"     && <ARView cam={{cam}} onBack={{()=>setScreen("home")}}/>}}
+    </>
+  );
+}}
