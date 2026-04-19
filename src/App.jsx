@@ -87,29 +87,16 @@ function Splash({ onDone }) {
         textAlign:"center",
       }}>
         {/* Mostrar só a parte central da imagem (logo) */}
-        <div style={{
-          width:"180px",
-          height:"180px",
-          borderRadius:"50%",
-          overflow:"hidden",
-          margin:"0 auto",
-          boxShadow:"0 0 40px rgba(212,175,55,.5), 0 0 80px rgba(212,175,55,.2)",
-          border:"1px solid rgba(212,175,55,.3)",
-          padding:0,
-        }}>
-          <img
-            src={BRAND_IMG}
-            alt="Ghost Project AI"
-            style={{
-              width:"100%",
-              height:"100%",
-              objectFit:"contain",
-              display:"block",
-              margin:0,
-              padding:0,
-            }}
-          />
-        </div>
+        <img
+          src={BRAND_IMG}
+          alt="Ghost Project AI"
+          style={{
+            width:"180px",
+            height:"auto",
+            display:"block",
+            margin:"0 auto",
+          }}
+        />
 
         <p style={{
           fontFamily:"'Montserrat',sans-serif",
@@ -162,32 +149,17 @@ function Home({ onStart, cam, setCam }) {
       <div style={{position:"relative",zIndex:1,width:"100%",maxWidth:380,
         display:"flex",flexDirection:"column",alignItems:"center",gap:0}}>
 
-        {/* LOGO — container fixo 180x180 com logo centralizado */}
-        <div style={{
-          width:"180px",
-          height:"180px",
-          borderRadius:"50%",
-          overflow:"hidden",
-          boxShadow:"0 0 32px rgba(212,175,55,.5), 0 0 64px rgba(212,175,55,.15)",
-          border:"1px solid rgba(212,175,55,.28)",
-          animation:"logoFloat 4s ease-in-out infinite",
-          marginBottom:16,
-          flexShrink:0,
-          padding:0,
-        }}>
-          <img
-            src={BRAND_IMG}
-            alt="Ghost Project AI"
-            style={{
-              width:"100%",
-              height:"100%",
-              objectFit:"contain",
-              display:"block",
-              margin:0,
-              padding:0,
-            }}
-          />
-        </div>
+        {/* LOGO — imagem direta, sem círculo */}
+        <img
+          src={BRAND_IMG}
+          alt="Ghost Project AI"
+          style={{
+            width:"180px",
+            height:"auto",
+            display:"block",
+            marginBottom:16,
+          }}
+        />
 
         {/* Nome do projeto */}
         <p style={{
