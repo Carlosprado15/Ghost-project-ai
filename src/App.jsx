@@ -1,149 +1,97 @@
-import { useEffect, useRef, useState } from "react";
-
-// Mudança de nomes de classes para forçar a limpeza de cache do navegador
-const CSS_V3 = `
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body, html, #root { 
-    width: 100vw; height: 100vh; 
-    overflow: hidden; 
-    background-color: #000 !important; 
-    font-family: 'Montserrat', sans-serif;
-  }
-  
-  .ghost-main-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    background: #000;
-  }
-
-  .ghost-interface-v3 {
-    position: absolute;
-    inset: 0;
-    background: url('/ghost.jpeg') no-repeat center top;
-    background-size: cover;
-    z-index: 999; 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    padding-bottom: 100px;
-  }
-
-  .btn-ar-v3 {
-    width: 80%;
-    max-width: 300px;
-    height: 65px;
-    background: linear-gradient(135deg, #C9A84C 0%, #A07020 100%);
-    border: none;
-    border-radius: 50px;
-    color: #07090D;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    cursor: pointer;
-    box-shadow: 0 15px 35px rgba(201, 168, 76, 0.5);
-    transition: transform 0.2s;
-  }
-  
-  .btn-ar-v3:active { transform: scale(0.95); }
-
-  .ar-screen-v3 {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 10;
-    display: none;
-  }
-`;
+import React, { useEffect, useRef, useState } from "react";
 
 export default function App() {
-  const [isReady, setIsReady] = useState(false);
+  const [arAtivo, setArAtivo] = useState(false);
   const canvasRef = useRef(null);
 
-  useEffect(() => {
-    if (!isReady) return;
+  // Interface Limpa e Direta
+  const uiOverlay = {
+    position: 'fixed',
+    inset: 0,
+    backgroundColor: '#000',
+    backgroundImage: "url('/ghost.jpeg')",
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    align-items: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: '100px',
+    zIndex: 10
+  };
 
-    const startARSession = async () => {
-      const THREE = await import('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js');
+  const botaoEstilo = {
+    padding: '20px 40px',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    color: '#000',
+    background: 'linear-gradient(to right, #C9A84C, #A07020)',
+    border: 'none',
+    borderRadius: '50px',
+    cursor: 'pointer',
+    textTransform: 'uppercase'
+  };
+
+  useEffect(() => {
+    if (!arAtivo) return;
+
+    let scene, camera, renderer, model;
+
+    const carregarAR = async () => {
+      const THREE = await import('https://cdn.skypack.dev/three@0.128.0');
       const { GLTFLoader } = await import('https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/GLTFLoader.js');
 
-      const scene = new THREE.Scene();
-      
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: "environment" }, 
-          audio: false 
-        });
-        
-        const vid = document.createElement('video');
-        vid.srcObject = stream;
-        vid.setAttribute('playsinline', 'true');
-        vid.play();
-        
-        scene.background = new THREE.VideoTexture(vid);
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, antialias: true, alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
 
-        const cam = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 1000);
-        const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
+      // Ativar Câmera
+      const video = document.createElement('video');
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      video.srcObject = stream;
+      video.play();
+      scene.background = new THREE.VideoTexture(video);
 
-        scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.8));
-        const l = new THREE.DirectionalLight(0xffffff, 1);
-        l.position.set(5, 5, 5);
-        scene.add(l);
+      // Luzes
+      scene.add(new THREE.AmbientLight(0xffffff, 1));
+      const light = new THREE.DirectionalLight(0xffffff, 1);
+      light.position.set(0, 1, 1);
+      scene.add(light);
 
-        new GLTFLoader().load('/relogio.glb', (gltf) => {
-          const model = gltf.scene;
-          model.traverse(n => {
-            if(n.isMesh) {
-              n.material = new THREE.MeshStandardMaterial({
-                color: 0xffffff, metalness: 1.0, roughness: 0.15
-              });
-            }
-          });
+      // Carregar Relógio
+      const loader = new GLTFLoader();
+      loader.load('/relogio.glb', (gltf) => {
+        model = gltf.scene;
+        model.scale.set(0.4, 0.4, 0.4);
+        model.position.set(0, -0.5, -1.5);
+        scene.add(model);
+      });
 
-          // Escala de Pulso Realista
-          model.scale.set(0.3, 0.3, 0.3); 
-          model.position.set(0, -0.2, -1); 
-          scene.add(model);
+      camera.position.z = 2;
 
-          const loop = () => {
-            requestAnimationFrame(loop);
-            model.rotation.y += 0.01;
-            renderer.render(scene, cam);
-          };
-          loop();
-        });
-
-        cam.position.z = 0.5;
-      } catch (e) {
-        alert("Erro na câmera: " + e);
-      }
+      const animate = () => {
+        requestAnimationFrame(animate);
+        if (model) model.rotation.y += 0.01;
+        renderer.render(scene, camera);
+      };
+      animate();
     };
 
-    startARSession();
-  }, [isReady]);
+    carregarAR();
+  }, [arAtivo]);
 
   return (
-    <div className="ghost-main-wrapper">
-      <style>{CSS_V3}</style>
-      
-      {!isReady && (
-        <div className="ghost-interface-v3">
-          <button className="btn-ar-v3" onClick={() => setIsReady(true)}>
+    <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, overflow: 'hidden' }}>
+      {!arAtivo ? (
+        <div style={uiOverlay}>
+          <button style={botaoEstilo} onClick={() => setArAtivo(true)}>
             Iniciar Scanner AR
           </button>
         </div>
+      ) : (
+        <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
       )}
-
-      <canvas 
-        ref={canvasRef} 
-        className="ar-screen-v3" 
-        style={{ display: isReady ? 'block' : 'none' }} 
-      />
     </div>
   );
 }
