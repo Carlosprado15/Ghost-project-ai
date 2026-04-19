@@ -91,10 +91,12 @@ function Splash({ onDone }) {
           src={BRAND_IMG}
           alt="Ghost Project AI"
           style={{
-            width:"180px",
+            width:"220px",
             height:"auto",
             display:"block",
             margin:"0 auto",
+            mixBlendMode:"screen",
+            filter:"brightness(1.3) contrast(1.1)",
           }}
         />
 
@@ -134,7 +136,10 @@ function Home({ onStart, cam, setCam }) {
   return (
     <div style={{
       position:"fixed", inset:0,
-      ...BG_STYLE,
+      backgroundImage:"url('/ghost.jpeg')",
+      backgroundSize:"cover",
+      backgroundPosition:"center top",
+      backgroundRepeat:"no-repeat",
       display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"flex-start",
       paddingTop:"max(env(safe-area-inset-top,0px),48px)",
@@ -144,24 +149,12 @@ function Home({ onStart, cam, setCam }) {
       overflowY:"auto",
     }}>
       {/* Overlay escuro */}
-      <div style={{position:"fixed",inset:0,background:"rgba(4,6,10,.52)",pointerEvents:"none"}}/>
+      <div style={{position:"fixed",inset:0,background:"rgba(4,6,10,.35)",pointerEvents:"none"}}/>
 
       <div style={{position:"relative",zIndex:1,width:"100%",maxWidth:380,
         display:"flex",flexDirection:"column",alignItems:"center",gap:0}}>
 
-        {/* LOGO — imagem direta, sem círculo */}
-        <img
-          src={BRAND_IMG}
-          alt="Ghost Project AI"
-          style={{
-            width:"180px",
-            height:"auto",
-            display:"block",
-            marginBottom:16,
-          }}
-        />
-
-        {/* Nome do projeto */}
+        {/* Nome do projeto — logo agora está na ghost.jpeg */}
         <p style={{
           fontFamily:"'Montserrat',sans-serif",
           fontSize:10, letterSpacing:".48em", textTransform:"uppercase",
