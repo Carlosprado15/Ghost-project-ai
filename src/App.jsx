@@ -1,96 +1,120 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState, useEffect, useRef } from 'react';
+import './App.css';
 
-export default function App() {
-  const [session, setSession] = useState(false);
-  const canvasRef = useRef(null);
+function App() {
+  const [scanning, setScanning] = useState(false);
+  const [error, setError] = useState(null);
+  const videoRef = useRef(null);
 
-  const styles = {
-    wrapper: { 
-      width: '100vw', height: '100vh', backgroundColor: '#07090D', 
-      margin: 0, padding: 0, overflow: 'hidden', position: 'relative' 
-    },
-    overlay: {
-      position: 'absolute', inset: 0, zIndex: 100,
-      // CORREÇÃO AQUI: Alterado para logo.jpeg conforme você indicou
-      backgroundImage: "linear-gradient(to bottom, rgba(0,0,0,0.4), #000), url('/logo.jpeg')",
-      backgroundSize: 'cover', backgroundPosition: 'center',
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px'
-    },
-    // Se você tiver um arquivo de marca (ícone), pode manter aqui. 
-    // Se não tiver, o título abaixo já resolve.
-    brandIcon: { width: '120px', marginBottom: '20px', opacity: 1 },
-    title: { 
-      fontSize: '32px', color: '#FFF', textAlign: 'center', 
-      textTransform: 'uppercase', letterSpacing: '4px', fontWeight: '800' 
-    },
-    subtitle: { 
-      fontSize: '12px', color: '#C9A84C', letterSpacing: '2px', 
-      marginTop: '10px', marginBottom: '40px' 
-    },
-    btn: {
-      width: '280px', height: '65px', 
-      background: 'linear-gradient(135deg, #C9A84C 0%, #A07020 100%)',
-      border: 'none', borderRadius: '15px', color: '#000', 
-      fontWeight: 'bold', cursor: 'pointer', textTransform: 'uppercase', 
-      letterSpacing: '2px', boxShadow: '0 10px 25px rgba(201,168,76,0.5)'
-    },
-    canvas: { position: 'fixed', inset: 0, zIndex: 50, display: 'block' }
+  // Função para iniciar a câmera com tratamento rigoroso de permissões
+  const startScanner = async () => {
+    setError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
+      });
+      
+      setScanning(true);
+      
+      // Aguarda o estado atualizar para garantir que o elemento video exista no DOM
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      }, 100);
+    } catch (err) {
+      console.error("Erro ao acessar a câmera:", err);
+      setError("Câmera não disponível ou permissão negada. Verifique as configurações do navegador.");
+    }
   };
 
-  useEffect(() => {
-    if (!session) return;
-
-    const startAR = async () => {
-      try {
-        const THREE = await import('https://cdn.skypack.dev/three@0.128.0');
-        const { GLTFLoader } = await import('https://cdn.skypack.dev/three@0.128.0/examples/jsm/loaders/GLTFLoader.js');
-
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 1000);
-        const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        const video = document.createElement('video');
-        video.srcObject = stream;
-        video.setAttribute('playsinline', 'true');
-        video.play();
-        scene.background = new THREE.VideoTexture(video);
-
-        scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 2));
-
-        new GLTFLoader().load('/relogio.glb', (gltf) => {
-          const model = gltf.scene;
-          model.scale.set(0.3, 0.3, 0.3);
-          model.position.set(0, -0.2, -1);
-          scene.add(model);
-          
-          const animate = () => {
-            requestAnimationFrame(animate);
-            model.rotation.y += 0.01;
-            renderer.render(scene, camera);
-          };
-          animate();
-        });
-        camera.position.z = 0.5;
-      } catch (e) { alert("Erro ao acessar câmera."); }
-    };
-    startAR();
-  }, [session]);
+  const stopScanner = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
+    }
+    setScanning(false);
+    window.location.reload(); // Limpa o cache de execução
+  };
 
   return (
-    <div style={styles.wrapper}>
-      {!session ? (
-        <div style={styles.overlay}>
-          <h1 style={styles.title}>Ghost Project</h1>
-          <p style={styles.subtitle}>Try Before You Buy</p>
-          <button style={styles.btn} onClick={() => setSession(true)}>
-            Iniciar Scanner AR
-          </button>
-        </div>
-      ) : (
-        <canvas ref={canvasRef} style={styles.canvas} />
-      )}
+    <div className="App">
+      {/* Header com Logo - Caminho exato para logo.jpeg */}
+      <header className="App-header">
+        <img 
+          src="/logo.jpeg" 
+          className="App-logo" 
+          alt="Ghost Project AI" 
+          onError={(e) => {
+            console.error("Erro ao carregar logo.jpeg. Verifique se o arquivo está na pasta public.");
+            e.target.style.display = 'none';
+          }}
+        />
+      </header>
+
+      <main className="App-main">
+        {!scanning ? (
+          <div className="landing-container">
+            <section className="hero-text">
+              <h1>GHOST PROJECT AI</h1>
+              <p>Tecnologia de Provador Virtual de Alta Precisão</p>
+            </section>
+
+            {/* Visualizador 3D do Relógio Tag Heuer de 13MB */}
+            <div className="viewer-wrapper">
+              <model-viewer
+                src="/relogio.glb"
+                ar
+                ar-modes="webxr scene-viewer quick-look"
+                camera-controls
+                poster="poster.webp"
+                shadow-intensity="1"
+                auto-rotate
+                rotation-per-second="30deg"
+                interaction-prompt="auto"
+                style={{ width: '100%', height: '400px', backgroundColor: 'transparent' }}
+              >
+                <button slot="ar-button" className="ar-button">
+                  VER NO SEU PULSO (AR)
+                </button>
+              </model-viewer>
+            </div>
+
+            {error && <div className="error-message">{error}</div>}
+
+            <button className="cta-button" onClick={startScanner}>
+              INICIAR SCANNER DE PRECISÃO
+            </button>
+          </div>
+        ) : (
+          <div className="scanner-active">
+            <div className="scanner-overlay">
+              <div className="scan-guide-box"></div>
+              <p className="scan-instruction">Posicione o pulso dentro da área demarcada</p>
+            </div>
+            <video 
+              ref={videoRef} 
+              autoPlay 
+              playsInline 
+              muted 
+              className="full-video-feed"
+            />
+            <button className="exit-button" onClick={stopScanner}>
+              ENCERRAR
+            </button>
+          </div>
+        )}
+      </main>
+
+      <footer className="App-footer">
+        <p>&copy; 2026 GHOST PROJECT AI - Strategic Intelligence</p>
+      </footer>
     </div>
   );
 }
+
+export default App;
