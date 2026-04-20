@@ -1,146 +1,83 @@
-:root {
-  --primary-blue: #007bff;
-  --bg-dark: #0a0a0a;
-  --text-white: #ffffff;
-}
-
-body {
+body, html {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', -apple-system, sans-serif;
-  background-color: var(--bg-dark);
-}
-
-.App {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  color: var(--text-white);
+  background-color: #000;
+  font-family: Arial, sans-serif;
+  color: #fff;
   overflow-x: hidden;
 }
 
-/* Header Ajustado para visibilidade total do logo */
-.App-header {
-  padding: 50px 20px 20px;
-  display: flex;
-  justify-content: center;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
-}
-
-.App-logo {
-  height: 90px;
-  width: auto;
-  filter: drop-shadow(0 0 10px rgba(255,255,255,0.1));
-}
-
-.App-main {
-  flex: 1;
+.container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 20px;
+  min-height: 100vh;
+  text-align: center;
 }
 
-.hero-text h1 {
-  font-size: 2.2rem;
-  letter-spacing: 2px;
-  margin-bottom: 5px;
-}
-
-.hero-text p {
-  color: #888;
-  font-size: 1rem;
-  margin-top: 0;
-}
-
-.viewer-wrapper {
+.logo-section {
+  padding-top: 40px;
   width: 100%;
-  max-width: 500px;
-  background: radial-gradient(circle, #222 0%, #0a0a0a 100%);
-  border-radius: 20px;
-  margin: 20px 0;
-  border: 1px solid #333;
 }
 
-.cta-button {
-  background: linear-gradient(135deg, var(--primary-blue), #0056b3);
+.main-logo {
+  height: 100px; /* Ajuste conforme necessário para o seu logo */
+  width: auto;
+}
+
+.title-section h1 {
+  margin: 20px 0 5px 0;
+  font-size: 24px;
+  letter-spacing: 2px;
+}
+
+.title-section p {
+  margin: 0;
+  color: #ccc;
+  font-size: 14px;
+}
+
+.viewer-section {
+  width: 100%;
+  max-width: 400px;
+  margin: 20px 0;
+}
+
+.btn-primary {
+  background-color: #0080ff;
   color: white;
   border: none;
-  padding: 20px 50px;
-  font-size: 18px;
-  font-weight: 800;
-  border-radius: 12px;
+  padding: 15px 30px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 10px;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 10px 30px rgba(0, 123, 255, 0.4);
-  text-transform: uppercase;
+  box-shadow: 0 4px 15px rgba(0, 128, 255, 0.4);
 }
 
-.cta-button:active {
-  transform: scale(0.95);
-}
-
-/* Scanner Fullscreen */
-.scanner-active {
+.camera-screen {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 1000;
-  background: black;
+  z-index: 999;
 }
 
-.full-video-feed {
+.full-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.scanner-overlay {
+.btn-exit {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1001;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.scan-guide-box {
-  width: 280px;
-  height: 380px;
-  border: 2px solid var(--primary-blue);
-  border-radius: 20px;
-  box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.6);
-}
-
-.exit-button {
-  position: absolute;
-  bottom: 40px;
+  bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1002;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid white;
-  color: white;
-  padding: 10px 30px;
-  border-radius: 30px;
-  backdrop-filter: blur(10px);
-}
-
-.error-message {
-  color: #ff4444;
-  margin: 15px 0;
-  font-weight: bold;
-}
-
-.App-footer {
-  padding: 20px;
-  font-size: 0.8rem;
-  color: #444;
+  padding: 10px 25px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.3);
+  color: #fff;
+  border: 1px solid #fff;
 }
