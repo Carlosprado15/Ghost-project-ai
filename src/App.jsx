@@ -58,9 +58,7 @@ export default function App() {
   if (screen === 'home') {
     return (
       <div className="home">
-        <header className="home-header">
-          <img src="/logo.jpeg" alt="Ghost Project AI" className="logo" />
-        </header>
+      
 
         <main className="home-main">
           <div className="text-block">
