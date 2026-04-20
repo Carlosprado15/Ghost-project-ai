@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import './App.css';
 
 /* Registrar o custom element model-viewer via CDN */
+/* O script é injetado uma vez no <head> */
 function useModelViewer() {
   useEffect(() => {
     if (document.querySelector('script[data-mv]')) return;
@@ -13,21 +14,8 @@ function useModelViewer() {
   }, []);
 }
 
-/* Componente de Logo - Garantindo logo.jpeg conforme o arquivo físico */
-function Logo() {
-  return (
-    <div className="logo-container">
-      <img
-        src="/logo.jpeg"
-        alt="Ghost Project AI"
-        className="main-logo"
-      />
-    </div>
-  );
-}
-
 export default function App() {
-  const [screen, setScreen]   = useState('home');
+  const [screen, setScreen]   = useState('home');   // 'home' | 'camera'
   const [camMode, setCamMode] = useState('environment');
   const [error, setError]     = useState('');
   const videoRef = useRef(null);
@@ -35,6 +23,7 @@ export default function App() {
 
   useModelViewer();
 
+  /* Iniciar câmera */
   const startCamera = async () => {
     setError('');
     try {
@@ -44,6 +33,7 @@ export default function App() {
       });
       streamRef.current = stream;
       setScreen('camera');
+      /* Aguarda o DOM montar o <video> antes de atribuir */
       setTimeout(() => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -55,6 +45,7 @@ export default function App() {
     }
   };
 
+  /* Parar câmera ao sair */
   const stopCamera = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(t => t.stop());
@@ -63,10 +54,13 @@ export default function App() {
     setScreen('home');
   };
 
+  /* ── TELA INICIAL ─────────────────────────────────────────────── */
   if (screen === 'home') {
     return (
       <div className="home">
-        <Logo />
+        <header className="home-header">
+          <img src="/logo.jpeg" alt="Ghost Project AI" className="logo" />
+        </header>
 
         <main className="home-main">
           <div className="text-block">
@@ -74,6 +68,7 @@ export default function App() {
             <p>Tecnologia de Provador Virtual de Alta Precisão</p>
           </div>
 
+          {/* Visualizador 3D do relógio */}
           <div className="viewer-wrap">
             <model-viewer
               src="/relogio.glb"
@@ -88,6 +83,7 @@ export default function App() {
             </model-viewer>
           </div>
 
+          {/* Seletor de câmera */}
           <div className="cam-selector">
             <button
               className={camMode === 'environment' ? 'cam-btn active' : 'cam-btn'}
@@ -117,6 +113,7 @@ export default function App() {
     );
   }
 
+  /* ── TELA DA CÂMERA ───────────────────────────────────────────── */
   return (
     <div className="camera-screen">
       <video
@@ -127,6 +124,7 @@ export default function App() {
         className="video-feed"
       />
 
+      {/* HUD topo */}
       <div className="hud-top">
         <button className="back-btn" onClick={stopCamera}>← Voltar</button>
         <div className="ar-badge">
@@ -135,6 +133,7 @@ export default function App() {
         </div>
       </div>
 
+      {/* Cantos do scanner */}
       <div className="scan-frame">
         <div className="corner tl" />
         <div className="corner tr" />
@@ -143,6 +142,7 @@ export default function App() {
         <div className="scan-line" />
       </div>
 
+      {/* HUD base */}
       <div className="hud-bottom">
         <p>Aponte para o seu pulso</p>
         <span>Ghost Project AI</span>
