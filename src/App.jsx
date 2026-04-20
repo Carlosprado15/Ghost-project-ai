@@ -13,7 +13,7 @@ function useModelViewer() {
   }, []);
 }
 
-/* Componente de Logo corrigido para logo.jpeg */
+/* Componente de Logo - Garantindo logo.jpeg conforme o arquivo físico */
 function Logo() {
   return (
     <div className="logo-container">
@@ -66,7 +66,6 @@ export default function App() {
   if (screen === 'home') {
     return (
       <div className="home">
-        {/* Logo adicionado no topo */}
         <Logo />
 
         <main className="home-main">
@@ -120,7 +119,14 @@ export default function App() {
 
   return (
     <div className="camera-screen">
-      <video ref={videoRef} autoPlay playsInline muted className="video-feed" />
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className="video-feed"
+      />
+
       <div className="hud-top">
         <button className="back-btn" onClick={stopCamera}>← Voltar</button>
         <div className="ar-badge">
@@ -128,6 +134,7 @@ export default function App() {
           AR ATIVO
         </div>
       </div>
+
       <div className="scan-frame">
         <div className="corner tl" />
         <div className="corner tr" />
@@ -135,6 +142,7 @@ export default function App() {
         <div className="corner br" />
         <div className="scan-line" />
       </div>
+
       <div className="hud-bottom">
         <p>Aponte para o seu pulso</p>
         <span>Ghost Project AI</span>
