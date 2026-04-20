@@ -1,12 +1,12 @@
 /* Reset e Base */
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 
-/* Estilo da Home com fundo corrigido */
+/* Estilo da Home - Nome do arquivo sincronizado com a pasta /public */
 .home {
   width: 100%;
   min-height: 100vh;
   background-color: #000;
-  background-image: url('/fantasma.jpeg'); /* CORRIGIDO: fantasma.jpeg */
+  background-image: url('/fantasma.jpeg');
   background-size: cover;
   background-position: center;
   display: flex;
@@ -87,7 +87,7 @@
   object-fit: cover;
 }
 
-/* HUD e Frame do Scanner */
+/* Frame do Scanner */
 .scan-frame {
   position: absolute;
   top: 50%;
@@ -121,4 +121,10 @@
 @keyframes scan {
   0% { top: 0; }
   100% { top: 100%; }
+}
+
+.home-footer {
+  padding: 20px;
+  font-size: 0.8rem;
+  opacity: 0.6;
 }
