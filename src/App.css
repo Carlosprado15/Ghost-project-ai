@@ -33,7 +33,7 @@ html, body, #root {
 ════════════════════════════════════════════════════════════════ */
 .home {
   position: fixed; inset: 0;
-  background-image: url('/ghost.jpeg');
+  background-image: url('../ghost.jpeg');
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
