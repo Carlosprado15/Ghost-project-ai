@@ -1,283 +1,387 @@
-/* ── RESET ──────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ════════════════════════════════════════════════════════════════
+   GHOST PROJECT AI — App.css
+   Estrutura: tela inicial (home) + tela scanner
+════════════════════════════════════════════════════════════════ */
+
+/* ── Reset e base ─────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 :root {
   --gold:   #d4af37;
   --gold2:  #a07820;
-  --dark:   #07090D;
-  --dark2:  #0d1117;
+  --dark:   #07090d;
   --silver: #a8b4bc;
   --white:  #f0ede8;
   --green:  #4ade80;
 }
 
 html, body, #root {
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
   background: var(--dark);
   font-family: 'Inter', 'Montserrat', sans-serif;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-  overflow: hidden;
 }
 
-/* ── ANIMAÇÕES ──────────────────────────────────────────────────── */
-@keyframes fadeIn  { from { opacity: 0 } to { opacity: 1 } }
-@keyframes fadeUp  { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: translateY(0) } }
-@keyframes shimmer { 0% { background-position: -200% center } 100% { background-position: 200% center } }
-@keyframes pulse   { 0%, 100% { opacity: .5 } 50% { opacity: 1 } }
-@keyframes scan    { 0% { top: 0 } 100% { top: 100% } }
-@keyframes glow    { 0%, 100% { box-shadow: 0 0 18px rgba(212,175,55,.35) } 50% { box-shadow: 0 0 42px rgba(212,175,55,.85) } }
+/* ── Animações ────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0 }
+  to   { opacity: 1 }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center }
+  100% { background-position:  200% center }
+}
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 16px rgba(212,175,55,.35) }
+  50%       { box-shadow: 0 0 40px rgba(212,175,55,.85) }
+}
+@keyframes scan {
+  0%   { top: 0   }
+  100% { top: 100% }
+}
+@keyframes pulse {
+  0%, 100% { opacity: .4 }
+  50%       { opacity: 1   }
+}
 
 /* ════════════════════════════════════════════════════════════════
-   TELA INICIAL
+   TELA INICIAL (.home)
 ════════════════════════════════════════════════════════════════ */
 .home {
-  position: fixed; inset: 0;
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  /* Fundo: imagem ghost.jpeg — se existir, ou escuro como fallback */
   background-image: url('/ghost.jpeg');
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
-  display: flex; flex-direction: column;
-  align-items: center;
+  background-color: var(--dark);
+
   overflow-y: auto;
-  animation: fadeIn .6s ease;
+  animation: fadeIn .5s ease;
 }
 
-/* Overlay escuro para legibilidade */
+/* Overlay suave para garantir legibilidade */
 .home::before {
   content: '';
-  position: fixed; inset: 0;
-  background: rgba(4, 6, 10, .45);
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 6, 10, .40);
   pointer-events: none;
   z-index: 0;
 }
 
-.home-header,
-.home-main,
-.home-footer {
-  position: relative; z-index: 1;
-  width: 100%; max-width: 420px;
-  display: flex; flex-direction: column; align-items: center;
-}
-
 /* ── Logo ──────────────────────────────────────────────────────── */
-.home-header {
-  padding-top: max(env(safe-area-inset-top, 0px), 40px);
-  padding-bottom: 8px;
+/* O arquivo logo.jpeg já contém o símbolo G + texto GHOST PROJECT AI */
+/* Não adicionamos nenhum texto programático aqui                    */
+.logo-wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  /* Espaço do topo respeitando notch iOS */
+  padding-top: max(env(safe-area-inset-top, 0px), 32px);
+  padding-bottom: 0;
 }
 
-.logo {
-  width: 220px;
+.logo-img {
+  width: min(70vw, 260px);
   height: auto;
   display: block;
+  /* Logo em JPEG escuro: screen faz o fundo preto sumir             */
   mix-blend-mode: screen;
-  filter: brightness(1.3) contrast(1.1);
-}
-
-/* ── Texto ─────────────────────────────────────────────────────── */
-.home-main {
-  padding: 0 22px 32px;
-  gap: 0;
-}
-
-.text-block {
-  text-align: center;
-  margin-bottom: 20px;
-  animation: fadeUp .7s ease .1s both;
-}
-
-.text-block h1 {
-  font-size: clamp(18px, 5vw, 26px);
-  font-weight: 700;
-  letter-spacing: .22em;
-  color: var(--white);
-  text-shadow: 0 0 20px rgba(212,175,55,.3);
-  margin-bottom: 6px;
-}
-
-.text-block p {
-  font-size: 12px;
-  color: var(--silver);
-  letter-spacing: .06em;
+  filter: brightness(1.25) contrast(1.05);
 }
 
 /* ── Viewer 3D ─────────────────────────────────────────────────── */
 .viewer-wrap {
-  width: 100%;
-  background: radial-gradient(circle, #1a1e28 0%, #07090d 100%);
-  border-radius: 18px;
+  position: relative;
+  z-index: 1;
+  width: min(92vw, 400px);
+  /* Altura proporcional — ocupa o espaço disponível entre logo e botões */
+  height: min(46vw, 280px);
+  flex-shrink: 0;
+
+  background: radial-gradient(
+    circle at center,
+    rgba(30, 34, 44, .70) 0%,
+    rgba(7, 9, 13, .85)   100%
+  );
+  border-radius: 20px;
   overflow: hidden;
-  border: 1px solid rgba(212,175,55,.18);
-  margin-bottom: 22px;
-  animation: fadeUp .7s ease .18s both;
+  border: 1px solid rgba(212, 175, 55, .18);
+
+  /* Afasta do logo */
+  margin-top: 8px;
 }
 
-.mv-progress {
-  height: 2px;
-  background: linear-gradient(90deg, var(--gold), var(--gold2));
+/* ── Controles (seletor câmera + botão + rodapé) ───────────────── */
+.controls {
+  position: relative;
+  z-index: 1;
+  width: min(92vw, 400px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  /* Empurra para a base da tela */
+  margin-top: auto;
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 24px);
+  padding-top: 12px;
 }
 
-/* ── Seletor câmera ────────────────────────────────────────────── */
+/* Seletor de câmera */
 .cam-selector {
   display: flex;
-  background: rgba(255,255,255,.05);
+  width: 100%;
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid rgba(255, 255, 255, .08);
   border-radius: 12px;
   padding: 3px;
-  border: 1px solid rgba(255,255,255,.07);
-  width: 100%;
-  margin-bottom: 12px;
-  animation: fadeUp .7s ease .25s both;
 }
 
 .cam-btn {
-  flex: 1; padding: 10px 6px;
-  border-radius: 10px; border: none; cursor: pointer;
-  font-size: 11px; font-weight: 500; letter-spacing: .04em;
-  font-family: inherit; transition: all .22s ease;
+  flex: 1;
+  padding: 10px 6px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .04em;
+  font-family: inherit;
+  transition: all .2s ease;
   background: transparent;
   color: var(--silver);
 }
 
 .cam-btn.active {
   background: linear-gradient(135deg, var(--gold), var(--gold2));
-  color: #07090D;
+  color: #07090d;
+  font-weight: 700;
 }
 
-/* ── Botão scanner ─────────────────────────────────────────────── */
+/* Mensagem de erro câmera */
+.cam-error {
+  font-size: 11px;
+  color: #ff6b6b;
+  text-align: center;
+  padding: 8px 12px;
+  background: rgba(255, 107, 107, .10);
+  border: 1px solid rgba(255, 107, 107, .25);
+  border-radius: 8px;
+  width: 100%;
+}
+
+/* Botão INICIAR SCANNER AR */
 .scan-btn {
-  position: relative; overflow: hidden;
-  width: 100%; padding: 15px 24px;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  padding: 15px 24px;
   border-radius: 14px;
-  border: 1px solid rgba(212,175,55,.45);
+  border: 1px solid rgba(212, 175, 55, .50);
   cursor: pointer;
   background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%);
-  font-size: 13px; font-weight: 700;
-  letter-spacing: .16em; color: #07090D;
+  background-size: 200% auto;
+  color: #07090d;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .18em;
   text-transform: uppercase;
   font-family: inherit;
-  animation: glow 2.5s ease-in-out infinite, fadeUp .7s ease .32s both;
-  margin-bottom: 8px;
+  animation: glow 2.5s ease-in-out infinite;
 }
 
 .scan-btn::after {
   content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent);
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, .16),
+    transparent
+  );
   background-size: 200% 100%;
   animation: shimmer 2s linear infinite;
 }
 
-/* ── Erro ──────────────────────────────────────────────────────── */
-.error-msg {
-  font-size: 11px; color: #ff6b6b;
-  text-align: center; margin-bottom: 10px;
-  padding: 8px 12px;
-  background: rgba(255,107,107,.1);
-  border-radius: 8px;
-  border: 1px solid rgba(255,107,107,.25);
-}
-
-/* ── Footer ────────────────────────────────────────────────────── */
-.home-footer {
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px);
-}
-
-.home-footer span {
-  font-size: 8px; color: rgba(212,175,55,.3);
-  letter-spacing: .18em; text-transform: uppercase;
+/* Rodapé */
+.footer-txt {
+  font-size: 8px;
+  color: rgba(212, 175, 55, .28);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  text-align: center;
 }
 
 /* ════════════════════════════════════════════════════════════════
-   TELA DA CÂMERA
+   TELA DO SCANNER (.scanner-screen)
 ════════════════════════════════════════════════════════════════ */
-.camera-screen {
-  position: fixed; inset: 0;
+.scanner-screen {
+  position: fixed;
+  inset: 0;
   background: #000;
 }
 
+/* Feed de vídeo ocupa tela toda */
 .video-feed {
-  width: 100%; height: 100%;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
 
-/* ── HUD Topo ──────────────────────────────────────────────────── */
+/* ── HUD topo ──────────────────────────────────────────────────── */
 .hud-top {
-  position: absolute; top: 0; left: 0; right: 0;
+  position: absolute;
+  top: 0; left: 0; right: 0;
   padding-top: max(env(safe-area-inset-top, 0px), 44px);
   padding-bottom: 14px;
-  padding-left: 14px; padding-right: 14px;
-  background: linear-gradient(to bottom, rgba(4,6,10,.85), transparent);
-  display: flex; align-items: center; justify-content: space-between;
+  padding-left: 14px;
+  padding-right: 14px;
+  background: linear-gradient(
+    to bottom,
+    rgba(4, 6, 10, .85),
+    transparent
+  );
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
 }
 
 .back-btn {
-  display: flex; align-items: center; gap: 5px;
-  padding: 7px 16px; border-radius: 100px;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.13);
-  color: var(--white); font-size: 11px; font-weight: 500;
-  cursor: pointer; letter-spacing: .05em;
+  padding: 7px 16px;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid rgba(255, 255, 255, .15);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .05em;
+  cursor: pointer;
   backdrop-filter: blur(8px);
   font-family: inherit;
 }
 
 .ar-badge {
-  display: flex; align-items: center; gap: 7px;
-  padding: 7px 14px; border-radius: 100px;
-  background: rgba(10,40,25,.92);
-  border: 1px solid rgba(74,222,128,.38);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 100px;
+  background: rgba(10, 40, 25, .92);
+  border: 1px solid rgba(74, 222, 128, .40);
   backdrop-filter: blur(8px);
-  font-size: 10px; font-weight: 700;
-  color: var(--green); letter-spacing: .12em;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: .12em;
 }
 
 .ar-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 8px rgba(74,222,128,.9);
-  animation: pulse 1.5s ease-in-out infinite;
   display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(74, 222, 128, .9);
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
-/* ── Frame scanner ─────────────────────────────────────────────── */
+/* ── Frame de mira ─────────────────────────────────────────────── */
 .scan-frame {
-  position: absolute; inset: 18%;
+  position: absolute;
+  /* Centralizado, deixa margem nas bordas */
+  top: 18%; left: 8%; right: 8%; bottom: 22%;
   pointer-events: none;
+  z-index: 10;
 }
 
 .corner {
-  position: absolute; width: 22px; height: 22px;
+  position: absolute;
+  width: 24px;
+  height: 24px;
 }
-.tl { top: 0; left: 0;  border-top: 1.5px solid var(--gold); border-left: 1.5px solid var(--gold); }
-.tr { top: 0; right: 0; border-top: 1.5px solid var(--gold); border-right: 1.5px solid var(--gold); }
-.bl { bottom: 0; left: 0;  border-bottom: 1.5px solid var(--gold); border-left: 1.5px solid var(--gold); }
-.br { bottom: 0; right: 0; border-bottom: 1.5px solid var(--gold); border-right: 1.5px solid var(--gold); }
 
+.corner.tl { top: 0; left: 0;
+  border-top:  1.5px solid var(--gold);
+  border-left: 1.5px solid var(--gold); }
+
+.corner.tr { top: 0; right: 0;
+  border-top:   1.5px solid var(--gold);
+  border-right: 1.5px solid var(--gold); }
+
+.corner.bl { bottom: 0; left: 0;
+  border-bottom: 1.5px solid var(--gold);
+  border-left:   1.5px solid var(--gold); }
+
+.corner.br { bottom: 0; right: 0;
+  border-bottom: 1.5px solid var(--gold);
+  border-right:  1.5px solid var(--gold); }
+
+/* Linha de scan animada */
 .scan-line {
-  position: absolute; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(212,175,55,.85), transparent);
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(212, 175, 55, .85),
+    transparent
+  );
+  box-shadow: 0 0 8px rgba(212, 175, 55, .60);
   animation: scan 2.5s linear infinite;
-  box-shadow: 0 0 8px rgba(212,175,55,.6);
 }
 
-/* ── HUD Base ──────────────────────────────────────────────────── */
+/* ── HUD base ──────────────────────────────────────────────────── */
 .hud-bottom {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  padding-top: 16px; padding-left: 16px; padding-right: 16px;
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding-top: 16px;
+  padding-left: 16px;
+  padding-right: 16px;
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 28px);
-  background: linear-gradient(to top, rgba(4,6,10,.85), transparent);
-  display: flex; flex-direction: column;
-  align-items: center; gap: 5px;
+  background: linear-gradient(
+    to top,
+    rgba(4, 6, 10, .85),
+    transparent
+  );
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
   text-align: center;
+  z-index: 10;
 }
 
-.hud-bottom p {
-  font-size: 12px; color: rgba(212,175,55,.6);
-  letter-spacing: .14em; text-transform: uppercase;
+.hud-hint {
+  font-size: 12px;
+  color: rgba(212, 175, 55, .65);
+  letter-spacing: .14em;
+  text-transform: uppercase;
 }
 
-.hud-bottom span {
-  font-size: 8px; color: rgba(168,180,192,.3);
-  letter-spacing: .15em; text-transform: uppercase;
+.hud-brand {
+  font-size: 8px;
+  color: rgba(168, 180, 192, .30);
+  letter-spacing: .16em;
+  text-transform: uppercase;
 }
