@@ -107,6 +107,13 @@ export default function App() {
         <div className="scan-line-bar" />
       </div>
 
+      <div className="scan-corners">
+        <div className="sc tl" />
+        <div className="sc tr" />
+        <div className="sc bl" />
+        <div className="sc br" />
+      </div>
+
       <div className="watch-overlay">
         <model-viewer
           src="/relogio.glb"
@@ -119,17 +126,17 @@ export default function App() {
         />
         {showBuy && (
           <div className="action-buttons">
-            <button className="action-btn">Comprar Agora</button>
-            <button className="action-btn">Ver Detalhes</button>
+            <button className="action-btn">Buy Now</button>
+            <button className="action-btn">View Details</button>
           </div>
         )}
       </div>
 
       <div className="hud-top">
-        <button className="back-btn" onClick={closeScanner}>← Voltar</button>
+        <button className="back-btn" onClick={closeScanner}>← Back</button>
         <div className="ar-badge">
           <span className="ar-dot" />
-          AR ATIVO
+          AR ACTIVE
         </div>
       </div>
     </div>
