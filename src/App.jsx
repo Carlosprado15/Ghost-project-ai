@@ -23,33 +23,48 @@ export default function App() {
 
   useModelViewer();
 
-  const openScanner = async () => {
+  const openScanner = () => {
     setCamError('');
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: camMode, width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false,
-      });
-      streamRef.current = stream;
-      setShowBuy(false);
-      setScreen('scanner');
-      requestAnimationFrame(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play().catch(() => {});
-        }
-      });
-      buyTimer.current = setTimeout(() => setShowBuy(true), 5000);
-    } catch {
-      setCamError('Câmera indisponível. Verifique as permissões.');
-    }
+    setShowBuy(false);
+    setScreen('scanner');
   };
+
+  useEffect(() => {
+    if (screen !== 'scanner') return;
+
+    let active = true;
+
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: camMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false,
+    }).then(stream => {
+      if (!active) { stream.getTracks().forEach(t => t.stop()); return; }
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play().catch(() => {});
+      }
+      buyTimer.current = setTimeout(() => { if (active) setShowBuy(true); }, 5000);
+    }).catch(() => {
+      if (active) {
+        setCamError('Câmera indisponível.');
+        setScreen('home');
+      }
+    });
+
+    return () => {
+      active = false;
+      clearTimeout(buyTimer.current);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
+      }
+      if (videoRef.current) videoRef.current.srcObject = null;
+    };
+  }, [screen, camMode]);
 
   const closeScanner = () => {
     clearTimeout(buyTimer.current);
-    streamRef.current?.getTracks().forEach(t => t.stop());
-    streamRef.current = null;
-    if (videoRef.current) videoRef.current.srcObject = null;
     setShowBuy(false);
     setScreen('home');
   };
@@ -57,6 +72,9 @@ export default function App() {
   if (screen === 'home') {
     return (
       <div className="home">
+        <div className="home-tagline">
+          <p>Try Before You Buy</p>
+        </div>
         <div className="home-buttons">
           <div className="cam-selector">
             <button
@@ -74,7 +92,7 @@ export default function App() {
           </div>
           {camError && <p className="cam-error">{camError}</p>}
           <button className="scan-btn" onClick={openScanner}>
-            START AR SCANNER
+            INICIAR LEITOR DE RA
           </button>
         </div>
       </div>
@@ -83,28 +101,27 @@ export default function App() {
 
   return (
     <div className="scanner">
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted
-        className="video-feed"
-      />
+      <video ref={videoRef} autoPlay playsInline muted className="video-feed" />
+
+      <div className="scan-line-overlay">
+        <div className="scan-line-bar" />
+      </div>
 
       <div className="watch-overlay">
-        {/* @ts-ignore */}
         <model-viewer
           src="/relogio.glb"
           camera-controls
           auto-rotate
           shadow-intensity="1"
           exposure="1.1"
+          interaction-prompt="none"
           style={{ width: '100%', height: '100%', background: 'transparent' }}
         />
         {showBuy && (
-          <button className="buy-btn">
-            View Details
-          </button>
+          <div className="action-buttons">
+            <button className="action-btn">Comprar Agora</button>
+            <button className="action-btn">Ver Detalhes</button>
+          </div>
         )}
       </div>
 
