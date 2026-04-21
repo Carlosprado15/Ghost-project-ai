@@ -122,6 +122,11 @@ export default function App() {
           shadow-intensity="1"
           exposure="1.1"
           interaction-prompt="none"
+          orientation="0deg 0deg 90deg"
+          camera-orbit="0deg 75deg 0.18m"
+          min-camera-orbit="auto auto 0.12m"
+          max-camera-orbit="auto auto 0.28m"
+          field-of-view="28deg"
           style={{ width: '100%', height: '100%', background: 'transparent' }}
         />
         {showBuy && (
