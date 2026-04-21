@@ -13,11 +13,13 @@ function useModelViewer() {
 }
 
 export default function App() {
-  const [screen, setScreen]   = useState('home');
-  const [camMode, setCamMode] = useState('environment');
+  const [screen, setScreen]     = useState('home');
+  const [camMode, setCamMode]   = useState('environment');
   const [camError, setCamError] = useState('');
+  const [showBuy, setShowBuy]   = useState(false);
   const videoRef  = useRef(null);
   const streamRef = useRef(null);
+  const buyTimer  = useRef(null);
 
   useModelViewer();
 
@@ -29,6 +31,7 @@ export default function App() {
         audio: false,
       });
       streamRef.current = stream;
+      setShowBuy(false);
       setScreen('scanner');
       requestAnimationFrame(() => {
         if (videoRef.current) {
@@ -36,25 +39,24 @@ export default function App() {
           videoRef.current.play().catch(() => {});
         }
       });
+      buyTimer.current = setTimeout(() => setShowBuy(true), 5000);
     } catch {
       setCamError('Câmera indisponível. Verifique as permissões.');
     }
   };
 
   const closeScanner = () => {
+    clearTimeout(buyTimer.current);
     streamRef.current?.getTracks().forEach(t => t.stop());
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
+    setShowBuy(false);
     setScreen('home');
   };
 
-  /* ── TELA INICIAL ─────────────────────────────────────────── */
   if (screen === 'home') {
     return (
       <div className="home">
-        {/* logo.jpeg cobre 100% da tela como fundo */}
-
-        {/* Botões posicionados na base, sobre a imagem */}
         <div className="home-buttons">
           <div className="cam-selector">
             <button
@@ -70,18 +72,15 @@ export default function App() {
               🤳 Câmera Frontal
             </button>
           </div>
-
           {camError && <p className="cam-error">{camError}</p>}
-
           <button className="scan-btn" onClick={openScanner}>
-            INICIAR SCANNER AR
+            START AR SCANNER
           </button>
         </div>
       </div>
     );
   }
 
-  /* ── TELA DO SCANNER ──────────────────────────────────────── */
   return (
     <div className="scanner">
       <video
@@ -92,7 +91,6 @@ export default function App() {
         className="video-feed"
       />
 
-      {/* Relógio 3D sobre a câmera */}
       <div className="watch-overlay">
         {/* @ts-ignore */}
         <model-viewer
@@ -103,30 +101,19 @@ export default function App() {
           exposure="1.1"
           style={{ width: '100%', height: '100%', background: 'transparent' }}
         />
+        {showBuy && (
+          <button className="buy-btn">
+            View Details
+          </button>
+        )}
       </div>
 
-      {/* HUD topo */}
       <div className="hud-top">
         <button className="back-btn" onClick={closeScanner}>← Voltar</button>
         <div className="ar-badge">
           <span className="ar-dot" />
           AR ATIVO
         </div>
-      </div>
-
-      {/* Frame de mira */}
-      <div className="scan-frame">
-        <div className="corner tl" />
-        <div className="corner tr" />
-        <div className="corner bl" />
-        <div className="corner br" />
-        <div className="scan-line" />
-      </div>
-
-      {/* HUD base */}
-      <div className="hud-bottom">
-        <p className="hud-hint">Aponte para o seu pulso</p>
-        <span className="hud-brand">Ghost Project AI</span>
       </div>
     </div>
   );
