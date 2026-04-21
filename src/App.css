@@ -1,324 +1,244 @@
-/* ════════════════════════════════════════════════════════════════
-   GHOST PROJECT AI — App.css
-════════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-:root {
-  --gold:  #d4af37;
-  --gold2: #a07820;
-  --dark:  #07090d;
-  --white: #f0ede8;
+:root{
+  --gold:#d4af37;
+  --gold2:#b8962e;
+  --dark:#07090d;
+  --white:#f0ede8;
   --silver:#a8b4bc;
-  --green: #4ade80;
+  --green:#4ade80;
 }
 
-html, body, #root {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  font-family: 'Inter', 'Montserrat', sans-serif;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
+html,body,#root{
+  width:100vw;
+  height:100vh;
+  overflow:hidden;
+  font-family:'Inter','Montserrat',sans-serif;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
 }
 
-/* ═══════════════════════════════════════
-   ANIMAÇÕES
-═══════════════════════════════════════ */
-@keyframes shimmer {
-  0%   { background-position: -200% center }
-  100% { background-position:  200% center }
+@keyframes shimmer{
+  0%{background-position:-200% center}
+  100%{background-position:200% center}
 }
-@keyframes glow {
-  0%, 100% { box-shadow: 0 0 16px rgba(212,175,55,.4) }
-  50%       { box-shadow: 0 0 40px rgba(212,175,55,.9) }
+@keyframes glow{
+  0%,100%{box-shadow:0 0 14px rgba(212,175,55,.35)}
+  50%{box-shadow:0 0 36px rgba(212,175,55,.85)}
 }
-@keyframes scan {
-  0%   { top: 0   }
-  100% { top: 100% }
+@keyframes pulse{
+  0%,100%{opacity:.4}
+  50%{opacity:1}
 }
-@keyframes pulse {
-  0%, 100% { opacity: .4 }
-  50%       { opacity: 1  }
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
 }
 
-/* ═══════════════════════════════════════
+/* ═══════════════════════════════
    TELA INICIAL
-═══════════════════════════════════════ */
-
-/*
-  logo.jpeg cobre 100% da tela.
-  Nenhum outro elemento visual — só botões na base.
-*/
-.home {
-  position: fixed;
-  inset: 0;
-
-  /* logo.jpeg como fundo FULLSCREEN */
-  background-image: url('/logo.jpeg');
-  background-size: cover;
-  background-position: center top;
-  background-repeat: no-repeat;
-
-  /* Layout: botões empurrados para a base */
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
+═══════════════════════════════ */
+.home{
+  position:fixed;
+  inset:0;
+  width:100vw;
+  height:100vh;
+  background-image:url('/logo.jpeg');
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  z-index:0;
 }
 
-/* Bloco de botões — base da tela, sobre a imagem */
-.home-buttons {
-  width: 100%;
-  max-width: 420px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-
-  /* Respeita notch iOS na base */
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), 36px);
-  padding-left: 24px;
-  padding-right: 24px;
-  padding-top: 20px;
-
-  /* Gradiente escuro para os botões serem legíveis */
-  background: linear-gradient(
-    to top,
-    rgba(4, 6, 10, .80) 0%,
-    rgba(4, 6, 10, .50) 60%,
-    transparent         100%
-  );
+/* Botões posicionados entre 65–75% da tela */
+.home-buttons{
+  position:absolute;
+  top:70%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:min(92vw,400px);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+  z-index:10;
 }
 
-/* Seletor câmera */
-.cam-selector {
-  display: flex;
-  width: 100%;
-  background: rgba(255, 255, 255, .06);
-  border: 1px solid rgba(255, 255, 255, .10);
-  border-radius: 14px;
-  padding: 4px;
-  gap: 4px;
+/* Seletor câmera — dois botões lado a lado */
+.cam-selector{
+  display:flex;
+  width:100%;
+  gap:8px;
 }
 
-.cam-btn {
-  flex: 1;
-  padding: 11px 6px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: .04em;
-  font-family: inherit;
-  transition: all .22s ease;
-  background: transparent;
-  color: var(--silver);
+.cam-btn{
+  flex:1;
+  padding:12px 8px;
+  border-radius:12px;
+  border:1px solid rgba(212,175,55,.35);
+  cursor:pointer;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.04em;
+  font-family:inherit;
+  transition:all .2s ease;
+  background:rgba(10,14,20,.70);
+  color:var(--silver);
+  backdrop-filter:blur(8px);
 }
 
-.cam-btn.active {
-  background: linear-gradient(135deg, var(--gold), var(--gold2));
-  color: #07090d;
-  font-weight: 700;
+.cam-btn.active{
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#07090d;
+  border-color:transparent;
+  box-shadow:0 4px 20px rgba(212,175,55,.35);
 }
 
-/* Mensagem de erro */
-.cam-error {
-  width: 100%;
-  font-size: 11px;
-  color: #ff6b6b;
-  text-align: center;
-  padding: 8px 12px;
-  background: rgba(255, 107, 107, .10);
-  border: 1px solid rgba(255, 107, 107, .25);
-  border-radius: 8px;
+.cam-error{
+  width:100%;
+  font-size:11px;
+  color:#ff6b6b;
+  text-align:center;
+  padding:8px 12px;
+  background:rgba(255,107,107,.10);
+  border:1px solid rgba(255,107,107,.25);
+  border-radius:8px;
 }
 
-/* Botão INICIAR SCANNER AR */
-.scan-btn {
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-  padding: 16px 24px;
-  border-radius: 14px;
-  border: 1px solid rgba(212, 175, 55, .55);
-  cursor: pointer;
-
-  /* Gradiente dourado */
-  background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%);
-  background-size: 200% auto;
-
-  color: #07090d;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  font-family: inherit;
-
-  animation: glow 2.5s ease-in-out infinite;
+/* Botão START AR SCANNER */
+.scan-btn{
+  position:relative;
+  overflow:hidden;
+  width:100%;
+  padding:15px 24px;
+  border-radius:14px;
+  border:1px solid rgba(212,175,55,.50);
+  cursor:pointer;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#07090d;
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  font-family:inherit;
+  animation:glow 2.5s ease-in-out infinite;
+  box-shadow:0 4px 24px rgba(212,175,55,.30);
 }
 
-/* Reflexo animado sobre o botão */
-.scan-btn::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, .18),
-    transparent
-  );
-  background-size: 200% 100%;
-  animation: shimmer 2s linear infinite;
+.scan-btn::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);
+  background-size:200% 100%;
+  animation:shimmer 2s linear infinite;
 }
 
-/* ═══════════════════════════════════════
-   TELA DO SCANNER
-═══════════════════════════════════════ */
-.scanner {
-  position: fixed;
-  inset: 0;
-  background: #000;
+/* ═══════════════════════════════
+   TELA SCANNER
+═══════════════════════════════ */
+.scanner{
+  position:fixed;
+  inset:0;
+  width:100vw;
+  height:100vh;
+  background:#000;
+  z-index:0;
 }
 
-/* Feed de vídeo — ocupa tela toda */
-.video-feed {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  z-index: 1;
+.video-feed{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  z-index:1;
 }
 
-/* Relógio 3D centralizado sobre o feed */
-.watch-overlay {
-  position: absolute;
-  /* Centralizado verticalmente e horizontalmente */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(75vw, 340px);
-  height: min(75vw, 340px);
-  z-index: 2;
-  pointer-events: none;
+/* Relógio 3D — centralizado sobre o feed */
+.watch-overlay{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:min(80vw,360px);
+  height:min(80vw,360px);
+  z-index:2;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  pointer-events:none;
 }
 
-/* HUD — topo */
-.hud-top {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  padding-top: max(env(safe-area-inset-top, 0px), 44px);
-  padding-bottom: 14px;
-  padding-left: 14px;
-  padding-right: 14px;
-  background: linear-gradient(to bottom, rgba(4,6,10,.85), transparent);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 10;
+/* Botão View Details — aparece abaixo do relógio após 5s */
+.buy-btn{
+  pointer-events:all;
+  margin-top:16px;
+  padding:11px 28px;
+  border-radius:50px;
+  border:1px solid rgba(212,175,55,.55);
+  cursor:pointer;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#07090d;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.10em;
+  font-family:inherit;
+  box-shadow:0 4px 20px rgba(212,175,55,.40);
+  animation:fadeIn .5s ease both,glow 2.5s ease-in-out infinite;
 }
 
-.back-btn {
-  padding: 7px 16px;
-  border-radius: 100px;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.15);
-  color: var(--white);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: .05em;
-  cursor: pointer;
-  backdrop-filter: blur(8px);
-  font-family: inherit;
+/* HUD topo — voltar + badge */
+.hud-top{
+  position:absolute;
+  top:0;left:0;right:0;
+  padding-top:max(env(safe-area-inset-top,0px),44px);
+  padding-bottom:14px;
+  padding-left:14px;
+  padding-right:14px;
+  background:linear-gradient(to bottom,rgba(4,6,10,.82),transparent);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  z-index:10;
 }
 
-.ar-badge {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 14px;
-  border-radius: 100px;
-  background: rgba(10,40,25,.92);
-  border: 1px solid rgba(74,222,128,.40);
-  backdrop-filter: blur(8px);
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--green);
-  letter-spacing: .12em;
+.back-btn{
+  padding:7px 16px;
+  border-radius:100px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);
+  color:var(--white);
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:.05em;
+  cursor:pointer;
+  backdrop-filter:blur(8px);
+  font-family:inherit;
 }
 
-.ar-dot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 8px rgba(74,222,128,.9);
-  animation: pulse 1.5s ease-in-out infinite;
+.ar-badge{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:7px 14px;
+  border-radius:100px;
+  background:rgba(10,40,25,.92);
+  border:1px solid rgba(74,222,128,.40);
+  backdrop-filter:blur(8px);
+  font-size:10px;
+  font-weight:700;
+  color:var(--green);
+  letter-spacing:.12em;
 }
 
-/* Frame de mira */
-.scan-frame {
-  position: absolute;
-  top: 18%; left: 8%; right: 8%; bottom: 22%;
-  pointer-events: none;
-  z-index: 5;
-}
-
-.corner {
-  position: absolute;
-  width: 24px;
-  height: 24px;
-}
-.corner.tl { top:0; left:0;    border-top:1.5px solid var(--gold); border-left:1.5px solid var(--gold);   }
-.corner.tr { top:0; right:0;   border-top:1.5px solid var(--gold); border-right:1.5px solid var(--gold);  }
-.corner.bl { bottom:0; left:0; border-bottom:1.5px solid var(--gold); border-left:1.5px solid var(--gold);  }
-.corner.br { bottom:0; right:0;border-bottom:1.5px solid var(--gold); border-right:1.5px solid var(--gold); }
-
-.scan-line {
-  position: absolute;
-  left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(212,175,55,.85), transparent);
-  box-shadow: 0 0 8px rgba(212,175,55,.6);
-  animation: scan 2.5s linear infinite;
-}
-
-/* HUD — base */
-.hud-bottom {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  padding-top: 16px;
-  padding-left: 16px;
-  padding-right: 16px;
-  padding-bottom: max(env(safe-area-inset-bottom,0px), 28px);
-  background: linear-gradient(to top, rgba(4,6,10,.85), transparent);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  text-align: center;
-  z-index: 10;
-}
-
-.hud-hint {
-  font-size: 12px;
-  color: rgba(212,175,55,.65);
-  letter-spacing: .14em;
-  text-transform: uppercase;
-}
-
-.hud-brand {
-  font-size: 8px;
-  color: rgba(168,180,192,.30);
-  letter-spacing: .16em;
-  text-transform: uppercase;
+.ar-dot{
+  display:inline-block;
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 8px rgba(74,222,128,.9);
+  animation:pulse 1.5s ease-in-out infinite;
 }
