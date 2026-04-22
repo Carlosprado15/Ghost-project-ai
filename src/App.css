@@ -38,6 +38,10 @@ html,body,#root{
   0%{top:0}
   100%{top:100%}
 }
+@keyframes fadeInUp{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
 
 /* ═══════════════════════
    TELA INICIAL
@@ -57,7 +61,6 @@ html,body,#root{
   align-items:center;
 }
 
-/* "Try Before You Buy" — centralizado sobre os botões */
 .home-tagline{
   position:absolute;
   top:50%;
@@ -81,7 +84,6 @@ html,body,#root{
   line-height:1.3;
 }
 
-/* Bloco de botões — posicionado entre 65–70% da tela */
 .home-buttons{
   position:absolute;
   top:65%;
@@ -93,10 +95,7 @@ html,body,#root{
   flex-direction:column;
   align-items:center;
   gap:12px;
-  padding-left:0;
-  padding-right:0;
-  padding-top:0;
-  padding-bottom:0;
+  padding:0;
 }
 
 .cam-selector{
@@ -188,7 +187,6 @@ html,body,#root{
   z-index:1;
 }
 
-/* Linha de scan animada */
 .scan-line-overlay{
   position:absolute;
   inset:0;
@@ -207,48 +205,7 @@ html,body,#root{
   animation:scanMove 2.8s linear infinite;
 }
 
-/* Watch + action buttons */
-.watch-overlay{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  width:min(80vw,360px);
-  height:min(80vw,360px);
-  z-index:4;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-
-/* Dois botões lado a lado abaixo do relógio */
-.action-buttons{
-  display:flex;
-  flex-direction:row;
-  gap:10px;
-  margin-top:14px;
-  pointer-events:all;
-  animation:fadeIn .5s ease both;
-}
-
-.action-btn{
-  flex:1;
-  padding:11px 18px;
-  border-radius:50px;
-  border:1px solid rgba(212,175,55,.55);
-  cursor:pointer;
-  background:linear-gradient(135deg,var(--gold),var(--gold2));
-  color:#07090d;
-  font-size:13px;
-  font-weight:700;
-  letter-spacing:.08em;
-  font-family:inherit;
-  box-shadow:0 4px 18px rgba(212,175,55,.40);
-  animation:glow 2.5s ease-in-out infinite;
-  white-space:nowrap;
-}
-
-/* Cantos do scanner — 4 marcadores fixos na tela */
+/* Corner brackets */
 .scan-corners{
   position:absolute;
   inset:0;
@@ -320,90 +277,78 @@ html,body,#root{
   box-shadow:0 0 8px rgba(74,222,128,.9);
   animation:pulse 1.5s ease-in-out infinite;
 }
-/*
-  ──────────────────────────────────────────────────────────────────
-  GHOST PROJECT — App.css ADDITIONS
-  Add these rules to your existing App.css.
-  Do NOT replace any existing rules.
-  ──────────────────────────────────────────────────────────────────
-*/
 
-/* Wrist-locked AR badge glow variant */
-.ar-dot--tracking {
-  background: #00ff88;
-  box-shadow: 0 0 8px #00ff88, 0 0 18px #00ff8866;
-  animation: none;          /* stop the default blinking when locked */
+/* Wrist locked — green glow, stop blinking */
+.ar-dot--tracking{
+  background:#00ff88;
+  box-shadow:0 0 8px #00ff88,0 0 18px #00ff8866;
+  animation:none;
 }
 
-/* Instructional hint shown before a hand is detected */
-.tracking-hint {
-  position: absolute;
-  bottom: 96px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.55);
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 8px 20px;
-  border-radius: 20px;
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  pointer-events: none;
-  animation: fadeInUp 0.4s ease both;
+/* ═══════════════════════
+   BOTTOM UI STACK
+   hint + buy buttons in a single flex column
+   pinned to bottom, never overlapping
+═══════════════════════ */
+.bottom-ui{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  z-index:20;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  padding-bottom:max(env(safe-area-inset-bottom,0px),24px);
+  padding-left:16px;
+  padding-right:16px;
+  /* gradient fade so it doesn't hard-cut the video */
+  background:linear-gradient(to top,rgba(4,6,10,.70) 0%,transparent 100%);
+  pointer-events:none;
 }
 
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0);    }
-}
-/*
-  ══════════════════════════════════════════════════════════
-  GHOST PROJECT — App.css ADDITIONS (paste at end of file)
-  Only 3 new rules. Do NOT change anything else.
-  ══════════════════════════════════════════════════════════
-*/
-
-/* FIX 4: Buy/Details buttons pinned to bottom of screen */
-.action-buttons-fixed {
-  position: fixed;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-  z-index: 20;
-  pointer-events: all;
-  animation: fadeIn .5s ease both;
+/* Tracking hint — centered inside bottom-ui */
+.tracking-hint{
+  pointer-events:none;
+  background:rgba(0,0,0,.55);
+  color:#ffffff;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  padding:9px 22px;
+  border-radius:20px;
+  backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.15);
+  white-space:nowrap;
+  animation:fadeInUp .4s ease both;
 }
 
-/* FIX 1 visual feedback: green dot when wrist is locked */
-.ar-dot--tracking {
-  background: #00ff88;
-  box-shadow: 0 0 8px #00ff88, 0 0 18px #00ff8866;
-  animation: none;
+/* Buy / Details row */
+.action-buttons-row{
+  display:flex;
+  flex-direction:row;
+  gap:10px;
+  pointer-events:all;
+  animation:fadeIn .5s ease both;
+  width:100%;
+  justify-content:center;
 }
 
-/* Instructional hint before hand detected */
-.tracking-hint {
-  position: absolute;
-  bottom: 96px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.55);
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 8px 20px;
-  border-radius: 20px;
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  pointer-events: none;
-  z-index: 20;
-  white-space: nowrap;
+.action-btn{
+  padding:13px 28px;
+  border-radius:50px;
+  border:1px solid rgba(212,175,55,.55);
+  cursor:pointer;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#07090d;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.08em;
+  font-family:inherit;
+  box-shadow:0 4px 18px rgba(212,175,55,.40);
+  animation:glow 2.5s ease-in-out infinite;
+  white-space:nowrap;
+  min-width:140px;
 }
