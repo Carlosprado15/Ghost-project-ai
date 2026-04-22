@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css';
 
-// ─── Script Loaders ──────────────────────────────────────────────────────────
 function loadScript(src, id) {
   return new Promise((resolve, reject) => {
     if (document.getElementById(id)) { resolve(); return; }
@@ -29,15 +28,14 @@ function useModelViewer() {
   }, []);
 }
 
-// ─── LERP RÁPIDO (0.85 para resposta instantânea) ────────────────────────────
-const LERP_FACTOR = 0.85;
+const LERP_FACTOR = 0.75;
+const WATCH_SIZE_MULTIPLIER = 1.1;
 
 function lerp(prev, next, factor) {
   if (prev === null) return next;
   return prev + (next - prev) * factor;
 }
 
-// ─── Mapeamento preciso do pulso para tela ───────────────────────────────────
 function mapWristToScreen(landmark, videoElement) {
   const videoWidth = videoElement.videoWidth || 1280;
   const videoHeight = videoElement.videoHeight || 720;
@@ -55,14 +53,19 @@ function mapWristToScreen(landmark, videoElement) {
   return { x: screenX, y: screenY };
 }
 
-// ─── Componente Principal ─────────────────────────────────────────────────────
+function calculatePalmSize(indexMCP, pinkyMCP, videoElement) {
+  const idxPos = mapWristToScreen(indexMCP, videoElement);
+  const pinkyPos = mapWristToScreen(pinkyMCP, videoElement);
+  return Math.hypot(idxPos.x - pinkyPos.x, idxPos.y - pinkyPos.y);
+}
+
 export default function App() {
   const [screen, setScreen] = useState('home');
   const [camMode, setCamMode] = useState('environment');
   const [camError, setCamError] = useState('');
   const [showBuy, setShowBuy] = useState(false);
   const [tracking, setTracking] = useState(false);
-  const [watchPosition, setWatchPosition] = useState({ x: 0, y: 0, size: 150 });
+  const [watchPosition, setWatchPosition] = useState({ x: 0, y: 0, size: 130 });
   
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -72,6 +75,7 @@ export default function App() {
   const activeRef = useRef(false);
   const smoothX = useRef(null);
   const smoothY = useRef(null);
+  const smoothSize = useRef(null);
   const rafRef = useRef(null);
   
   useModelViewer();
@@ -82,10 +86,10 @@ export default function App() {
     setTracking(false);
     smoothX.current = null;
     smoothY.current = null;
+    smoothSize.current = null;
     setScreen('scanner');
   };
   
-  // ─── Callback do MediaPipe ─────────────────────────────────────────────────
   const onHandsResults = useCallback((results) => {
     if (!activeRef.current || !videoRef.current) return;
     
@@ -95,12 +99,17 @@ export default function App() {
     }
     
     const landmarks = results.multiHandLandmarks[0];
-    const wrist = landmarks[0]; // Landmark 0 = pulso
+    const wrist = landmarks[0];
+    const indexMCP = landmarks[5];
+    const pinkyMCP = landmarks[17];
     
     const screenPos = mapWristToScreen(wrist, videoRef.current);
+    const palmSize = calculatePalmSize(indexMCP, pinkyMCP, videoRef.current);
+    const rawSize = Math.max(110, Math.min(170, palmSize * WATCH_SIZE_MULTIPLIER));
     
     smoothX.current = lerp(smoothX.current, screenPos.x, LERP_FACTOR);
     smoothY.current = lerp(smoothY.current, screenPos.y, LERP_FACTOR);
+    smoothSize.current = lerp(smoothSize.current, rawSize, 0.5);
     
     setTracking(true);
     
@@ -109,12 +118,11 @@ export default function App() {
       setWatchPosition({
         x: smoothX.current,
         y: smoothY.current,
-        size: 150
+        size: smoothSize.current
       });
     });
   }, []);
   
-  // ─── Inicialização da Câmera e MediaPipe ───────────────────────────────────
   useEffect(() => {
     if (screen !== 'scanner') return;
     activeRef.current = true;
@@ -162,7 +170,7 @@ export default function App() {
         
       } catch (err) {
         if (activeRef.current) {
-          setCamError('Câmera indisponível.');
+          setCamError('Camera unavailable');
           setScreen('home');
         }
       }
@@ -187,17 +195,13 @@ export default function App() {
     setScreen('home');
   };
   
-  // ─── Tela HOME - COM LOGO.JPEG ─────────────────────────────────────────────
   if (screen === 'home') {
     return (
       <div className="home">
         <div className="home-background" style={{ backgroundImage: 'url("/logo.jpeg")' }} />
         <div className="home-content">
-          <h1 className="home-title">GHOST PROJECT AI</h1>
           <div className="home-tagline">
-            <p>Experimente</p>
-            <p>antes de</p>
-            <p>comprar</p>
+            <p>Try Before You Buy</p>
           </div>
           <div className="home-buttons">
             <div className="cam-selector">
@@ -216,7 +220,7 @@ export default function App() {
             </div>
             {camError && <p className="cam-error">{camError}</p>}
             <button className="scan-btn" onClick={openScanner}>
-              INICIAR LEITOR DE RA
+              START AR SCANNER
             </button>
           </div>
         </div>
@@ -224,18 +228,17 @@ export default function App() {
     );
   }
   
-  // ─── Tela SCANNER - Layout Original ────────────────────────────────────────
   const watchStyle = {
     position: 'fixed',
     left: watchPosition.x,
     top: watchPosition.y,
     width: watchPosition.size,
     height: watchPosition.size,
-    transform: 'translate(-50%, -70%)',
+    transform: 'translate(-50%, -80%)',
     pointerEvents: 'none',
-    zIndex: 10,
+    zIndex: 15,
     opacity: tracking ? 1 : 0,
-    transition: 'opacity 0.2s ease'
+    transition: 'opacity 0.15s ease'
   };
   
   return (
@@ -266,12 +269,12 @@ export default function App() {
           disable-zoom
           auto-rotate
           shadow-intensity="1"
-          exposure="1.1"
+          exposure="1.2"
           interaction-prompt="none"
-          camera-orbit="0deg 75deg 0.18m"
-          min-camera-orbit="auto auto 0.12m"
-          max-camera-orbit="auto auto 0.28m"
-          field-of-view="28deg"
+          camera-orbit="0deg 75deg 0.16m"
+          min-camera-orbit="auto auto 0.10m"
+          max-camera-orbit="auto auto 0.24m"
+          field-of-view="30deg"
           style={{ width: '100%', height: '100%', background: 'transparent' }}
         />
       </div>
@@ -287,16 +290,17 @@ export default function App() {
       {!tracking && (
         <div className="tracking-hint">
           <p>APONTE PARA O SEU PULSO</p>
-          <p className="project-name">PROJETO FANTASMA 1A</p>
         </div>
       )}
       
-      {showBuy && (
-        <div className="action-buttons">
-          <button className="action-btn primary">Comprar agora</button>
-          <button className="action-btn secondary">Ver detalhes</button>
-        </div>
-      )}
+      <div className="action-container">
+        {showBuy && (
+          <div className="action-buttons">
+            <button className="action-btn primary">Comprar Agora</button>
+            <button className="action-btn secondary">Ver Detalhes</button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
