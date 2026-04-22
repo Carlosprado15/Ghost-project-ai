@@ -12,16 +12,122 @@ function useModelViewer() {
   }, []);
 }
 
+/* Three.js watch renderer — replaces model-viewer in scanner */
+function useThreeWatch(canvasRef, active) {
+  useEffect(() => {
+    if (!active || !canvasRef.current) return;
+
+    let raf;
+    const canvas = canvasRef.current;
+
+    function loadScript(src) {
+      return new Promise((res, rej) => {
+        if (document.querySelector('script[src="' + src + '"]')) { res(); return; }
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = res;
+        s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+
+    async function init() {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
+      await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js');
+
+      const T = window.THREE;
+
+      const w = canvas.clientWidth  || window.innerWidth;
+      const h = canvas.clientHeight || window.innerHeight;
+
+      const renderer = new T.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(w, h);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = T.PCFSoftShadowMap;
+      renderer.toneMapping = T.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.1;
+
+      const scene  = new T.Scene();
+      const camera = new T.PerspectiveCamera(45, w / h, 0.01, 100);
+      camera.position.set(0, 0, 1.4);
+
+      /* Lighting — unchanged from reference */
+      scene.add(new T.AmbientLight(0xffffff, 0.6));
+      const dir = new T.DirectionalLight(0xffffff, 1.2);
+      dir.position.set(2, 4, 3);
+      dir.castShadow = true;
+      scene.add(dir);
+      const fill = new T.DirectionalLight(0xffffff, 0.4);
+      fill.position.set(-2, -1, 2);
+      scene.add(fill);
+
+      /* Load model */
+      const loader = new T.GLTFLoader();
+      loader.load('/relogio.glb', (gltf) => {
+        const wg = gltf.scene;
+
+        /* ── REFERENCE IMAGE VALUES ────────────────────────────
+           scale:      0.28  (range 0.25–0.35, proportional)
+           position.x: 0     (centered)
+           position.y: -0.22 (slightly down on wrist)
+           position.z: 0
+           rotation.x: -0.2  (natural slight tilt)
+           rotation.y: 0
+        ─────────────────────────────────────────────────────── */
+        wg.scale.setScalar(0.28);
+        wg.position.set(0, -0.22, 0);
+        wg.rotation.x = -0.2;
+        wg.rotation.y = 0;
+
+        wg.traverse(c => {
+          if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; }
+        });
+
+        scene.add(wg);
+
+        /* Stable render loop — NO floating/oscillation animation */
+        function loop() {
+          raf = requestAnimationFrame(loop);
+          renderer.render(scene, camera);
+        }
+        loop();
+      });
+
+      /* Resize */
+      function onResize() {
+        const nw = canvas.clientWidth  || window.innerWidth;
+        const nh = canvas.clientHeight || window.innerHeight;
+        camera.aspect = nw / nh;
+        camera.updateProjectionMatrix();
+        renderer.setSize(nw, nh);
+      }
+      window.addEventListener('resize', onResize);
+      return () => window.removeEventListener('resize', onResize);
+    }
+
+    let cleanup;
+    init().then(fn => { cleanup = fn; });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      if (cleanup) cleanup();
+    };
+  }, [active, canvasRef]);
+}
+
 export default function App() {
   const [screen, setScreen]     = useState('home');
   const [camMode, setCamMode]   = useState('environment');
   const [camError, setCamError] = useState('');
   const [showBuy, setShowBuy]   = useState(false);
   const videoRef  = useRef(null);
+  const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const buyTimer  = useRef(null);
 
   useModelViewer();
+  useThreeWatch(canvasRef, screen === 'scanner');
 
   const openScanner = () => {
     setCamError('');
@@ -47,7 +153,7 @@ export default function App() {
       buyTimer.current = setTimeout(() => { if (active) setShowBuy(true); }, 5000);
     }).catch(() => {
       if (active) {
-        setCamError('Câmera indisponível.');
+        setCamError('Camera unavailable.');
         setScreen('home');
       }
     });
@@ -103,6 +209,19 @@ export default function App() {
     <div className="scanner">
       <video ref={videoRef} autoPlay playsInline muted className="video-feed" />
 
+      {/* Three.js canvas — watch rendered with exact wg values */}
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: 4,
+          pointerEvents: 'none',
+        }}
+      />
+
       <div className="scan-line-overlay">
         <div className="scan-line-bar" />
       </div>
@@ -114,28 +233,14 @@ export default function App() {
         <div className="sc br" />
       </div>
 
-      <div className="watch-overlay">
-        <model-viewer
-          src="/relogio.glb"
-          camera-controls
-          auto-rotate
-          shadow-intensity="1"
-          exposure="1.1"
-          interaction-prompt="none"
-          orientation="0deg 0deg 90deg"
-          camera-orbit="0deg 75deg 0.18m"
-          min-camera-orbit="auto auto 0.12m"
-          max-camera-orbit="auto auto 0.28m"
-          field-of-view="28deg"
-          style={{ width: '100%', height: '100%', background: 'transparent' }}
-        />
-        {showBuy && (
+      {showBuy && (
+        <div className="watch-overlay" style={{ pointerEvents: 'all' }}>
           <div className="action-buttons">
             <button className="action-btn">Buy Now</button>
             <button className="action-btn">View Details</button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="hud-top">
         <button className="back-btn" onClick={closeScanner}>← Back</button>
