@@ -29,15 +29,15 @@ function useModelViewer() {
   }, []);
 }
 
-// ─── LERP para movimento suave ───────────────────────────────────────────────
-const LERP_FACTOR = 0.5;
+// ─── LERP RÁPIDO (0.85 para resposta instantânea) ────────────────────────────
+const LERP_FACTOR = 0.85;
 
 function lerp(prev, next, factor) {
   if (prev === null) return next;
   return prev + (next - prev) * factor;
 }
 
-// ─── Mapeamento de coordenadas do MediaPipe para tela ────────────────────────
+// ─── Mapeamento preciso do pulso para tela ───────────────────────────────────
 function mapWristToScreen(landmark, videoElement) {
   const videoWidth = videoElement.videoWidth || 1280;
   const videoHeight = videoElement.videoHeight || 720;
@@ -61,7 +61,8 @@ export default function App() {
   const [camMode, setCamMode] = useState('environment');
   const [camError, setCamError] = useState('');
   const [showBuy, setShowBuy] = useState(false);
-  const [watchPosition, setWatchPosition] = useState({ x: 0, y: 0, size: 140 });
+  const [tracking, setTracking] = useState(false);
+  const [watchPosition, setWatchPosition] = useState({ x: 0, y: 0, size: 150 });
   
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -78,33 +79,37 @@ export default function App() {
   const openScanner = () => {
     setCamError('');
     setShowBuy(false);
+    setTracking(false);
     smoothX.current = null;
     smoothY.current = null;
     setScreen('scanner');
   };
   
-  // ─── Callback do MediaPipe - Processa landmarks da mão ─────────────────────
+  // ─── Callback do MediaPipe ─────────────────────────────────────────────────
   const onHandsResults = useCallback((results) => {
     if (!activeRef.current || !videoRef.current) return;
     
     if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
+      setTracking(false);
       return;
     }
     
     const landmarks = results.multiHandLandmarks[0];
-    const wrist = landmarks[0];
+    const wrist = landmarks[0]; // Landmark 0 = pulso
     
     const screenPos = mapWristToScreen(wrist, videoRef.current);
     
     smoothX.current = lerp(smoothX.current, screenPos.x, LERP_FACTOR);
     smoothY.current = lerp(smoothY.current, screenPos.y, LERP_FACTOR);
     
+    setTracking(true);
+    
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
       setWatchPosition({
         x: smoothX.current,
         y: smoothY.current,
-        size: 140
+        size: 150
       });
     });
   }, []);
@@ -153,7 +158,7 @@ export default function App() {
         
         buyTimer.current = setTimeout(() => {
           if (activeRef.current) setShowBuy(true);
-        }, 5000);
+        }, 3000);
         
       } catch (err) {
         if (activeRef.current) {
@@ -182,14 +187,17 @@ export default function App() {
     setScreen('home');
   };
   
-  // ─── Tela HOME ──────────────────────────────────────────────────────────────
+  // ─── Tela HOME - COM LOGO.JPEG ─────────────────────────────────────────────
   if (screen === 'home') {
     return (
       <div className="home">
         <div className="home-background" style={{ backgroundImage: 'url("/logo.jpeg")' }} />
         <div className="home-content">
+          <h1 className="home-title">GHOST PROJECT AI</h1>
           <div className="home-tagline">
-            <p>Try Before You Buy</p>
+            <p>Experimente</p>
+            <p>antes de</p>
+            <p>comprar</p>
           </div>
           <div className="home-buttons">
             <div className="cam-selector">
@@ -197,13 +205,13 @@ export default function App() {
                 className={camMode === 'environment' ? 'cam-btn active' : 'cam-btn'}
                 onClick={() => setCamMode('environment')}
               >
-                📷 Câmera Traseira
+                Câmera Traseira
               </button>
               <button
                 className={camMode === 'user' ? 'cam-btn active' : 'cam-btn'}
                 onClick={() => setCamMode('user')}
               >
-                🤳 Câmera Frontal
+                Câmera Frontal
               </button>
             </div>
             {camError && <p className="cam-error">{camError}</p>}
@@ -216,7 +224,7 @@ export default function App() {
     );
   }
   
-  // ─── Tela SCANNER ───────────────────────────────────────────────────────────
+  // ─── Tela SCANNER - Layout Original ────────────────────────────────────────
   const watchStyle = {
     position: 'fixed',
     left: watchPosition.x,
@@ -225,7 +233,9 @@ export default function App() {
     height: watchPosition.size,
     transform: 'translate(-50%, -70%)',
     pointerEvents: 'none',
-    zIndex: 20
+    zIndex: 10,
+    opacity: tracking ? 1 : 0,
+    transition: 'opacity 0.2s ease'
   };
   
   return (
@@ -239,26 +249,25 @@ export default function App() {
         style={camMode === 'user' ? { transform: 'scaleX(-1)' } : {}}
       />
       
-      <div className="scan-line-overlay">
+      <div className="scan-overlay">
         <div className="scan-line-bar" />
+        <div className="scan-corners">
+          <div className="corner tl" />
+          <div className="corner tr" />
+          <div className="corner bl" />
+          <div className="corner br" />
+        </div>
       </div>
       
-      <div className="scan-corners">
-        <div className="sc tl" />
-        <div className="sc tr" />
-        <div className="sc bl" />
-        <div className="sc br" />
-      </div>
-      
-      <div className="watch-overlay" style={watchStyle}>
+      <div className="watch-container" style={watchStyle}>
         <model-viewer
           src="/relogio.glb"
           camera-controls
+          disable-zoom
           auto-rotate
           shadow-intensity="1"
           exposure="1.1"
           interaction-prompt="none"
-          orientation="0deg 0deg 90deg"
           camera-orbit="0deg 75deg 0.18m"
           min-camera-orbit="auto auto 0.12m"
           max-camera-orbit="auto auto 0.28m"
@@ -267,20 +276,27 @@ export default function App() {
         />
       </div>
       
-      {showBuy && (
-        <div className="action-buttons">
-          <button className="action-btn">Buy Now</button>
-          <button className="action-btn">View Details</button>
+      <div className="hud-top">
+        <button className="back-btn" onClick={closeScanner}>← Voltar</button>
+        <div className="ar-badge">
+          <span className={`ar-dot ${tracking ? 'active' : ''}`} />
+          AR ATIVO
+        </div>
+      </div>
+      
+      {!tracking && (
+        <div className="tracking-hint">
+          <p>APONTE PARA O SEU PULSO</p>
+          <p className="project-name">PROJETO FANTASMA 1A</p>
         </div>
       )}
       
-      <div className="hud-top">
-        <button className="back-btn" onClick={closeScanner}>← Back</button>
-        <div className="ar-badge">
-          <span className="ar-dot" />
-          AR ACTIVE
+      {showBuy && (
+        <div className="action-buttons">
+          <button className="action-btn primary">Comprar agora</button>
+          <button className="action-btn secondary">Ver detalhes</button>
         </div>
-      </div>
+      )}
     </div>
   );
 }
