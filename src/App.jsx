@@ -29,8 +29,8 @@ function useModelViewer() {
 }
 
 // ─── Exponential smoothing ────────────────────────────────────────────────────
-const ALPHA      = 0.30;   // position — responsive but stable
-const ALPHA_SIZE = 0.20;   // size — slightly slower to avoid pulsing
+const ALPHA      = 0.55;   // position — responsive but stable
+const ALPHA_SIZE = 0.45;   // size — slightly slower to avoid pulsing
 
 function smooth(prev, next, alpha) {
   if (prev === null) return next;
@@ -143,7 +143,7 @@ export default function App() {
 
     // Palm width in screen pixels → watch diameter (scale factor 1.8 feels natural)
     const palmPx  = palmSizePx(indexMCP, pinkyMCP, vid, mirrorX);
-    const rawSize = Math.max(80, Math.min(240, palmPx * 1.8));
+    const rawSize = Math.max(70, Math.min(170, palmPx * 1.3));
 
     // Exponential smoothing
     smoothX.current    = smooth(smoothX.current,    rawX,    ALPHA);
@@ -175,8 +175,8 @@ export default function App() {
         hands.setOptions({
           maxNumHands           : 1,
           modelComplexity       : 1,
-          minDetectionConfidence: 0.65,
-          minTrackingConfidence : 0.55,
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence : 0.5,
         });
         hands.onResults(onResults);
         handsRef.current = hands;
@@ -266,7 +266,7 @@ export default function App() {
     width     : `${watchPos.size}px`,
     height    : `${watchPos.size}px`,
     // center horizontally, shift up ~90% of height so watch sits ON the wrist
-    transform : 'translate(-50%, -90%)',
+    transform : 'translate(-50%, -75%)',
     transition: 'none',
     pointerEvents: 'none',
     zIndex    : 4,
