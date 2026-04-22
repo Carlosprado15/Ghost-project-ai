@@ -11,6 +11,7 @@ function loadScript(src, id) {
     document.head.appendChild(s);
   });
 }
+
 async function loadMediaPipe() {
   await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js', 'mp-cu');
   await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js', 'mp-du');
@@ -22,15 +23,16 @@ function useModelViewer() {
   useEffect(() => {
     if (document.querySelector('script[data-mv]')) return;
     const s = document.createElement('script');
-    s.type = 'module'; s.setAttribute('data-mv', '1');
+    s.type = 'module';
+    s.setAttribute('data-mv', '1');
     s.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js';
     document.head.appendChild(s);
   }, []);
 }
 
-// ─── HIGH-PERFORMANCE LERP SMOOTHING (replaces slow exponential) ─────────────
-const LERP_FACTOR_POS = 0.55;  // Position LERP - faster response
-const LERP_FACTOR_SIZE = 0.45; // Size LERP - slightly slower to avoid pulsing
+// ─── High-performance LERP smoothing ──────────────────────────────────────────
+const LERP_POS = 0.55;
+const LERP_SIZE = 0.45;
 
 function lerp(prev, next, factor) {
   if (prev === null) return next;
@@ -38,20 +40,19 @@ function lerp(prev, next, factor) {
 }
 
 // ─── MediaPipe landmark indices ───────────────────────────────────────────────
-const WRIST_IDX     = 0;
+const WRIST_IDX = 0;
 const INDEX_MCP_IDX = 5;
 const PINKY_MCP_IDX = 17;
 
-// ─── PRECISION COORDINATE MAPPING ─────────────────────────────────────────────
+// ─── Precision coordinate mapping ─────────────────────────────────────────────
 function landmarkToScreen(normX, normY, videoEl, mirrorX) {
-  const intrW = videoEl.videoWidth  || 1280;
+  const intrW = videoEl.videoWidth || 1280;
   const intrH = videoEl.videoHeight || 720;
   
   const rect = videoEl.getBoundingClientRect();
   const rendW = rect.width;
   const rendH = rect.height;
   
-  // Calculate cover scaling (maintains aspect ratio, crops excess)
   const scaleX = rendW / intrW;
   const scaleY = rendH / intrH;
   const scale = Math.max(scaleX, scaleY);
@@ -61,11 +62,9 @@ function landmarkToScreen(normX, normY, videoEl, mirrorX) {
   const offsetX = (rendW - displayW) / 2;
   const offsetY = (rendH - displayH) / 2;
   
-  // Map normalized coordinates to screen space
   let screenX = normX * displayW + offsetX + rect.left;
   const screenY = normY * displayH + offsetY + rect.top;
   
-  // Apply mirroring for front camera
   if (mirrorX) {
     screenX = rect.right - (normX * displayW + offsetX);
   }
@@ -79,40 +78,39 @@ function palmSizePx(lmA, lmB, videoEl, mirrorX) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function App() {
-  const [screen,   setScreen]   = useState('home');
-  const [camMode,  setCamMode]  = useState('environment');
+  const [screen, setScreen] = useState('home');
+  const [camMode, setCamMode] = useState('environment');
   const [camError, setCamError] = useState('');
-  const [showBuy,  setShowBuy]  = useState(false);
+  const [showBuy, setShowBuy] = useState(false);
   const [tracking, setTracking] = useState(false);
-  
   const [watchPos, setWatchPos] = useState({ x: 0, y: 0, size: 150 });
   
-  const videoRef    = useRef(null);
-  const streamRef   = useRef(null);
-  const handsRef    = useRef(null);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const handsRef = useRef(null);
   const mpCameraRef = useRef(null);
-  const buyTimer    = useRef(null);
-  const smoothX     = useRef(null);
-  const smoothY     = useRef(null);
-  const smoothSize  = useRef(null);
-  const activeRef   = useRef(false);
-  const rafId       = useRef(null);  // For smooth animation frame updates
+  const buyTimer = useRef(null);
+  const smoothX = useRef(null);
+  const smoothY = useRef(null);
+  const smoothSize = useRef(null);
+  const activeRef = useRef(false);
+  const rafId = useRef(null);
   
   useModelViewer();
   
   const openScanner = () => {
-    setCamError(''); 
+    setCamError('');
     setShowBuy(false);
-    smoothX.current = null; 
-    smoothY.current = null; 
+    smoothX.current = null;
+    smoothY.current = null;
     smoothSize.current = null;
     setTracking(false);
     setScreen('scanner');
   };
   
-  // ── OPTIMIZED RESULTS CALLBACK with LERP smoothing ────────────────────────
+  // ─── MediaPipe results callback ─────────────────────────────────────────────
   const onResults = useCallback((results) => {
     if (!activeRef.current) return;
     const vid = videoRef.current;
@@ -124,39 +122,33 @@ export default function App() {
     }
     
     const landmarks = results.multiHandLandmarks[0];
-    const wrist    = landmarks[WRIST_IDX];
+    const wrist = landmarks[WRIST_IDX];
     const indexMCP = landmarks[INDEX_MCP_IDX];
     const pinkyMCP = landmarks[PINKY_MCP_IDX];
     
     const mirrorX = camMode === 'user';
     
-    // Precise wrist center coordinate
     const { x: rawX, y: rawY } = landmarkToScreen(wrist.x, wrist.y, vid, mirrorX);
-    
-    // Calculate palm width for realistic watch scaling
     const palmPx = palmSizePx(indexMCP, pinkyMCP, vid, mirrorX);
-    // Luxury watch proportion: 1.4x palm width feels premium and realistic
-    const rawSize = Math.max(90, Math.min(180, palmPx * 1.4));
+    const rawSize = Math.max(100, Math.min(180, palmPx * 1.35));
     
-    // High-performance LERP smoothing
-    smoothX.current    = lerp(smoothX.current,    rawX,    LERP_FACTOR_POS);
-    smoothY.current    = lerp(smoothY.current,    rawY,    LERP_FACTOR_POS);
-    smoothSize.current = lerp(smoothSize.current, rawSize, LERP_FACTOR_SIZE);
+    smoothX.current = lerp(smoothX.current, rawX, LERP_POS);
+    smoothY.current = lerp(smoothY.current, rawY, LERP_POS);
+    smoothSize.current = lerp(smoothSize.current, rawSize, LERP_SIZE);
     
     setTracking(true);
     
-    // Use requestAnimationFrame for buttery-smooth updates
     if (rafId.current) cancelAnimationFrame(rafId.current);
     rafId.current = requestAnimationFrame(() => {
       setWatchPos({
-        x:    smoothX.current,
-        y:    smoothY.current,
+        x: smoothX.current,
+        y: smoothY.current,
         size: smoothSize.current,
       });
     });
   }, [camMode]);
   
-  // ── Camera + MediaPipe startup ────────────────────────────────────────────
+  // ─── Camera + MediaPipe startup ─────────────────────────────────────────────
   useEffect(() => {
     if (screen !== 'scanner') return;
     activeRef.current = true;
@@ -171,10 +163,10 @@ export default function App() {
           locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`,
         });
         hands.setOptions({
-          maxNumHands           : 1,
-          modelComplexity       : 1,
+          maxNumHands: 1,
+          modelComplexity: 1,
           minDetectionConfidence: 0.5,
-          minTrackingConfidence : 0.5,
+          minTrackingConfidence: 0.5,
         });
         hands.onResults(onResults);
         handsRef.current = hands;
@@ -187,7 +179,7 @@ export default function App() {
             }
           },
           facingMode: camMode,
-          width : 1280,
+          width: 1280,
           height: 720,
         });
         await mpCam.start();
@@ -213,9 +205,9 @@ export default function App() {
       activeRef.current = false;
       clearTimeout(buyTimer.current);
       if (rafId.current) cancelAnimationFrame(rafId.current);
-      mpCameraRef.current?.stop();   
+      mpCameraRef.current?.stop();
       mpCameraRef.current = null;
-      handsRef.current?.close();     
+      handsRef.current?.close();
       handsRef.current = null;
       streamRef.current?.getTracks().forEach(t => t.stop());
       streamRef.current = null;
@@ -227,49 +219,59 @@ export default function App() {
     activeRef.current = false;
     clearTimeout(buyTimer.current);
     if (rafId.current) cancelAnimationFrame(rafId.current);
-    setShowBuy(false); 
+    setShowBuy(false);
     setTracking(false);
     setScreen('home');
   };
   
-  // ── HOME screen ───────────────────────────────────────────────────────────
+  // ─── HOME Screen - Luxury Splash ────────────────────────────────────────────
   if (screen === 'home') {
     return (
       <div className="home">
-        <div className="home-tagline"><p>Try Before You Buy</p></div>
-        <div className="home-buttons">
-          <div className="cam-selector">
-            <button
-              className={camMode === 'environment' ? 'cam-btn active' : 'cam-btn'}
-              onClick={() => setCamMode('environment')}
-            >📷 Câmera Traseira</button>
-            <button
-              className={camMode === 'user' ? 'cam-btn active' : 'cam-btn'}
-              onClick={() => setCamMode('user')}
-            >🤳 Câmera Frontal</button>
+        <div className="home-overlay" />
+        <div className="home-content">
+          <div className="luxury-logo">GHOST</div>
+          <div className="home-tagline">
+            <p>Try Before You Buy</p>
           </div>
-          {camError && <p className="cam-error">{camError}</p>}
-          <button className="scan-btn" onClick={openScanner}>
-            INICIAR LEITOR DE RA
-          </button>
+          <div className="home-buttons">
+            <div className="cam-selector">
+              <button
+                className={camMode === 'environment' ? 'cam-btn active' : 'cam-btn'}
+                onClick={() => setCamMode('environment')}
+              >
+                📷 Rear Camera
+              </button>
+              <button
+                className={camMode === 'user' ? 'cam-btn active' : 'cam-btn'}
+                onClick={() => setCamMode('user')}
+              >
+                🤳 Front Camera
+              </button>
+            </div>
+            {camError && <p className="cam-error">{camError}</p>}
+            <button className="scan-btn" onClick={openScanner}>
+              INITIATE AR SCANNER
+            </button>
+          </div>
         </div>
       </div>
     );
   }
   
-  // ── SCANNER screen with ZERO GHOSTING ─────────────────────────────────────
-  const watchDynamicStyle = {
+  // ─── SCANNER Screen - Full AR Experience ────────────────────────────────────
+  const watchStyle = {
     position: 'fixed',
     left: `${watchPos.x}px`,
     top: `${watchPos.y}px`,
     width: `${watchPos.size}px`,
     height: `${watchPos.size}px`,
-    transform: 'translate(-50%, -90%)', // Center on wrist precisely
+    transform: 'translate(-50%, -85%)',
     transition: 'none',
     pointerEvents: 'none',
-    zIndex: 4,
-    opacity: tracking ? 1 : 0,  // ZERO GHOSTING - hidden until hand detected
-    willChange: 'left, top, width, height, opacity', // Performance optimization
+    zIndex: 10,
+    opacity: tracking ? 1 : 0,
+    willChange: 'left, top, width, height, opacity',
   };
   
   return (
@@ -283,23 +285,28 @@ export default function App() {
         style={camMode === 'user' ? { transform: 'scaleX(-1)' } : {}}
       />
       
-      <div className="scan-line-overlay">
-        <div className="scan-line-bar" />
+      {/* Luxury AR UI Overlays */}
+      <div className="scan-overlay">
+        <div className="scan-line-overlay">
+          <div className="scan-line-bar" />
+        </div>
+        
+        <div className="scan-corners">
+          <div className="sc tl" />
+          <div className="sc tr" />
+          <div className="sc bl" />
+          <div className="sc br" />
+        </div>
       </div>
       
-      <div className="scan-corners">
-        <div className="sc tl" /><div className="sc tr" />
-        <div className="sc bl" /><div className="sc br" />
-      </div>
-      
-      {/* Watch with zero ghosting - opacity 0 until tracking */}
-      <div style={watchDynamicStyle}>
+      {/* 3D Watch - Tracks wrist precisely */}
+      <div style={watchStyle}>
         <model-viewer
           src="/relogio.glb"
           camera-controls
           auto-rotate
           shadow-intensity="1"
-          exposure="1.1"
+          exposure="1.2"
           interaction-prompt="none"
           orientation="0deg 0deg 0deg"
           camera-orbit="0deg 75deg 0.18m"
@@ -310,26 +317,26 @@ export default function App() {
         />
       </div>
       
-      {/* HUD top - Luxury aesthetic preserved */}
+      {/* HUD Top */}
       <div className="hud-top">
-        <button className="back-btn" onClick={closeScanner}>← Voltar</button>
+        <button className="back-btn" onClick={closeScanner}>← Back</button>
         <div className="ar-badge">
           <span className={`ar-dot${tracking ? ' ar-dot--tracking' : ''}`} />
-          {tracking ? 'PULSO DETECTADO' : 'AR ATIVO'}
+          {tracking ? 'WRIST DETECTED' : 'AR ACTIVE'}
         </div>
       </div>
       
-      {/* Bottom UI - Silent luxury */}
+      {/* Bottom UI - Elegant Action Buttons */}
       <div className="bottom-ui">
         {!tracking && (
           <div className="tracking-hint">
-            Mostre seu pulso para a câmera
+            Show your wrist to the camera
           </div>
         )}
         {showBuy && (
           <div className="action-buttons-row">
-            <button className="action-btn">Comprar agora</button>
-            <button className="action-btn">Ver detalhes</button>
+            <button className="action-btn primary">Buy Now</button>
+            <button className="action-btn secondary">View Details</button>
           </div>
         )}
       </div>
