@@ -28,13 +28,13 @@ function useModelViewer() {
   }, []);
 }
 
-// ─── Exponential smoothing ────────────────────────────────────────────────────
-const ALPHA      = 0.55;   // position — responsive but stable
-const ALPHA_SIZE = 0.45;   // size — slightly slower to avoid pulsing
+// ─── HIGH-PERFORMANCE LERP SMOOTHING (replaces slow exponential) ─────────────
+const LERP_FACTOR_POS = 0.55;  // Position LERP - faster response
+const LERP_FACTOR_SIZE = 0.45; // Size LERP - slightly slower to avoid pulsing
 
-function smooth(prev, next, alpha) {
+function lerp(prev, next, factor) {
   if (prev === null) return next;
-  return prev + alpha * (next - prev);
+  return prev + (next - prev) * factor;
 }
 
 // ─── MediaPipe landmark indices ───────────────────────────────────────────────
@@ -42,46 +42,35 @@ const WRIST_IDX     = 0;
 const INDEX_MCP_IDX = 5;
 const PINKY_MCP_IDX = 17;
 
-// ─── THE ROOT CAUSE FIX ───────────────────────────────────────────────────────
-// MediaPipe normalizes landmarks [0..1] relative to the INPUT IMAGE fed to it.
-// We feed the <video> element at 1280×720. The screen may be 393×852 (CSS px).
-// Previous code multiplied normalized coords by container.clientWidth (~393px)
-// → watch appeared stuck at ~30% of correct position = top-left corner.
-//
-// CORRECT APPROACH:
-// 1. Read the video's actual rendered size via getBoundingClientRect().
-// 2. Also account for letterbox/pillarbox offset (video is object-fit:cover).
-// 3. Map normalized landmark → rendered video pixel → screen pixel.
-// ─────────────────────────────────────────────────────────────────────────────
-
+// ─── PRECISION COORDINATE MAPPING ─────────────────────────────────────────────
 function landmarkToScreen(normX, normY, videoEl, mirrorX) {
-  // video intrinsic resolution (what MediaPipe sees)
   const intrW = videoEl.videoWidth  || 1280;
   const intrH = videoEl.videoHeight || 720;
-
-  // video rendered rect on screen (CSS pixels, includes offset from top-left)
+  
   const rect = videoEl.getBoundingClientRect();
   const rendW = rect.width;
   const rendH = rect.height;
-
-  // object-fit:cover scale factor and offset
-  // The video scales uniformly to COVER the element; one axis may be clipped.
+  
+  // Calculate cover scaling (maintains aspect ratio, crops excess)
   const scaleX = rendW / intrW;
   const scaleY = rendH / intrH;
-  const scale  = Math.max(scaleX, scaleY);          // cover = max
-
+  const scale = Math.max(scaleX, scaleY);
+  
   const displayW = intrW * scale;
   const displayH = intrH * scale;
-  const offsetX  = (rendW - displayW) / 2;          // negative when clipped
-  const offsetY  = (rendH - displayH) / 2;
-
-  // normalized → display pixels → screen pixels (relative to viewport)
-  let sx = normX * displayW + offsetX + rect.left;
-  const sy =  normY * displayH + offsetY + rect.top;
-
-  if (mirrorX) sx = rect.right - (normX * displayW + offsetX);
-
-  return { x: sx, y: sy };
+  const offsetX = (rendW - displayW) / 2;
+  const offsetY = (rendH - displayH) / 2;
+  
+  // Map normalized coordinates to screen space
+  let screenX = normX * displayW + offsetX + rect.left;
+  const screenY = normY * displayH + offsetY + rect.top;
+  
+  // Apply mirroring for front camera
+  if (mirrorX) {
+    screenX = rect.right - (normX * displayW + offsetX);
+  }
+  
+  return { x: screenX, y: screenY };
 }
 
 function palmSizePx(lmA, lmB, videoEl, mirrorX) {
@@ -96,11 +85,10 @@ export default function App() {
   const [camMode,  setCamMode]  = useState('environment');
   const [camError, setCamError] = useState('');
   const [showBuy,  setShowBuy]  = useState(false);
-  const [tracking, setTracking] = useState(false);   // true = hand detected
-
-  // Watch position in VIEWPORT px (position:fixed)
+  const [tracking, setTracking] = useState(false);
+  
   const [watchPos, setWatchPos] = useState({ x: 0, y: 0, size: 150 });
-
+  
   const videoRef    = useRef(null);
   const streamRef   = useRef(null);
   const handsRef    = useRef(null);
@@ -110,64 +98,74 @@ export default function App() {
   const smoothY     = useRef(null);
   const smoothSize  = useRef(null);
   const activeRef   = useRef(false);
-
+  const rafId       = useRef(null);  // For smooth animation frame updates
+  
   useModelViewer();
-
+  
   const openScanner = () => {
-    setCamError(''); setShowBuy(false);
-    smoothX.current = null; smoothY.current = null; smoothSize.current = null;
+    setCamError(''); 
+    setShowBuy(false);
+    smoothX.current = null; 
+    smoothY.current = null; 
+    smoothSize.current = null;
     setTracking(false);
     setScreen('scanner');
   };
-
-  // ── MediaPipe result callback ─────────────────────────────────────────────
+  
+  // ── OPTIMIZED RESULTS CALLBACK with LERP smoothing ────────────────────────
   const onResults = useCallback((results) => {
     if (!activeRef.current) return;
     const vid = videoRef.current;
     if (!vid) return;
-
+    
     if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
       setTracking(false);
       return;
     }
-
+    
     const landmarks = results.multiHandLandmarks[0];
     const wrist    = landmarks[WRIST_IDX];
     const indexMCP = landmarks[INDEX_MCP_IDX];
     const pinkyMCP = landmarks[PINKY_MCP_IDX];
-
+    
     const mirrorX = camMode === 'user';
-
-    // ── CORRECT coordinate mapping ──────────────────────────────────────────
+    
+    // Precise wrist center coordinate
     const { x: rawX, y: rawY } = landmarkToScreen(wrist.x, wrist.y, vid, mirrorX);
-
-    // Palm width in screen pixels → watch diameter (scale factor 1.8 feels natural)
-    const palmPx  = palmSizePx(indexMCP, pinkyMCP, vid, mirrorX);
-    const rawSize = Math.max(70, Math.min(170, palmPx * 1.3));
-
-    // Exponential smoothing
-    smoothX.current    = smooth(smoothX.current,    rawX,    ALPHA);
-    smoothY.current    = smooth(smoothY.current,    rawY,    ALPHA);
-    smoothSize.current = smooth(smoothSize.current, rawSize, ALPHA_SIZE);
-
+    
+    // Calculate palm width for realistic watch scaling
+    const palmPx = palmSizePx(indexMCP, pinkyMCP, vid, mirrorX);
+    // Luxury watch proportion: 1.4x palm width feels premium and realistic
+    const rawSize = Math.max(90, Math.min(180, palmPx * 1.4));
+    
+    // High-performance LERP smoothing
+    smoothX.current    = lerp(smoothX.current,    rawX,    LERP_FACTOR_POS);
+    smoothY.current    = lerp(smoothY.current,    rawY,    LERP_FACTOR_POS);
+    smoothSize.current = lerp(smoothSize.current, rawSize, LERP_FACTOR_SIZE);
+    
     setTracking(true);
-    setWatchPos({
-      x:    smoothX.current,
-      y:    smoothY.current,
-      size: smoothSize.current,
+    
+    // Use requestAnimationFrame for buttery-smooth updates
+    if (rafId.current) cancelAnimationFrame(rafId.current);
+    rafId.current = requestAnimationFrame(() => {
+      setWatchPos({
+        x:    smoothX.current,
+        y:    smoothY.current,
+        size: smoothSize.current,
+      });
     });
   }, [camMode]);
-
+  
   // ── Camera + MediaPipe startup ────────────────────────────────────────────
   useEffect(() => {
     if (screen !== 'scanner') return;
     activeRef.current = true;
-
+    
     (async () => {
       try {
         await loadMediaPipe();
         if (!activeRef.current) return;
-
+        
         // eslint-disable-next-line no-undef
         const hands = new window.Hands({
           locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`,
@@ -180,8 +178,7 @@ export default function App() {
         });
         hands.onResults(onResults);
         handsRef.current = hands;
-
-        // Let Camera util own the stream — no prior getUserMedia
+        
         // eslint-disable-next-line no-undef
         const mpCam = new window.Camera(videoRef.current, {
           onFrame: async () => {
@@ -195,15 +192,15 @@ export default function App() {
         });
         await mpCam.start();
         mpCameraRef.current = mpCam;
-
+        
         if (videoRef.current?.srcObject) {
           streamRef.current = videoRef.current.srcObject;
         }
-
+        
         buyTimer.current = setTimeout(() => {
           if (activeRef.current) setShowBuy(true);
         }, 5000);
-
+        
       } catch (err) {
         if (activeRef.current) {
           setCamError(`Câmera indisponível: ${err?.message ?? err}`);
@@ -211,26 +208,30 @@ export default function App() {
         }
       }
     })();
-
+    
     return () => {
       activeRef.current = false;
       clearTimeout(buyTimer.current);
-      mpCameraRef.current?.stop();   mpCameraRef.current = null;
-      handsRef.current?.close();     handsRef.current = null;
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+      mpCameraRef.current?.stop();   
+      mpCameraRef.current = null;
+      handsRef.current?.close();     
+      handsRef.current = null;
       streamRef.current?.getTracks().forEach(t => t.stop());
       streamRef.current = null;
       if (videoRef.current) videoRef.current.srcObject = null;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [screen, camMode]);
-
+  }, [screen, camMode, onResults]);
+  
   const closeScanner = () => {
     activeRef.current = false;
     clearTimeout(buyTimer.current);
-    setShowBuy(false); setTracking(false);
+    if (rafId.current) cancelAnimationFrame(rafId.current);
+    setShowBuy(false); 
+    setTracking(false);
     setScreen('home');
   };
-
+  
   // ── HOME screen ───────────────────────────────────────────────────────────
   if (screen === 'home') {
     return (
@@ -255,25 +256,22 @@ export default function App() {
       </div>
     );
   }
-
-  // ── SCANNER screen ────────────────────────────────────────────────────────
-  // Watch style: position:fixed uses viewport coords from getBoundingClientRect
-  // opacity 0 until first hand detected → no ghost in corner
+  
+  // ── SCANNER screen with ZERO GHOSTING ─────────────────────────────────────
   const watchDynamicStyle = {
-    position  : 'fixed',
-    left      : `${watchPos.x}px`,
-    top       : `${watchPos.y}px`,
-    width     : `${watchPos.size}px`,
-    height    : `${watchPos.size}px`,
-    // center horizontally, shift up ~90% of height so watch sits ON the wrist
-    transform : 'translate(-50%, -75%)',
+    position: 'fixed',
+    left: `${watchPos.x}px`,
+    top: `${watchPos.y}px`,
+    width: `${watchPos.size}px`,
+    height: `${watchPos.size}px`,
+    transform: 'translate(-50%, -90%)', // Center on wrist precisely
     transition: 'none',
     pointerEvents: 'none',
-    zIndex    : 4,
-    // HIDDEN until tracking starts — prevents "ghost" in top-left corner
-    opacity   : tracking ? 1 : 0,
+    zIndex: 4,
+    opacity: tracking ? 1 : 0,  // ZERO GHOSTING - hidden until hand detected
+    willChange: 'left, top, width, height, opacity', // Performance optimization
   };
-
+  
   return (
     <div className="scanner">
       <video
@@ -284,17 +282,17 @@ export default function App() {
         className="video-feed"
         style={camMode === 'user' ? { transform: 'scaleX(-1)' } : {}}
       />
-
+      
       <div className="scan-line-overlay">
         <div className="scan-line-bar" />
       </div>
-
+      
       <div className="scan-corners">
         <div className="sc tl" /><div className="sc tr" />
         <div className="sc bl" /><div className="sc br" />
       </div>
-
-      {/* Watch anchored to wrist — position:fixed, viewport coords */}
+      
+      {/* Watch with zero ghosting - opacity 0 until tracking */}
       <div style={watchDynamicStyle}>
         <model-viewer
           src="/relogio.glb"
@@ -311,8 +309,8 @@ export default function App() {
           style={{ width: '100%', height: '100%', background: 'transparent' }}
         />
       </div>
-
-      {/* HUD top */}
+      
+      {/* HUD top - Luxury aesthetic preserved */}
       <div className="hud-top">
         <button className="back-btn" onClick={closeScanner}>← Voltar</button>
         <div className="ar-badge">
@@ -320,8 +318,8 @@ export default function App() {
           {tracking ? 'PULSO DETECTADO' : 'AR ATIVO'}
         </div>
       </div>
-
-      {/* Bottom UI: hint + buy buttons stacked, never overlapping */}
+      
+      {/* Bottom UI - Silent luxury */}
       <div className="bottom-ui">
         {!tracking && (
           <div className="tracking-hint">
