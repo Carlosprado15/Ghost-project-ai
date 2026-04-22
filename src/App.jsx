@@ -1,7 +1,8 @@
+// App.jsx - COMPLETE FILE
 import { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css';
 
-// ─── MediaPipe CDN loader ─────────────────────────────────────────────────────
+// ─── Script Loaders ──────────────────────────────────────────────────────────
 function loadScript(src, id) {
   return new Promise((resolve, reject) => {
     if (document.getElementById(id)) { resolve(); return; }
@@ -18,7 +19,6 @@ async function loadMediaPipe() {
   await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js', 'mp-h');
 }
 
-// ─── model-viewer loader ──────────────────────────────────────────────────────
 function useModelViewer() {
   useEffect(() => {
     if (document.querySelector('script[data-mv]')) return;
@@ -30,7 +30,7 @@ function useModelViewer() {
   }, []);
 }
 
-// ─── High-performance LERP smoothing ──────────────────────────────────────────
+// ─── LERP Smoothing ──────────────────────────────────────────────────────────
 const LERP_POS = 0.55;
 const LERP_SIZE = 0.45;
 
@@ -39,12 +39,12 @@ function lerp(prev, next, factor) {
   return prev + (next - prev) * factor;
 }
 
-// ─── MediaPipe landmark indices ───────────────────────────────────────────────
+// ─── Landmark Indices ────────────────────────────────────────────────────────
 const WRIST_IDX = 0;
 const INDEX_MCP_IDX = 5;
 const PINKY_MCP_IDX = 17;
 
-// ─── Precision coordinate mapping ─────────────────────────────────────────────
+// ─── Coordinate Mapping ──────────────────────────────────────────────────────
 function landmarkToScreen(normX, normY, videoEl, mirrorX) {
   const intrW = videoEl.videoWidth || 1280;
   const intrH = videoEl.videoHeight || 720;
@@ -78,7 +78,7 @@ function palmSizePx(lmA, lmB, videoEl, mirrorX) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── Main Component ──────────────────────────────────────────────────────────
 export default function App() {
   const [screen, setScreen] = useState('home');
   const [camMode, setCamMode] = useState('environment');
@@ -110,7 +110,7 @@ export default function App() {
     setScreen('scanner');
   };
   
-  // ─── MediaPipe results callback ─────────────────────────────────────────────
+  // ─── MediaPipe Results Callback ────────────────────────────────────────────
   const onResults = useCallback((results) => {
     if (!activeRef.current) return;
     const vid = videoRef.current;
@@ -148,7 +148,7 @@ export default function App() {
     });
   }, [camMode]);
   
-  // ─── Camera + MediaPipe startup ─────────────────────────────────────────────
+  // ─── Camera + MediaPipe Startup ────────────────────────────────────────────
   useEffect(() => {
     if (screen !== 'scanner') return;
     activeRef.current = true;
@@ -195,7 +195,7 @@ export default function App() {
         
       } catch (err) {
         if (activeRef.current) {
-          setCamError(`Câmera indisponível: ${err?.message ?? err}`);
+          setCamError('Câmera indisponível.');
           setScreen('home');
         }
       }
@@ -224,42 +224,38 @@ export default function App() {
     setScreen('home');
   };
   
-  // ─── HOME Screen - Luxury Splash ────────────────────────────────────────────
+  // ─── HOME Screen ───────────────────────────────────────────────────────────
   if (screen === 'home') {
     return (
       <div className="home">
-        <div className="home-overlay" />
-        <div className="home-content">
-          <div className="luxury-logo">GHOST</div>
-          <div className="home-tagline">
-            <p>Try Before You Buy</p>
-          </div>
-          <div className="home-buttons">
-            <div className="cam-selector">
-              <button
-                className={camMode === 'environment' ? 'cam-btn active' : 'cam-btn'}
-                onClick={() => setCamMode('environment')}
-              >
-                📷 Rear Camera
-              </button>
-              <button
-                className={camMode === 'user' ? 'cam-btn active' : 'cam-btn'}
-                onClick={() => setCamMode('user')}
-              >
-                🤳 Front Camera
-              </button>
-            </div>
-            {camError && <p className="cam-error">{camError}</p>}
-            <button className="scan-btn" onClick={openScanner}>
-              INITIATE AR SCANNER
+        <div className="home-tagline">
+          <p>Try Before You Buy</p>
+        </div>
+        <div className="home-buttons">
+          <div className="cam-selector">
+            <button
+              className={camMode === 'environment' ? 'cam-btn active' : 'cam-btn'}
+              onClick={() => setCamMode('environment')}
+            >
+              📷 Câmera Traseira
+            </button>
+            <button
+              className={camMode === 'user' ? 'cam-btn active' : 'cam-btn'}
+              onClick={() => setCamMode('user')}
+            >
+              🤳 Câmera Frontal
             </button>
           </div>
+          {camError && <p className="cam-error">{camError}</p>}
+          <button className="scan-btn" onClick={openScanner}>
+            INICIAR LEITOR DE RA
+          </button>
         </div>
       </div>
     );
   }
   
-  // ─── SCANNER Screen - Full AR Experience ────────────────────────────────────
+  // ─── SCANNER Screen ────────────────────────────────────────────────────────
   const watchStyle = {
     position: 'fixed',
     left: `${watchPos.x}px`,
@@ -271,7 +267,6 @@ export default function App() {
     pointerEvents: 'none',
     zIndex: 10,
     opacity: tracking ? 1 : 0,
-    willChange: 'left, top, width, height, opacity',
   };
   
   return (
@@ -285,30 +280,26 @@ export default function App() {
         style={camMode === 'user' ? { transform: 'scaleX(-1)' } : {}}
       />
       
-      {/* Luxury AR UI Overlays */}
-      <div className="scan-overlay">
-        <div className="scan-line-overlay">
-          <div className="scan-line-bar" />
-        </div>
-        
-        <div className="scan-corners">
-          <div className="sc tl" />
-          <div className="sc tr" />
-          <div className="sc bl" />
-          <div className="sc br" />
-        </div>
+      <div className="scan-line-overlay">
+        <div className="scan-line-bar" />
       </div>
       
-      {/* 3D Watch - Tracks wrist precisely */}
+      <div className="scan-corners">
+        <div className="sc tl" />
+        <div className="sc tr" />
+        <div className="sc bl" />
+        <div className="sc br" />
+      </div>
+      
       <div style={watchStyle}>
         <model-viewer
           src="/relogio.glb"
           camera-controls
           auto-rotate
           shadow-intensity="1"
-          exposure="1.2"
+          exposure="1.1"
           interaction-prompt="none"
-          orientation="0deg 0deg 0deg"
+          orientation="0deg 0deg 90deg"
           camera-orbit="0deg 75deg 0.18m"
           min-camera-orbit="auto auto 0.12m"
           max-camera-orbit="auto auto 0.28m"
@@ -317,28 +308,19 @@ export default function App() {
         />
       </div>
       
-      {/* HUD Top */}
+      {showBuy && (
+        <div className="action-buttons">
+          <button className="action-btn">Buy Now</button>
+          <button className="action-btn">View Details</button>
+        </div>
+      )}
+      
       <div className="hud-top">
         <button className="back-btn" onClick={closeScanner}>← Back</button>
         <div className="ar-badge">
           <span className={`ar-dot${tracking ? ' ar-dot--tracking' : ''}`} />
-          {tracking ? 'WRIST DETECTED' : 'AR ACTIVE'}
+          {tracking ? 'PULSO DETECTADO' : 'AR ATIVO'}
         </div>
-      </div>
-      
-      {/* Bottom UI - Elegant Action Buttons */}
-      <div className="bottom-ui">
-        {!tracking && (
-          <div className="tracking-hint">
-            Show your wrist to the camera
-          </div>
-        )}
-        {showBuy && (
-          <div className="action-buttons-row">
-            <button className="action-btn primary">Buy Now</button>
-            <button className="action-btn secondary">View Details</button>
-          </div>
-        )}
       </div>
     </div>
   );
