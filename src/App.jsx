@@ -39,17 +39,16 @@ function useModelViewer() {
 }
 
 // ─── Exponential smoothing ───────────────────────────────────────────────────
-// α ∈ (0,1]: closer to 1 = more reactive, closer to 0 = smoother
-const ALPHA      = 0.18;   // position smoothing
-const ALPHA_SIZE = 0.12;   // size smoothing
+// FIX 3: increased ALPHA 0.18 → 0.28 for faster wrist tracking on mobile
+const ALPHA      = 0.28;
+const ALPHA_SIZE = 0.18;
 
 function smooth(prev, next, alpha) {
   if (prev === null) return next;
   return prev + alpha * (next - prev);
 }
 
-// ─── Wrist landmark index in MediaPipe Hands ─────────────────────────────────
-// 0 = WRIST, 5 = INDEX_FINGER_MCP  → used to estimate wrist width / watch size
+// ─── MediaPipe landmark indices ───────────────────────────────────────────────
 const WRIST_IDX     = 0;
 const INDEX_MCP_IDX = 5;
 const PINKY_MCP_IDX = 17;
@@ -60,31 +59,28 @@ export default function App() {
   const [camMode,  setCamMode]  = useState('environment');
   const [camError, setCamError] = useState('');
   const [showBuy,  setShowBuy]  = useState(false);
-  const [tracking, setTracking] = useState(false); // true when hand found
+  const [tracking, setTracking] = useState(false);
 
-  // Watch overlay position state (in px / px)
   const [watchStyle, setWatchStyle] = useState({
     left: '50%', top: '50%',
-    width: '180px', height: '180px',
+    width: '140px', height: '140px',
     transform: 'translate(-50%, -50%)',
     transition: 'none',
   });
 
-  const videoRef      = useRef(null);
-  const canvasRef     = useRef(null); // hidden canvas fed to MediaPipe
-  const streamRef     = useRef(null);
-  const handsRef      = useRef(null);
-  const mpCameraRef   = useRef(null);
-  const buyTimer      = useRef(null);
-  const smoothX       = useRef(null);
-  const smoothY       = useRef(null);
-  const smoothSize    = useRef(null);
-  const containerRef  = useRef(null);
-  const activeRef     = useRef(false); // gate to avoid state updates after unmount
+  const videoRef     = useRef(null);
+  const streamRef    = useRef(null);
+  const handsRef     = useRef(null);
+  const mpCameraRef  = useRef(null);
+  const buyTimer     = useRef(null);
+  const smoothX      = useRef(null);
+  const smoothY      = useRef(null);
+  const smoothSize   = useRef(null);
+  const containerRef = useRef(null);
+  const activeRef    = useRef(false);
 
   useModelViewer();
 
-  // ── Open scanner ──────────────────────────────────────────────────────────
   const openScanner = () => {
     setCamError(''); setShowBuy(false);
     smoothX.current = null; smoothY.current = null; smoothSize.current = null;
@@ -94,7 +90,6 @@ export default function App() {
   // ── MediaPipe result callback ──────────────────────────────────────────────
   const onResults = useCallback((results) => {
     if (!activeRef.current) return;
-
     const container = containerRef.current;
     if (!container) return;
 
@@ -108,108 +103,96 @@ export default function App() {
 
     setTracking(true);
 
-    // Use the first detected hand
     const landmarks = results.multiHandLandmarks[0];
-    const wrist     = landmarks[WRIST_IDX];
-    const indexMCP  = landmarks[INDEX_MCP_IDX];
-    const pinkyMCP  = landmarks[PINKY_MCP_IDX];
+    const wrist    = landmarks[WRIST_IDX];
+    const indexMCP = landmarks[INDEX_MCP_IDX];
+    const pinkyMCP = landmarks[PINKY_MCP_IDX];
 
-    // MediaPipe gives normalized [0,1] coords; mirror X for front camera
     const mirrorX = camMode === 'user';
-
     const rawX = (mirrorX ? 1 - wrist.x : wrist.x) * cw;
     const rawY = wrist.y * ch;
 
-    // Size: distance between index-MCP and pinky-MCP (palm width) → watch size
+    // FIX 3: tighter multiplier 2.6 → 2.0, max size 300 → 200px
     const palmWidthNorm = Math.hypot(
       (mirrorX ? -(indexMCP.x - pinkyMCP.x) : (indexMCP.x - pinkyMCP.x)),
       indexMCP.y - pinkyMCP.y
     );
-    const rawSize = Math.max(60, Math.min(300, palmWidthNorm * cw * 2.6));
+    const rawSize = Math.max(60, Math.min(200, palmWidthNorm * cw * 2.0));
 
-    // Exponential smoothing
-    smoothX.current    = smooth(smoothX.current,    rawX,     ALPHA);
-    smoothY.current    = smooth(smoothY.current,    rawY,     ALPHA);
-    smoothSize.current = smooth(smoothSize.current, rawSize,  ALPHA_SIZE);
+    smoothX.current    = smooth(smoothX.current,    rawX,    ALPHA);
+    smoothY.current    = smooth(smoothY.current,    rawY,    ALPHA);
+    smoothSize.current = smooth(smoothSize.current, rawSize, ALPHA_SIZE);
 
     const sx = smoothX.current;
     const sy = smoothY.current;
     const sz = smoothSize.current;
 
     setWatchStyle({
-      position : 'absolute',
-      left     : `${sx}px`,
-      top      : `${sy}px`,
-      width    : `${sz}px`,
-      height   : `${sz}px`,
-      transform: 'translate(-50%, -60%)',  // offset so watch sits on wrist
-      transition: 'none',
+      position     : 'absolute',
+      left         : `${sx}px`,
+      top          : `${sy}px`,
+      width        : `${sz}px`,
+      height       : `${sz}px`,
+      // FIX 3: -80% vertical offset so watch sits above the wrist joint
+      transform    : 'translate(-50%, -80%)',
+      transition   : 'none',
       pointerEvents: 'none',
     });
   }, [camMode]);
 
-  // ── Start camera + MediaPipe when screen === 'scanner' ────────────────────
+  // ── FIX 1: Let MediaPipe Camera util own the stream entirely ──────────────
+  // Do NOT call getUserMedia separately before this.
+  // Passing constraints directly to Camera() prevents NotReadableError on Android.
   useEffect(() => {
     if (screen !== 'scanner') return;
     activeRef.current = true;
-    let mpCam = null;
 
     (async () => {
       try {
-        // 1. Get camera stream
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: camMode, width: { ideal: 1280 }, height: { ideal: 720 } },
-          audio: false,
-        });
-        if (!activeRef.current) { stream.getTracks().forEach(t => t.stop()); return; }
-
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play().catch(() => {});
-        }
-
-        // 2. Load MediaPipe scripts
         await loadMediaPipe();
         if (!activeRef.current) return;
 
-        // 3. Create Hands instance
         // eslint-disable-next-line no-undef
         const hands = new window.Hands({
           locateFile: (file) =>
             `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
         });
         hands.setOptions({
-          maxNumHands      : 1,
-          modelComplexity  : 1,
-          minDetectionConfidence: 0.7,
-          minTrackingConfidence : 0.6,
+          maxNumHands          : 1,
+          modelComplexity      : 1,
+          minDetectionConfidence: 0.65,
+          minTrackingConfidence : 0.55,
         });
         hands.onResults(onResults);
         handsRef.current = hands;
 
-        // 4. Use MediaPipe Camera util to feed frames
+        // FIX 1: Camera util acquires stream itself — no prior getUserMedia
         // eslint-disable-next-line no-undef
-        mpCam = new window.Camera(videoRef.current, {
+        const mpCam = new window.Camera(videoRef.current, {
           onFrame: async () => {
             if (handsRef.current && videoRef.current) {
               await handsRef.current.send({ image: videoRef.current });
             }
           },
+          facingMode: camMode,
           width : 1280,
           height: 720,
         });
-        mpCam.start();
+        await mpCam.start();
         mpCameraRef.current = mpCam;
 
-        // 5. Buy button timer
+        // Keep stream ref for cleanup
+        if (videoRef.current && videoRef.current.srcObject) {
+          streamRef.current = videoRef.current.srcObject;
+        }
+
         buyTimer.current = setTimeout(() => {
           if (activeRef.current) setShowBuy(true);
         }, 5000);
 
-      } catch {
+      } catch (err) {
         if (activeRef.current) {
-          setCamError('Câmera indisponível.');
+          setCamError(`Câmera indisponível: ${err && err.message ? err.message : err}`);
           setScreen('home');
         }
       }
@@ -244,7 +227,7 @@ export default function App() {
     setScreen('home');
   };
 
-  // ── HOME screen ────────────────────────────────────────────────────────────
+  // ── HOME screen — UNCHANGED ────────────────────────────────────────────────
   if (screen === 'home') {
     return (
       <div className="home">
@@ -278,7 +261,6 @@ export default function App() {
   // ── SCANNER screen ─────────────────────────────────────────────────────────
   return (
     <div className="scanner" ref={containerRef}>
-      {/* Live camera feed */}
       <video
         ref={videoRef}
         autoPlay
@@ -288,18 +270,16 @@ export default function App() {
         style={camMode === 'user' ? { transform: 'scaleX(-1)' } : {}}
       />
 
-      {/* Scanning animation overlay */}
       <div className="scan-line-overlay">
         <div className="scan-line-bar" />
       </div>
 
-      {/* Corner brackets */}
       <div className="scan-corners">
         <div className="sc tl" /><div className="sc tr" />
         <div className="sc bl" /><div className="sc br" />
       </div>
 
-      {/* ── Watch overlay — anchored to wrist via MediaPipe ── */}
+      {/* Watch — FIX 2: orientation corrected to 0deg, FIX 3: size/position via watchStyle */}
       <div className="watch-overlay" style={watchStyle}>
         <model-viewer
           src="/relogio.glb"
@@ -308,34 +288,34 @@ export default function App() {
           shadow-intensity="1"
           exposure="1.1"
           interaction-prompt="none"
-          orientation="0deg 0deg 90deg"
+          orientation="0deg 0deg 0deg"
           camera-orbit="0deg 75deg 0.18m"
           min-camera-orbit="auto auto 0.12m"
           max-camera-orbit="auto auto 0.28m"
           field-of-view="28deg"
           style={{ width: '100%', height: '100%', background: 'transparent' }}
         />
-        {showBuy && (
-          <div className="action-buttons">
-            <button className="action-btn">Buy Now</button>
-            <button className="action-btn">View Details</button>
-          </div>
-        )}
       </div>
 
-      {/* HUD — top bar */}
+      {/* FIX 4: buttons at bottom of screen, outside watch-overlay */}
+      {showBuy && (
+        <div className="action-buttons-fixed">
+          <button className="action-btn">Comprar agora</button>
+          <button className="action-btn">Ver detalhes</button>
+        </div>
+      )}
+
       <div className="hud-top">
-        <button className="back-btn" onClick={closeScanner}>← Back</button>
+        <button className="back-btn" onClick={closeScanner}>← Voltar</button>
         <div className="ar-badge">
           <span className={`ar-dot${tracking ? ' ar-dot--tracking' : ''}`} />
-          {tracking ? 'WRIST LOCKED' : 'AR ACTIVE'}
+          {tracking ? 'PULSO DETECTADO' : 'AR ATIVO'}
         </div>
       </div>
 
-      {/* Tracking hint */}
       {!tracking && (
         <div className="tracking-hint">
-          Show your wrist to the camera
+          Mostre seu pulso para a câmera
         </div>
       )}
     </div>
