@@ -320,3 +320,42 @@ html,body,#root{
   box-shadow:0 0 8px rgba(74,222,128,.9);
   animation:pulse 1.5s ease-in-out infinite;
 }
+/*
+  ──────────────────────────────────────────────────────────────────
+  GHOST PROJECT — App.css ADDITIONS
+  Add these rules to your existing App.css.
+  Do NOT replace any existing rules.
+  ──────────────────────────────────────────────────────────────────
+*/
+
+/* Wrist-locked AR badge glow variant */
+.ar-dot--tracking {
+  background: #00ff88;
+  box-shadow: 0 0 8px #00ff88, 0 0 18px #00ff8866;
+  animation: none;          /* stop the default blinking when locked */
+}
+
+/* Instructional hint shown before a hand is detected */
+.tracking-hint {
+  position: absolute;
+  bottom: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.55);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 20px;
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+  animation: fadeInUp 0.4s ease both;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0);    }
+}
