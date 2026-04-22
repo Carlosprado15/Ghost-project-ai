@@ -1,143 +1,149 @@
-import { useEffect, useRef, useState } from "react";
+import { useState, useRef, useEffect } from 'react';
+import './App.css';
 
-/* (todo o CSS permanece exatamente igual ao seu original) */
-
-const CSS = `/* MANTIDO IGUAL — não alterei nada aqui */`;
-
-/* Logo, Splash, Home, ARLoading — TODOS permanecem iguais */
-/* NÃO alterei nenhum deles */
-
-/* ═══════════════════════════════════════════════════════ */
-/* ÚNICA ALTERAÇÃO REAL ESTÁ AQUI ↓ */
-/* ═══════════════════════════════════════════════════════ */
-
-function ARView({ cam, onBack }) {
-  const canvasRef = useRef(null);
-  const [loading, setLoading] = useState(true);
-  const [pct, setPct] = useState(0);
-  const [badge, setBadge] = useState(false);
-  const [error, setError] = useState("");
-  const R = useRef({});
-
+function useModelViewer() {
   useEffect(() => {
-    let raf, stream;
-    const refs = R.current;
-
-    async function init() {
-      try {
-        await new Promise((res) => {
-          if (window.THREE) return res();
-          const s = document.createElement("script");
-          s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-          s.onload = res;
-          document.head.appendChild(s);
-        });
-
-        const T = window.THREE;
-
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: cam },
-          audio: false,
-        });
-
-        const vid = document.createElement("video");
-        vid.srcObject = stream;
-        await vid.play();
-
-        const renderer = new T.WebGLRenderer({
-          canvas: canvasRef.current,
-          alpha: true,
-        });
-
-        renderer.setSize(window.innerWidth, window.innerHeight);
-
-        const scene = new T.Scene();
-        const cam3 = new T.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.01, 100);
-        cam3.position.z = 2.6;
-
-        const wg = new T.Group();
-        scene.add(wg);
-
-        /* ================================================= */
-        /* 🔥 CORREÇÃO REAL — POSICIONAMENTO CORRETO */
-        /* ================================================= */
-
-        wg.scale.setScalar(0.01);
-
-        // ANTES: wg.position.set(0, -0.08, 0);
-        wg.position.set(0, 0.12, 0);
-
-        /* ================================================= */
-
-        const t0 = Date.now();
-
-        function loop() {
-          raf = requestAnimationFrame(loop);
-
-          const t = (Date.now() - t0) / 1000;
-
-          const sc = t < 1.3
-            ? 1 - Math.pow(1 - Math.min(1, t / 1.3), 3)
-            : 1;
-
-          wg.scale.setScalar(sc);
-
-          wg.rotation.y = Math.sin(t * 0.16) * 0.38;
-          wg.rotation.x = -0.18 + Math.sin(t * 0.11) * 0.07;
-
-          /* 🔥 CORREÇÃO FINAL DO BUG */
-          wg.position.y = 0.12 + Math.sin(t * 0.85) * 0.035;
-
-          renderer.render(scene, cam3);
-        }
-
-        loop();
-
-        setTimeout(() => {
-          setLoading(false);
-          setBadge(true);
-        }, 500);
-
-      } catch (err) {
-        setError("Erro na câmera");
-        setLoading(false);
-      }
-    }
-
-    init();
-
-    return () => {
-      cancelAnimationFrame(raf);
-      if (stream) stream.getTracks().forEach((t) => t.stop());
-    };
-  }, [cam]);
-
-  return (
-    <div style={{ position: "fixed", inset: 0 }}>
-      <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
-
-      {loading && <div style={{ color: "white", position: "absolute", top: 20 }}>Carregando...</div>}
-
-      <button onClick={onBack} style={{ position: "absolute", top: 20, left: 20 }}>
-        Voltar
-      </button>
-    </div>
-  );
+    if (document.querySelector('script[data-mv]')) return;
+    const s = document.createElement('script');
+    s.type = 'module';
+    s.setAttribute('data-mv', '1');
+    s.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js';
+    document.head.appendChild(s);
+  }, []);
 }
 
-/* ROOT — NÃO ALTERADO */
-
 export default function App() {
-  const [screen, setScreen] = useState("splash");
-  const [cam, setCam] = useState("environment");
+  const [screen, setScreen]     = useState('home');
+  const [camMode, setCamMode]   = useState('environment');
+  const [camError, setCamError] = useState('');
+  const [showBuy, setShowBuy]   = useState(false);
+  const videoRef  = useRef(null);
+  const streamRef = useRef(null);
+  const buyTimer  = useRef(null);
+
+  useModelViewer();
+
+  const openScanner = () => {
+    setCamError('');
+    setShowBuy(false);
+    setScreen('scanner');
+  };
+
+  useEffect(() => {
+    if (screen !== 'scanner') return;
+
+    let active = true;
+
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: camMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false,
+    }).then(stream => {
+      if (!active) { stream.getTracks().forEach(t => t.stop()); return; }
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play().catch(() => {});
+      }
+      buyTimer.current = setTimeout(() => { if (active) setShowBuy(true); }, 5000);
+    }).catch(() => {
+      if (active) {
+        setCamError('Câmera indisponível.');
+        setScreen('home');
+      }
+    });
+
+    return () => {
+      active = false;
+      clearTimeout(buyTimer.current);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
+      }
+      if (videoRef.current) videoRef.current.srcObject = null;
+    };
+  }, [screen, camMode]);
+
+  const closeScanner = () => {
+    clearTimeout(buyTimer.current);
+    setShowBuy(false);
+    setScreen('home');
+  };
+
+  if (screen === 'home') {
+    return (
+      <div className="home">
+        <div className="home-tagline">
+          <p>Try Before You Buy</p>
+        </div>
+        <div className="home-buttons">
+          <div className="cam-selector">
+            <button
+              className={camMode === 'environment' ? 'cam-btn active' : 'cam-btn'}
+              onClick={() => setCamMode('environment')}
+            >
+              📷 Câmera Traseira
+            </button>
+            <button
+              className={camMode === 'user' ? 'cam-btn active' : 'cam-btn'}
+              onClick={() => setCamMode('user')}
+            >
+              🤳 Câmera Frontal
+            </button>
+          </div>
+          {camError && <p className="cam-error">{camError}</p>}
+          <button className="scan-btn" onClick={openScanner}>
+            INICIAR LEITOR DE RA
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <style>{CSS}</style>
+    <div className="scanner">
+      <video ref={videoRef} autoPlay playsInline muted className="video-feed" />
 
-      {screen === "splash" && <div onClick={() => setScreen("home")} />}
-      {screen === "home" && <div onClick={() => setScreen("ar")} />}
-      {screen === "ar" && <ARView cam={cam} onBack={() => setScreen("home")} />}
-    </>
+      <div className="scan-line-overlay">
+        <div className="scan-line-bar" />
+      </div>
+
+      <div className="scan-corners">
+        <div className="sc tl" />
+        <div className="sc tr" />
+        <div className="sc bl" />
+        <div className="sc br" />
+      </div>
+
+      <div className="watch-overlay">
+        <model-viewer
+          src="/relogio.glb"
+          camera-controls
+          auto-rotate
+          shadow-intensity="1"
+          exposure="1.1"
+          interaction-prompt="none"
+          orientation="0deg 0deg 90deg"
+          camera-orbit="0deg 75deg 0.18m"
+          min-camera-orbit="auto auto 0.12m"
+          max-camera-orbit="auto auto 0.28m"
+          field-of-view="28deg"
+          style={{ width: '100%', height: '100%', background: 'transparent' }}
+        />
+        {showBuy && (
+          <div className="action-buttons">
+            <button className="action-btn">Buy Now</button>
+            <button className="action-btn">View Details</button>
+          </div>
+        )}
+      </div>
+
+      <div className="hud-top">
+        <button className="back-btn" onClick={closeScanner}>← Back</button>
+        <div className="ar-badge">
+          <span className="ar-dot" />
+          AR ACTIVE
+        </div>
+      </div>
+    </div>
   );
 }
