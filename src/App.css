@@ -1,3 +1,4 @@
+/* App.css - COMPLETE FILE */
 * {
   margin: 0;
   padding: 0;
@@ -13,7 +14,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ─── HOME Screen - Luxury Splash ────────────────────────────────────────── */
+/* ─── HOME Screen ────────────────────────────────────────────────────────── */
 .home {
   position: fixed;
   top: 0;
@@ -22,52 +23,30 @@ body {
   height: 100vh;
   background: #0a0a0a;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 100;
-}
-
-.home-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
-  opacity: 0.95;
-}
-
-.home-content {
-  position: relative;
-  z-index: 101;
-  text-align: center;
-  max-width: 400px;
-  width: 90%;
-  padding: 40px 20px;
-}
-
-.luxury-logo {
-  font-size: 64px;
-  font-weight: 300;
-  letter-spacing: 12px;
-  margin-bottom: 20px;
-  background: linear-gradient(135deg, #fff 0%, #c0c0c0 50%, #e0e0e0 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-transform: uppercase;
 }
 
 .home-tagline {
   margin-bottom: 60px;
+  text-align: center;
 }
 
 .home-tagline p {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 300;
-  letter-spacing: 4px;
-  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 6px;
+  color: rgba(255, 255, 255, 0.8);
   text-transform: uppercase;
+}
+
+.home-buttons {
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
 }
 
 .cam-selector {
@@ -79,8 +58,8 @@ body {
 
 .cam-btn {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: rgba(255, 255, 255, 0.8);
   padding: 12px 20px;
   font-size: 14px;
   font-weight: 400;
@@ -94,14 +73,14 @@ body {
 }
 
 .cam-btn.active {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
-  color: #fff;
+  background: rgba(255, 215, 0, 0.15);
+  border-color: rgba(255, 215, 0, 0.6);
+  color: #ffd700;
 }
 
 .cam-btn:hover {
-  border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 215, 0, 0.5);
+  background: rgba(255, 215, 0, 0.05);
 }
 
 .cam-error {
@@ -114,8 +93,8 @@ body {
 .scan-btn {
   width: 100%;
   background: transparent;
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
-  color: #fff;
+  border: 1.5px solid rgba(255, 215, 0, 0.5);
+  color: #ffd700;
   padding: 18px 24px;
   font-size: 15px;
   font-weight: 400;
@@ -130,12 +109,12 @@ body {
 }
 
 .scan-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 215, 0, 0.1);
+  border-color: #ffd700;
   letter-spacing: 6px;
 }
 
-/* ─── SCANNER Screen - Full AR ──────────────────────────────────────────── */
+/* ─── SCANNER Screen ─────────────────────────────────────────────────────── */
 .scanner {
   position: fixed;
   top: 0;
@@ -154,21 +133,9 @@ body {
   height: 100%;
   object-fit: cover;
   z-index: 1;
-  transform: translateZ(0);
-  backface-visibility: hidden;
 }
 
-/* Luxury AR Overlay Elements */
-.scan-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 2;
-  pointer-events: none;
-}
-
+/* AR Overlay Elements */
 .scan-line-overlay {
   position: absolute;
   top: 0;
@@ -178,12 +145,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .scan-line-bar {
   width: 280px;
   height: 280px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.15);
   border-radius: 40px;
   position: relative;
   overflow: hidden;
@@ -197,7 +166,7 @@ body {
   left: 0;
   width: 100%;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.4), transparent);
   animation: scanAnimation 3s ease-in-out infinite;
 }
 
@@ -215,6 +184,7 @@ body {
   transform: translate(-50%, -50%);
   width: 280px;
   height: 280px;
+  z-index: 2;
   pointer-events: none;
 }
 
@@ -222,7 +192,7 @@ body {
   position: absolute;
   width: 24px;
   height: 24px;
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 215, 0, 0.5);
   border-style: solid;
 }
 
@@ -230,6 +200,43 @@ body {
 .sc.tr { top: 0; right: 0; border-width: 2px 2px 0 0; border-radius: 0 8px 0 0; }
 .sc.bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; border-radius: 0 0 0 8px; }
 .sc.br { bottom: 0; right: 0; border-width: 0 2px 2px 0; border-radius: 0 0 8px 0; }
+
+/* Action Buttons - Fixed to bottom */
+.action-buttons {
+  position: absolute;
+  bottom: 40px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  z-index: 5;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 16px 24px;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 2px;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: #ffd700;
+}
+
+.action-btn:hover {
+  background: rgba(255, 215, 0, 0.15);
+  border-color: #ffd700;
+  transform: scale(1.02);
+}
 
 /* HUD Top */
 .hud-top {
@@ -246,8 +253,8 @@ body {
 }
 
 .back-btn {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 215, 0, 0.2);
   color: #fff;
   padding: 10px 20px;
   font-size: 15px;
@@ -263,16 +270,17 @@ body {
 }
 
 .back-btn:hover {
-  background: rgba(0, 0, 0, 0.5);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.6);
+  border-color: rgba(255, 215, 0, 0.4);
+  color: #ffd700;
 }
 
 .ar-badge {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 215, 0, 0.2);
   padding: 10px 18px;
   border-radius: 30px;
   backdrop-filter: blur(20px);
@@ -294,8 +302,8 @@ body {
 }
 
 .ar-dot--tracking {
-  background: #4ade80;
-  box-shadow: 0 0 20px rgba(74, 222, 128, 0.6);
+  background: #ffd700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
   animation: pulseDot 2s ease-in-out infinite;
 }
 
@@ -304,106 +312,30 @@ body {
   50% { opacity: 0.7; transform: scale(1.2); }
 }
 
-/* Bottom UI - Elegant */
-.bottom-ui {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 30px 20px 40px;
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  pointer-events: none;
-}
-
-.tracking-hint {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 15px;
-  font-weight: 300;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 12px 24px;
-  border-radius: 40px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.action-buttons-row {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  width: 100%;
-  max-width: 400px;
-  pointer-events: auto;
-}
-
-.action-btn {
-  flex: 1;
-  padding: 16px 24px;
-  font-size: 15px;
-  font-weight: 400;
-  letter-spacing: 2px;
-  border-radius: 40px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.action-btn.primary {
-  background: rgba(255, 255, 255, 0.95);
-  color: #000;
-  border: none;
-  font-weight: 500;
-}
-
-.action-btn.primary:hover {
-  background: #fff;
-  transform: scale(1.02);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-}
-
-.action-btn.secondary {
-  background: rgba(0, 0, 0, 0.4);
-  color: #fff;
-}
-
-.action-btn.secondary:hover {
-  background: rgba(0, 0, 0, 0.6);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-/* 3D Watch Container - Zero ghosting */
+/* 3D Watch Container - Prevents clipping */
 model-viewer {
   --poster-color: transparent;
   --progress-bar-color: transparent;
   width: 100%;
   height: 100%;
-  transform: translateZ(0);
-  backface-visibility: hidden;
+  overflow: visible !important;
 }
 
-/* Performance optimizations */
-.scanner,
-.video-feed,
-model-viewer {
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-  will-change: transform;
+/* Prevent clipping of 3D model */
+.scanner > div[style*="position: fixed"] {
+  overflow: visible !important;
+  contain: none !important;
 }
 
-/* Mobile optimizations */
+model-viewer::part(canvas) {
+  overflow: visible !important;
+}
+
+/* Mobile Optimizations */
 @media (max-width: 480px) {
-  .luxury-logo {
-    font-size: 48px;
-    letter-spacing: 8px;
+  .home-tagline p {
+    font-size: 14px;
+    letter-spacing: 4px;
   }
   
   .scan-btn {
@@ -412,12 +344,20 @@ model-viewer {
     letter-spacing: 3px;
   }
   
-  .action-buttons-row {
+  .action-buttons {
     flex-direction: column;
     gap: 12px;
+    left: 16px;
+    right: 16px;
   }
   
   .action-btn {
     padding: 14px 20px;
+  }
+  
+  .scan-line-bar,
+  .scan-corners {
+    width: 240px;
+    height: 240px;
   }
 }
