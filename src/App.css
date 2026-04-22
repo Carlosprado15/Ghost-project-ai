@@ -359,3 +359,51 @@ html,body,#root{
   from { opacity: 0; transform: translateX(-50%) translateY(10px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0);    }
 }
+/*
+  ══════════════════════════════════════════════════════════
+  GHOST PROJECT — App.css ADDITIONS (paste at end of file)
+  Only 3 new rules. Do NOT change anything else.
+  ══════════════════════════════════════════════════════════
+*/
+
+/* FIX 4: Buy/Details buttons pinned to bottom of screen */
+.action-buttons-fixed {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  z-index: 20;
+  pointer-events: all;
+  animation: fadeIn .5s ease both;
+}
+
+/* FIX 1 visual feedback: green dot when wrist is locked */
+.ar-dot--tracking {
+  background: #00ff88;
+  box-shadow: 0 0 8px #00ff88, 0 0 18px #00ff8866;
+  animation: none;
+}
+
+/* Instructional hint before hand detected */
+.tracking-hint {
+  position: absolute;
+  bottom: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.55);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 20px;
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+  z-index: 20;
+  white-space: nowrap;
+}
