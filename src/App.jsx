@@ -1,4 +1,3 @@
-// App.jsx - COMPLETE FILE
 import { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css';
 
@@ -30,73 +29,49 @@ function useModelViewer() {
   }, []);
 }
 
-// ─── LERP Smoothing ──────────────────────────────────────────────────────────
-const LERP_POS = 0.55;
-const LERP_SIZE = 0.45;
+// ─── LERP para movimento suave ───────────────────────────────────────────────
+const LERP_FACTOR = 0.5;
 
 function lerp(prev, next, factor) {
   if (prev === null) return next;
   return prev + (next - prev) * factor;
 }
 
-// ─── Landmark Indices ────────────────────────────────────────────────────────
-const WRIST_IDX = 0;
-const INDEX_MCP_IDX = 5;
-const PINKY_MCP_IDX = 17;
-
-// ─── Coordinate Mapping ──────────────────────────────────────────────────────
-function landmarkToScreen(normX, normY, videoEl, mirrorX) {
-  const intrW = videoEl.videoWidth || 1280;
-  const intrH = videoEl.videoHeight || 720;
+// ─── Mapeamento de coordenadas do MediaPipe para tela ────────────────────────
+function mapWristToScreen(landmark, videoElement) {
+  const videoWidth = videoElement.videoWidth || 1280;
+  const videoHeight = videoElement.videoHeight || 720;
+  const rect = videoElement.getBoundingClientRect();
   
-  const rect = videoEl.getBoundingClientRect();
-  const rendW = rect.width;
-  const rendH = rect.height;
+  const scale = Math.max(rect.width / videoWidth, rect.height / videoHeight);
+  const displayWidth = videoWidth * scale;
+  const displayHeight = videoHeight * scale;
+  const offsetX = (rect.width - displayWidth) / 2;
+  const offsetY = (rect.height - displayHeight) / 2;
   
-  const scaleX = rendW / intrW;
-  const scaleY = rendH / intrH;
-  const scale = Math.max(scaleX, scaleY);
-  
-  const displayW = intrW * scale;
-  const displayH = intrH * scale;
-  const offsetX = (rendW - displayW) / 2;
-  const offsetY = (rendH - displayH) / 2;
-  
-  let screenX = normX * displayW + offsetX + rect.left;
-  const screenY = normY * displayH + offsetY + rect.top;
-  
-  if (mirrorX) {
-    screenX = rect.right - (normX * displayW + offsetX);
-  }
+  const screenX = landmark.x * displayWidth + offsetX + rect.left;
+  const screenY = landmark.y * displayHeight + offsetY + rect.top;
   
   return { x: screenX, y: screenY };
 }
 
-function palmSizePx(lmA, lmB, videoEl, mirrorX) {
-  const a = landmarkToScreen(lmA.x, lmA.y, videoEl, mirrorX);
-  const b = landmarkToScreen(lmB.x, lmB.y, videoEl, mirrorX);
-  return Math.hypot(a.x - b.x, a.y - b.y);
-}
-
-// ─── Main Component ──────────────────────────────────────────────────────────
+// ─── Componente Principal ─────────────────────────────────────────────────────
 export default function App() {
   const [screen, setScreen] = useState('home');
   const [camMode, setCamMode] = useState('environment');
   const [camError, setCamError] = useState('');
   const [showBuy, setShowBuy] = useState(false);
-  const [tracking, setTracking] = useState(false);
-  const [watchPos, setWatchPos] = useState({ x: 0, y: 0, size: 150 });
+  const [watchPosition, setWatchPosition] = useState({ x: 0, y: 0, size: 140 });
   
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const handsRef = useRef(null);
-  const mpCameraRef = useRef(null);
+  const cameraRef = useRef(null);
   const buyTimer = useRef(null);
+  const activeRef = useRef(false);
   const smoothX = useRef(null);
   const smoothY = useRef(null);
-  const smoothSize = useRef(null);
-  const activeRef = useRef(false);
-  const rafId = useRef(null);
+  const rafRef = useRef(null);
   
   useModelViewer();
   
@@ -105,50 +80,36 @@ export default function App() {
     setShowBuy(false);
     smoothX.current = null;
     smoothY.current = null;
-    smoothSize.current = null;
-    setTracking(false);
     setScreen('scanner');
   };
   
-  // ─── MediaPipe Results Callback ────────────────────────────────────────────
-  const onResults = useCallback((results) => {
-    if (!activeRef.current) return;
-    const vid = videoRef.current;
-    if (!vid) return;
+  // ─── Callback do MediaPipe - Processa landmarks da mão ─────────────────────
+  const onHandsResults = useCallback((results) => {
+    if (!activeRef.current || !videoRef.current) return;
     
     if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
-      setTracking(false);
       return;
     }
     
     const landmarks = results.multiHandLandmarks[0];
-    const wrist = landmarks[WRIST_IDX];
-    const indexMCP = landmarks[INDEX_MCP_IDX];
-    const pinkyMCP = landmarks[PINKY_MCP_IDX];
+    const wrist = landmarks[0];
     
-    const mirrorX = camMode === 'user';
+    const screenPos = mapWristToScreen(wrist, videoRef.current);
     
-    const { x: rawX, y: rawY } = landmarkToScreen(wrist.x, wrist.y, vid, mirrorX);
-    const palmPx = palmSizePx(indexMCP, pinkyMCP, vid, mirrorX);
-    const rawSize = Math.max(100, Math.min(180, palmPx * 1.35));
+    smoothX.current = lerp(smoothX.current, screenPos.x, LERP_FACTOR);
+    smoothY.current = lerp(smoothY.current, screenPos.y, LERP_FACTOR);
     
-    smoothX.current = lerp(smoothX.current, rawX, LERP_POS);
-    smoothY.current = lerp(smoothY.current, rawY, LERP_POS);
-    smoothSize.current = lerp(smoothSize.current, rawSize, LERP_SIZE);
-    
-    setTracking(true);
-    
-    if (rafId.current) cancelAnimationFrame(rafId.current);
-    rafId.current = requestAnimationFrame(() => {
-      setWatchPos({
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      setWatchPosition({
         x: smoothX.current,
         y: smoothY.current,
-        size: smoothSize.current,
+        size: 140
       });
     });
-  }, [camMode]);
+  }, []);
   
-  // ─── Camera + MediaPipe Startup ────────────────────────────────────────────
+  // ─── Inicialização da Câmera e MediaPipe ───────────────────────────────────
   useEffect(() => {
     if (screen !== 'scanner') return;
     activeRef.current = true;
@@ -158,21 +119,21 @@ export default function App() {
         await loadMediaPipe();
         if (!activeRef.current) return;
         
-        // eslint-disable-next-line no-undef
         const hands = new window.Hands({
-          locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`,
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
         });
+        
         hands.setOptions({
           maxNumHands: 1,
           modelComplexity: 1,
           minDetectionConfidence: 0.5,
-          minTrackingConfidence: 0.5,
+          minTrackingConfidence: 0.5
         });
-        hands.onResults(onResults);
+        
+        hands.onResults(onHandsResults);
         handsRef.current = hands;
         
-        // eslint-disable-next-line no-undef
-        const mpCam = new window.Camera(videoRef.current, {
+        const camera = new window.Camera(videoRef.current, {
           onFrame: async () => {
             if (handsRef.current && videoRef.current) {
               await handsRef.current.send({ image: videoRef.current });
@@ -180,10 +141,11 @@ export default function App() {
           },
           facingMode: camMode,
           width: 1280,
-          height: 720,
+          height: 720
         });
-        await mpCam.start();
-        mpCameraRef.current = mpCam;
+        
+        await camera.start();
+        cameraRef.current = camera;
         
         if (videoRef.current?.srcObject) {
           streamRef.current = videoRef.current.srcObject;
@@ -204,69 +166,66 @@ export default function App() {
     return () => {
       activeRef.current = false;
       clearTimeout(buyTimer.current);
-      if (rafId.current) cancelAnimationFrame(rafId.current);
-      mpCameraRef.current?.stop();
-      mpCameraRef.current = null;
-      handsRef.current?.close();
-      handsRef.current = null;
-      streamRef.current?.getTracks().forEach(t => t.stop());
-      streamRef.current = null;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (cameraRef.current) cameraRef.current.stop();
+      if (handsRef.current) handsRef.current.close();
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+      }
       if (videoRef.current) videoRef.current.srcObject = null;
     };
-  }, [screen, camMode, onResults]);
+  }, [screen, camMode, onHandsResults]);
   
   const closeScanner = () => {
-    activeRef.current = false;
     clearTimeout(buyTimer.current);
-    if (rafId.current) cancelAnimationFrame(rafId.current);
     setShowBuy(false);
-    setTracking(false);
     setScreen('home');
   };
   
-  // ─── HOME Screen ───────────────────────────────────────────────────────────
+  // ─── Tela HOME ──────────────────────────────────────────────────────────────
   if (screen === 'home') {
     return (
       <div className="home">
-        <div className="home-tagline">
-          <p>Try Before You Buy</p>
-        </div>
-        <div className="home-buttons">
-          <div className="cam-selector">
-            <button
-              className={camMode === 'environment' ? 'cam-btn active' : 'cam-btn'}
-              onClick={() => setCamMode('environment')}
-            >
-              📷 Câmera Traseira
-            </button>
-            <button
-              className={camMode === 'user' ? 'cam-btn active' : 'cam-btn'}
-              onClick={() => setCamMode('user')}
-            >
-              🤳 Câmera Frontal
+        <div className="home-background" style={{ backgroundImage: 'url("/logo.jpeg")' }} />
+        <div className="home-content">
+          <div className="home-tagline">
+            <p>Try Before You Buy</p>
+          </div>
+          <div className="home-buttons">
+            <div className="cam-selector">
+              <button
+                className={camMode === 'environment' ? 'cam-btn active' : 'cam-btn'}
+                onClick={() => setCamMode('environment')}
+              >
+                📷 Câmera Traseira
+              </button>
+              <button
+                className={camMode === 'user' ? 'cam-btn active' : 'cam-btn'}
+                onClick={() => setCamMode('user')}
+              >
+                🤳 Câmera Frontal
+              </button>
+            </div>
+            {camError && <p className="cam-error">{camError}</p>}
+            <button className="scan-btn" onClick={openScanner}>
+              INICIAR LEITOR DE RA
             </button>
           </div>
-          {camError && <p className="cam-error">{camError}</p>}
-          <button className="scan-btn" onClick={openScanner}>
-            INICIAR LEITOR DE RA
-          </button>
         </div>
       </div>
     );
   }
   
-  // ─── SCANNER Screen ────────────────────────────────────────────────────────
+  // ─── Tela SCANNER ───────────────────────────────────────────────────────────
   const watchStyle = {
     position: 'fixed',
-    left: `${watchPos.x}px`,
-    top: `${watchPos.y}px`,
-    width: `${watchPos.size}px`,
-    height: `${watchPos.size}px`,
-    transform: 'translate(-50%, -85%)',
-    transition: 'none',
+    left: watchPosition.x,
+    top: watchPosition.y,
+    width: watchPosition.size,
+    height: watchPosition.size,
+    transform: 'translate(-50%, -70%)',
     pointerEvents: 'none',
-    zIndex: 10,
-    opacity: tracking ? 1 : 0,
+    zIndex: 20
   };
   
   return (
@@ -291,7 +250,7 @@ export default function App() {
         <div className="sc br" />
       </div>
       
-      <div style={watchStyle}>
+      <div className="watch-overlay" style={watchStyle}>
         <model-viewer
           src="/relogio.glb"
           camera-controls
@@ -318,8 +277,8 @@ export default function App() {
       <div className="hud-top">
         <button className="back-btn" onClick={closeScanner}>← Back</button>
         <div className="ar-badge">
-          <span className={`ar-dot${tracking ? ' ar-dot--tracking' : ''}`} />
-          {tracking ? 'PULSO DETECTADO' : 'AR ATIVO'}
+          <span className="ar-dot" />
+          AR ACTIVE
         </div>
       </div>
     </div>
