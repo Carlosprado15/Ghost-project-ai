@@ -209,10 +209,17 @@ body {
 .corner.bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; border-radius: 0 0 0 10px; }
 .corner.br { bottom: 0; right: 0; border-width: 0 2px 2px 0; border-radius: 0 0 10px 0; }
 
+/* ── watch-container ──────────────────────────────────────────────────────────
+   position:fixed + left/top set in JS (viewport coords from getBoundingClientRect)
+   transform-origin center so rotate() pivots around the watch face center
+   will-change: transform tells the browser to promote this layer → smoother on mobile
+*/
 .watch-container {
   position: fixed;
   z-index: 15;
   pointer-events: none;
+  transform-origin: center center;
+  will-change: transform, opacity;
   filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.5));
 }
 
@@ -375,16 +382,16 @@ body {
     font-size: 26px;
     letter-spacing: 4px;
   }
-  
+
   .action-buttons {
     flex-direction: column;
     gap: 10px;
   }
-  
+
   .action-btn {
     padding: 14px 20px;
   }
-  
+
   .scan-overlay {
     width: 230px;
     height: 230px;
