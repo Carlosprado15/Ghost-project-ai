@@ -1,0 +1,388 @@
+/**
+ * WristTracker - Sistema de tracking anatômico profissional
+ * 
+ * Arquitetura:
+ * - Usa landmarks anatômicos corretos: wrist(0), index_mcp(5), pinky_mcp(17)
+ * - Calcula vetor anatômico do antebraço
+ * - Rotação real baseada em geometria 3D
+ * - Confidence scoring robusto
+ * - Persistência temporal inteligente
+ * - Estabilização inicial antes de renderizar
+ */
+
+import { VectorFilter, OneEuroFilter } from './OneEuroFilter.js';
+
+export class WristTracker {
+  constructor(config = {}) {
+    // Configuração
+    this.config = {
+      // Confidence thresholds
+      minConfidence: config.minConfidence ?? 0.6,
+      minStabilityFrames: config.minStabilityFrames ?? 8,
+      maxLostFrames: config.maxLostFrames ?? 30, // ~1s a 30fps
+      
+      // One Euro Filter params (otimizado para tracking de mão)
+      positionMinCutoff: config.positionMinCutoff ?? 1.2,
+      positionBeta: config.positionBeta ?? 0.3,
+      rotationMinCutoff: config.rotationMinCutoff ?? 1.0,
+      rotationBeta: config.rotationBeta ?? 0.5,
+      scaleMinCutoff: config.scaleMinCutoff ?? 0.8,
+      scaleBeta: config.scaleBeta ?? 0.1,
+      
+      // Geometria
+      watchSizeMultiplier: config.watchSizeMultiplier ?? 1.5,
+      watchOffsetRatio: config.watchOffsetRatio ?? 0.18,
+      minWatchSize: config.minWatchSize ?? 80,
+      maxWatchSize: config.maxWatchSize ?? 220,
+    };
+
+    // Filtros One Euro
+    this.positionFilter = new VectorFilter(
+      this.config.positionMinCutoff,
+      this.config.positionBeta,
+      1.0
+    );
+    
+    this.rotationFilter = new OneEuroFilter(
+      this.config.rotationMinCutoff,
+      this.config.rotationBeta,
+      1.0
+    );
+    
+    this.scaleFilter = new OneEuroFilter(
+      this.config.scaleMinCutoff,
+      this.config.scaleBeta,
+      1.0
+    );
+
+    // Estado do tracking
+    this.state = {
+      isTracking: false,
+      isStable: false,
+      confidence: 0,
+      stableFrames: 0,
+      lostFrames: 0,
+      totalFrames: 0,
+    };
+
+    // Última pose válida
+    this.lastValidPose = null;
+    this.currentPose = null;
+  }
+
+  /**
+   * Processa landmarks do MediaPipe e retorna pose do relógio
+   */
+  update(landmarks, handedness, videoRect, mirrorX = false) {
+    this.state.totalFrames++;
+    const timestamp = performance.now();
+
+    if (!landmarks || landmarks.length < 21) {
+      return this._handleLostTracking();
+    }
+
+    // Extrair landmarks anatômicos corretos
+    const wrist = this._toLandmark(landmarks[0], videoRect, mirrorX);
+    const indexMcp = this._toLandmark(landmarks[5], videoRect, mirrorX);
+    const middleMcp = this._toLandmark(landmarks[9], videoRect, mirrorX);
+    const pinkyMcp = this._toLandmark(landmarks[17], videoRect, mirrorX);
+
+    // Calcular confidence score
+    const confidence = this._calculateConfidence(
+      landmarks,
+      wrist,
+      indexMcp,
+      pinkyMcp
+    );
+
+    if (confidence < this.config.minConfidence) {
+      return this._handleLostTracking();
+    }
+
+    // Resetar contador de frames perdidos
+    this.state.lostFrames = 0;
+    this.state.confidence = confidence;
+
+    // Calcular geometria anatômica
+    const geometry = this._calculateWristGeometry(
+      wrist,
+      indexMcp,
+      middleMcp,
+      pinkyMcp
+    );
+
+    // Aplicar smoothing com One Euro Filter
+    const smoothed = this._applySmoothing(geometry, timestamp);
+
+    // Atualizar estado de estabilidade
+    this._updateStability(smoothed);
+
+    // Salvar pose atual
+    this.currentPose = {
+      ...smoothed,
+      confidence,
+      timestamp,
+    };
+
+    // Salvar como última pose válida
+    this.lastValidPose = { ...this.currentPose };
+
+    return this.currentPose;
+  }
+
+  /**
+   * Converte landmark normalizado para coordenadas de tela
+   */
+  _toLandmark(norm, rect, mirrorX) {
+    const MP_W = 1280;
+    const MP_H = 720;
+    
+    const scale = Math.max(rect.width / MP_W, rect.height / MP_H);
+    const dW = MP_W * scale;
+    const dH = MP_H * scale;
+    const ox = (rect.width - dW) / 2;
+    const oy = (rect.height - dH) / 2;
+
+    let x = norm.x * dW + ox + rect.left;
+    const y = norm.y * dH + oy + rect.top;
+
+    if (mirrorX) {
+      x = rect.right - (norm.x * dW + ox);
+    }
+
+    return { x, y, z: norm.z || 0 };
+  }
+
+  /**
+   * Calcula confidence score baseado em múltiplos fatores
+   */
+  _calculateConfidence(landmarks, wrist, indexMcp, pinkyMcp) {
+    let score = 1.0;
+
+    // 1. Visibilidade dos landmarks (se disponível)
+    if (landmarks[0].visibility !== undefined) {
+      const avgVisibility = (
+        landmarks[0].visibility +
+        landmarks[5].visibility +
+        landmarks[17].visibility
+      ) / 3;
+      score *= avgVisibility;
+    }
+
+    // 2. Geometria da mão (distância entre dedos deve ser razoável)
+    const palmWidth = Math.hypot(
+      indexMcp.x - pinkyMcp.x,
+      indexMcp.y - pinkyMcp.y
+    );
+    
+    // Palma muito pequena ou muito grande = baixa confidence
+    if (palmWidth < 30 || palmWidth > 300) {
+      score *= 0.5;
+    }
+
+    // 3. Distância pulso-palma (deve ser proporcional)
+    const wristToPalm = Math.hypot(
+      indexMcp.x - wrist.x,
+      indexMcp.y - wrist.y
+    );
+    
+    const ratio = wristToPalm / palmWidth;
+    if (ratio < 0.5 || ratio > 3.0) {
+      score *= 0.7;
+    }
+
+    // 4. Profundidade Z (se muito diferente, pode ser oclusão)
+    const zVariance = Math.abs(wrist.z - indexMcp.z);
+    if (zVariance > 0.15) {
+      score *= 0.8;
+    }
+
+    return Math.max(0, Math.min(1, score));
+  }
+
+  /**
+   * Calcula geometria anatômica do relógio no pulso
+   */
+  _calculateWristGeometry(wrist, indexMcp, middleMcp, pinkyMcp) {
+    // 1. Calcular centro da palma (média entre index e pinky MCP)
+    const palmCenterX = (indexMcp.x + pinkyMcp.x) / 2;
+    const palmCenterY = (indexMcp.y + pinkyMcp.y) / 2;
+
+    // 2. Calcular largura da palma (distância index-pinky)
+    const palmWidth = Math.hypot(
+      indexMcp.x - pinkyMcp.x,
+      indexMcp.y - pinkyMcp.y
+    );
+
+    // 3. Calcular vetor anatômico do antebraço (pulso → palma)
+    const forearmVectorX = palmCenterX - wrist.x;
+    const forearmVectorY = palmCenterY - wrist.y;
+    const forearmLength = Math.hypot(forearmVectorX, forearmVectorY) || 1;
+
+    // Normalizar vetor
+    const forearmDirX = forearmVectorX / forearmLength;
+    const forearmDirY = forearmVectorY / forearmLength;
+
+    // 4. Posição do relógio: offset ANTES do pulso no vetor do antebraço
+    const offset = forearmLength * this.config.watchOffsetRatio;
+    const watchX = wrist.x - forearmDirX * offset;
+    const watchY = wrist.y - forearmDirY * offset;
+
+    // 5. Tamanho do relógio proporcional à largura da palma
+    const rawSize = palmWidth * this.config.watchSizeMultiplier;
+    const watchSize = Math.max(
+      this.config.minWatchSize,
+      Math.min(this.config.maxWatchSize, rawSize)
+    );
+
+    // 6. Rotação real do relógio (perpendicular ao antebraço)
+    // O relógio deve estar alinhado com o eixo do antebraço
+    const watchRotation = Math.atan2(forearmDirY, forearmDirX) * (180 / Math.PI) - 90;
+
+    return {
+      x: watchX,
+      y: watchY,
+      size: watchSize,
+      rotation: watchRotation,
+      palmWidth,
+      forearmLength,
+    };
+  }
+
+  /**
+   * Aplica smoothing com One Euro Filter
+   */
+  _applySmoothing(geometry, timestamp) {
+    // Filtrar posição
+    const position = this.positionFilter.filter(
+      { x: geometry.x, y: geometry.y },
+      timestamp
+    );
+
+    // Filtrar escala
+    const size = this.scaleFilter.filter(geometry.size, timestamp);
+
+    // Filtrar rotação (com tratamento de wrap-around)
+    const rotation = this._filterRotation(geometry.rotation, timestamp);
+
+    return {
+      x: position.x,
+      y: position.y,
+      size,
+      rotation,
+      palmWidth: geometry.palmWidth,
+      forearmLength: geometry.forearmLength,
+    };
+  }
+
+  /**
+   * Filtra rotação com tratamento de wrap-around (-180/+180)
+   */
+  _filterRotation(newRotation, timestamp) {
+    if (this.rotationFilter.x.lastValue === null) {
+      return this.rotationFilter.filter(newRotation, timestamp);
+    }
+
+    const lastRot = this.rotationFilter.x.lastValue;
+    let delta = newRotation - lastRot;
+
+    // Corrigir wrap-around
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+
+    const correctedRotation = lastRot + delta;
+    return this.rotationFilter.filter(correctedRotation, timestamp);
+  }
+
+  /**
+   * Atualiza estado de estabilidade
+   */
+  _updateStability(pose) {
+    if (!this.lastValidPose) {
+      this.state.stableFrames = 0;
+      this.state.isStable = false;
+      return;
+    }
+
+    // Calcular movimento desde último frame
+    const movement = Math.hypot(
+      pose.x - this.lastValidPose.x,
+      pose.y - this.lastValidPose.y
+    );
+
+    const sizeChange = Math.abs(pose.size - this.lastValidPose.size);
+
+    // Considerar estável se movimento for pequeno
+    if (movement < 5 && sizeChange < 3) {
+      this.state.stableFrames++;
+    } else {
+      this.state.stableFrames = Math.max(0, this.state.stableFrames - 2);
+    }
+
+    // Marcar como estável após frames mínimos
+    this.state.isStable = 
+      this.state.stableFrames >= this.config.minStabilityFrames;
+    
+    this.state.isTracking = true;
+  }
+
+  /**
+   * Lida com perda de tracking
+   */
+  _handleLostTracking() {
+    this.state.lostFrames++;
+
+    // Manter última pose válida por um tempo
+    if (this.state.lostFrames <= this.config.maxLostFrames && this.lastValidPose) {
+      // Retornar última pose válida (persistência temporal)
+      return {
+        ...this.lastValidPose,
+        isPersisted: true,
+        lostFrames: this.state.lostFrames,
+      };
+    }
+
+    // Tracking perdido completamente
+    this.state.isTracking = false;
+    this.state.isStable = false;
+    this.state.stableFrames = 0;
+    this.state.confidence = 0;
+
+    return null;
+  }
+
+  /**
+   * Reseta o tracker
+   */
+  reset() {
+    this.positionFilter.reset();
+    this.rotationFilter.reset();
+    this.scaleFilter.reset();
+    
+    this.state = {
+      isTracking: false,
+      isStable: false,
+      confidence: 0,
+      stableFrames: 0,
+      lostFrames: 0,
+      totalFrames: 0,
+    };
+
+    this.lastValidPose = null;
+    this.currentPose = null;
+  }
+
+  /**
+   * Retorna estado atual do tracking
+   */
+  getState() {
+    return { ...this.state };
+  }
+
+  /**
+   * Verifica se deve renderizar o relógio
+   */
+  shouldRender() {
+    return this.state.isTracking && this.state.isStable;
+  }
+}
