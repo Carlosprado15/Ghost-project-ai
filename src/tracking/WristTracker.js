@@ -24,10 +24,20 @@ export class WristTracker {
       // One Euro Filter params (otimizado para tracking de mão)
       positionMinCutoff: config.positionMinCutoff ?? 1.2,
       positionBeta: config.positionBeta ?? 0.3,
-      rotationMinCutoff: config.rotationMinCutoff ?? 1.0,
-      rotationBeta: config.rotationBeta ?? 0.5,
-      scaleMinCutoff: config.scaleMinCutoff ?? 0.8,
-      scaleBeta: config.scaleBeta ?? 0.1,
+      rotationMinCutoff: config.rotationMinCutoff ?? 0.8, // Ajustado para suavizar mais rotação
+      rotationBeta: config.rotationBeta ?? 0.6, // Leve aumento para responsividade em movimentos rápidos
+      scaleMinCutoff: config.scaleMinCutoff ?? 0.7, // Ajustado para suavizar mais escala
+      scaleBeta: config.scaleBeta ?? 0.2, // Leve aumento para responsividade
+
+      // Dead zone para pequenos movimentos
+      deadZonePosition: config.deadZonePosition ?? 3.0, // Pixels
+      deadZoneRotation: config.deadZoneRotation ?? 2.0, // Graus
+      deadZoneScale: config.deadZoneScale ?? 0.02, // Proporção
+
+      // Limite de mudança brusca (anti-jitter)
+      maxPositionChange: config.maxPositionChange ?? 50, // Pixels por frame
+      maxRotationChange: config.maxRotationChange ?? 30, // Graus por frame
+      maxScaleChange: config.maxScaleChange ?? 0.15, // Proporção por frame
       
       // Geometria
       watchSizeMultiplier: config.watchSizeMultiplier ?? 1.5,
@@ -112,7 +122,10 @@ export class WristTracker {
     );
 
     // Aplicar smoothing com One Euro Filter
-    const smoothed = this._applySmoothing(geometry, timestamp);
+    let smoothed = this._applySmoothing(geometry, timestamp);
+
+    // Aplicar dead zone e limites de mudança brusca
+    smoothed = this._applyPostFiltering(smoothed, this.currentPose || this.lastValidPose);
 
     // Atualizar estado de estabilidade
     this._updateStability(smoothed);
@@ -276,6 +289,54 @@ export class WristTracker {
   }
 
   /**
+   * Aplica filtros adicionais (dead zone, clamp) após o OneEuroFilter
+   */
+  _applyPostFiltering(currentPose, lastPose) {
+    if (!lastPose) return currentPose; // Se não houver pose anterior, retornar a atual
+
+    const newPose = { ...currentPose };
+
+    // 1. Dead Zone para posição
+    const dx = currentPose.x - lastPose.x;
+    const dy = currentPose.y - lastPose.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist < this.config.deadZonePosition) {
+      newPose.x = lastPose.x;
+      newPose.y = lastPose.y;
+    } else {
+      // 2. Limitar mudança brusca de posição
+      const limitedDist = Math.min(dist, this.config.maxPositionChange);
+      newPose.x = lastPose.x + (dx / dist) * limitedDist;
+      newPose.y = lastPose.y + (dy / dist) * limitedDist;
+    }
+
+    // 3. Dead Zone para rotação
+    let deltaRotation = currentPose.rotation - lastPose.rotation;
+    if (deltaRotation > 180) deltaRotation -= 360;
+    if (deltaRotation < -180) deltaRotation += 360;
+
+    if (Math.abs(deltaRotation) < this.config.deadZoneRotation) {
+      newPose.rotation = lastPose.rotation;
+    } else {
+      // 4. Limitar mudança brusca de rotação
+      const limitedDeltaRotation = Math.min(Math.abs(deltaRotation), this.config.maxRotationChange);
+      newPose.rotation = lastPose.rotation + Math.sign(deltaRotation) * limitedDeltaRotation;
+    }
+
+    // 5. Dead Zone para escala
+    const scaleChange = Math.abs(currentPose.size - lastPose.size) / lastPose.size;
+    if (scaleChange < this.config.deadZoneScale) {
+      newPose.size = lastPose.size;
+    } else {
+      // 6. Limitar mudança brusca de escala
+      const limitedScaleChange = Math.min(scaleChange, this.config.maxScaleChange);
+      newPose.size = lastPose.size * (1 + Math.sign(currentPose.size - lastPose.size) * limitedScaleChange);
+    }
+
+    return newPose;
+  }
+
+  /**
    * Filtra rotação com tratamento de wrap-around (-180/+180)
    */
   _filterRotation(newRotation, timestamp) {
@@ -312,8 +373,8 @@ export class WristTracker {
 
     const sizeChange = Math.abs(pose.size - this.lastValidPose.size);
 
-    // Considerar estável se movimento for pequeno
-    if (movement < 5 && sizeChange < 3) {
+    // Considerar estável se movimento for pequeno (ajustado para dead zones)
+    if (movement < this.config.deadZonePosition * 1.5 && sizeChange < this.config.deadZoneScale * 1.5) {
       this.state.stableFrames++;
     } else {
       this.state.stableFrames = Math.max(0, this.state.stableFrames - 2);
