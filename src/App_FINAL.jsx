@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css';
+import { getEmbeddedParam } from './utils/urlParams';
 
 // ─── CDN loaders ──────────────────────────────────────────────────────────────
 function loadScript(src, id) {
@@ -107,6 +108,20 @@ export default function App() {
   const buyTimer = useRef(null);
 
   useModelViewer();
+
+  const handleBuyNow = () => {
+    const productUrl = new URLSearchParams(window.location.search).get(
+      'productUrl'
+    );
+    if (productUrl) {
+      window.location.href = productUrl;
+    }
+  };
+
+  const handleContinueShopping = () => {
+    // Fecha o modal do Ghost Project (que é o App_FINAL.jsx)
+    window.parent.postMessage('ghost-project-close', '*');
+  };
 
   const openScanner = () => {
     setCamError('');
@@ -429,9 +444,15 @@ export default function App() {
       <div className="action-container">
         {showBuy && tracking && (
           <div className="action-buttons">
-            <button className="action-btn primary">Comprar Agora</button>
-
-            <button className="action-btn secondary">Ver Detalhes</button>
+            <button className="action-btn primary" onClick={handleBuyNow}>
+              Comprar Agora
+            </button>
+            <button
+              className="action-btn secondary"
+              onClick={handleContinueShopping}
+            >
+              Continuar Comprando
+            </button>
           </div>
         )}
       </div>

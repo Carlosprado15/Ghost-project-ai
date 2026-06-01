@@ -41,14 +41,25 @@ export const GhostModal = (() => {
     document.body.appendChild(modalElement);
   };
 
-  const open = () => {
+  const open = (url) => {
     if (!modalElement) {
       createModalElement();
     }
     modalElement.style.visibility = 'visible';
     modalElement.style.opacity = '1';
     document.body.style.overflow = 'hidden'; // Bloqueia o scroll da página
-    // TODO: Renderizar iframe interno
+
+    let iframe = modalElement.querySelector('iframe');
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.style.cssText = `
+        width: 100%;
+        height: 100%;
+        border: none;
+      `;
+      modalElement.appendChild(iframe);
+    }
+    iframe.src = url;
   };
 
   const close = () => {
@@ -56,8 +67,22 @@ export const GhostModal = (() => {
       modalElement.style.visibility = 'hidden';
       modalElement.style.opacity = '0';
       document.body.style.overflow = 'auto'; // Restaura o scroll da página
+
+      // Remove o iframe ao fechar o modal
+      let iframe = modalElement.querySelector('iframe');
+      if (iframe) {
+        iframe.remove();
+      }
     }
   };
+
+  // Listener para mensagens do iframe (ex: "ghost-project-close")
+  window.addEventListener('message', (event) => {
+    if (event.data === 'ghost-project-close') {
+      close();
+    }
+  });
+
 
   return {
     open,
