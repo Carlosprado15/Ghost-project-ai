@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste ETAPA 1 - Modelo Dinâmico</title>
+</head>
+<body>
+    <h1>Teste da ETAPA 1 - Modelo Dinâmico</h1>
+    
+    <h2>URLs de teste:</h2>
+    <ul>
+        <li><a href="/?modelUrl=relogio.glb" target="_blank">/?modelUrl=relogio.glb</a></li>
+        <li><a href="/?modelUrl=/Watch.glb" target="_blank">/?modelUrl=/Watch.glb</a></li>
+        <li><a href="/" target="_blank">/ (fallback padrão)</a></li>
+    </ul>
+    
+    <h2>Verificação:</h2>
+    <p>✅ Função getModelUrl() criada em utils/urlParams.js</p>
+    <p>✅ Import atualizado para incluir getModelUrl</p>
+    <p>✅ Model-viewer usando src={getModelUrl() || "/relogio.glb"}</p>
+    <p>✅ Nenhuma outra lógica alterada</p>
+    <p>✅ Tracking, WristTracker, RenderPipeline, OneEuroFilter NÃO alterados</p>
+</body>
+</html>

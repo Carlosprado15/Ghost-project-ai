@@ -135,18 +135,10 @@ export default function App() {
     (results) => {
       if (!activeRef.current || !videoRef.current) return;
 
-      if (!results.multiHandLandmarks?.length) {
-        setTracking(false);
-
-        setWatch({
-          x: 0,
-          y: 0,
-          size: 220,
-          visible: false,
-        });
-
-        return;
-      }
+if (!results.multiHandLandmarks?.length) {
+  setTracking(false);
+  return;
+}
 
       const lm = results.multiHandLandmarks[0];
 
@@ -442,7 +434,7 @@ export default function App() {
 
       {/* CTA */}
       <div className="action-container">
-        {showBuy && tracking && (
+        {showBuy &&  (
           <div className="action-buttons">
             <button className="action-btn primary" onClick={handleBuyNow}>
               Comprar Agora

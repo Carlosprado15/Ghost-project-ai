@@ -1,4 +1,3 @@
-
 export function getProductId() {
   const params = new URLSearchParams(window.location.search);
   return params.get("productId");
@@ -19,5 +18,7 @@ export function getEmbeddedParam() {
   return params.get("embedded") === "true";
 }
 
-
-
+export function getModelUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("modelUrl");
+}
