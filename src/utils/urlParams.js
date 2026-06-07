@@ -1,3 +1,5 @@
+import productsData from "../data/products.json";
+
 export function getProductId() {
   const params = new URLSearchParams(window.location.search);
   return params.get("productId");
@@ -23,12 +25,17 @@ export function getModelUrl() {
   const productId = getProductId();
 
   if (productId) {
-    const productsData = require('../data/products.json');
     const product = productsData.find(p => p.id === productId);
     if (product && product.modelUrl) {
       return product.modelUrl;
     }
   }
 
-  return params.get("modelUrl") || '/relogio.glb';
+  return params.get("modelUrl") || 
+  params.get("glb") ||
+  params.get("gltf") ||
+  params.get("file") ||
+  params.get("model") ||
+  params.get("url") ||
+  "/relogio.glb";
 }
