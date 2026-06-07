@@ -20,5 +20,15 @@ export function getEmbeddedParam() {
 
 export function getModelUrl() {
   const params = new URLSearchParams(window.location.search);
-  return params.get("modelUrl");
+  const productId = getProductId();
+
+  if (productId) {
+    const productsData = require('../data/products.json');
+    const product = productsData.find(p => p.id === productId);
+    if (product && product.modelUrl) {
+      return product.modelUrl;
+    }
+  }
+
+  return params.get("modelUrl") || '/relogio.glb';
 }

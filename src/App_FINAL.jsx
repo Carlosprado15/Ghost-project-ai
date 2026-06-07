@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css';
-import { getEmbeddedParam } from './utils/urlParams';
+import { getEmbeddedParam, getModelUrl } from './utils/urlParams';
 
 // ─── CDN loaders ──────────────────────────────────────────────────────────────
 function loadScript(src, id) {
@@ -388,7 +388,7 @@ if (!results.multiHandLandmarks?.length) {
       {/* Relógio 3D */}
       <div className="watch-container" style={watchStyle}>
         <model-viewer
-          src="/relogio.glb"
+  src={getModelUrl() || "/relogio.glb"}
           disable-zoom
           shadow-intensity="0.8"
           exposure="1.0"
