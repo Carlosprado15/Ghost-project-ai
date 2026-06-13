@@ -20,10 +20,10 @@ export function getEmbeddedParam() {
   return params.get("embedded") === "true";
 }
 
-export function getModelUrl() {
+export function getModelUrl(productId) {
   const params = new URLSearchParams(window.location.search);
-  const productId = getProductId();
-
+  
+  // Se productId foi passado, busca no products.json
   if (productId) {
     const product = productsData.find(p => p.id === productId);
     if (product && product.modelUrl) {
@@ -31,11 +31,22 @@ export function getModelUrl() {
     }
   }
 
-  return params.get("modelUrl") || 
-  params.get("glb") ||
-  params.get("gltf") ||
-  params.get("file") ||
-  params.get("model") ||
-  params.get("url") ||
-  "/relogio.glb";
+  // Tenta obter modelUrl diretamente dos parâmetros da URL
+  const urlModel = params.get("modelUrl") || 
+    params.get("glb") ||
+    params.get("gltf") ||
+    params.get("file") ||
+    params.get("model") ||
+    params.get("url");
+  
+  if (urlModel) {
+    return urlModel;
+  }
+
+  // Fallback: se não há productId nem modelUrl, usa o primeiro produto do JSON
+  if (productsData && productsData.length > 0) {
+    return productsData[0].modelUrl;
+  }
+
+  return null;
 }
