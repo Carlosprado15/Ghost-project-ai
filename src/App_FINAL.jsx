@@ -4,6 +4,7 @@ import { getEmbeddedParam, getModelUrl, getProductId } from './utils/urlParams';
 import DiagnosticPage from './DiagnosticPage';
 import ReportPanel from './ReportPanel';
 import TestModelsPage from './TestModelsPage';
+import LandingPage from './LandingPage';
 
 // ─── CDN loaders ──────────────────────────────────────────────────────────────
 function loadScript(src, id) {
@@ -96,6 +97,7 @@ export default function App() {
   const [modelViewerLoadedTime, setModelViewerLoadedTime] = useState(null);
   const [firstDisplayTime, setFirstDisplayTime] = useState(null);
   const [showB2BModal, setShowB2BModal] = useState(false);
+  const [showLandingPage, setShowLandingPage] = useState(false);
   const [b2bEmail, setB2bEmail] = useState('');
 
   const modelViewerRef = useRef(null);
@@ -466,6 +468,16 @@ export default function App() {
     setShowB2BModal(false);
   };
 
+  const handleOpenLandingPage = () => {
+    setShowB2BModal(false);
+    setShowLandingPage(true);
+  };
+
+  // ─── LANDING PAGE ────────────────────────────────────────────────────────
+  if (showLandingPage) {
+    return <LandingPage onClose={() => setShowLandingPage(false)} />;
+  }
+
   // ─── DIAGNOSTIC ──────────────────────────────────────────────────────────
   if (showDiagnostic) {
     return <DiagnosticPage onBack={() => setShowDiagnostic(false)} />;
@@ -799,6 +811,18 @@ export default function App() {
                   SOLICITAR DEMONSTRAÇÃO PRIVADA
                 </button>
               </form>
+
+              <div className="b2b-divider">
+                <span>ou</span>
+              </div>
+
+              <button 
+                type="button" 
+                className="b2b-full-access-btn"
+                onClick={handleOpenLandingPage}
+              >
+                SOLICITAR ACESSO COMPLETO
+              </button>
 
               <p className="b2b-footer">
                 Segurança ponta a ponta. Seus dados de engenharia e negócios protegidos de acordo com diretrizes globais de privacidade.

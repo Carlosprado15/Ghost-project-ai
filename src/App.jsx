@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css';
+import { isStoreMode, getProductInfo, getModelUrl } from './utils/urlParams';
 
 // ─── CDN loaders ──────────────────────────────────────────────────────────────
 function loadScript(src, id) {
@@ -113,7 +114,13 @@ function wristRotationDeg(landmarks, videoEl, mirrorX) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function App() {
-  const [screen,   setScreen]   = useState('home');
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // EMBEDDED STORE MODE - Detecta se está em modo integrado
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const storeMode = isStoreMode();
+  const productInfo = storeMode ? getProductInfo() : null;
+  
+  const [screen,   setScreen]   = useState(storeMode ? 'scanner' : 'home');
   const [camMode,  setCamMode]  = useState('environment');
   const [camError, setCamError] = useState('');
   const [showBuy,  setShowBuy]  = useState(false);
@@ -263,6 +270,28 @@ export default function App() {
     setScreen('home');
   };
 
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // EMBEDDED STORE MODE - Handlers
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const handleBackToStore = () => {
+    if (productInfo?.productUrl) {
+      console.log('🛍️ STORE MODE: Voltando para loja:', productInfo.productUrl);
+      window.location.href = productInfo.productUrl;
+    }
+  };
+
+  const handleAddToCart = () => {
+    if (productInfo?.cartUrl) {
+      console.log('🛒 STORE MODE: Adicionando ao carrinho:', {
+        productId: productInfo.id,
+        productName: productInfo.name,
+        cartUrl: productInfo.cartUrl
+      });
+      // Por enquanto apenas console.log - não integrar checkout real
+      window.location.href = productInfo.cartUrl;
+    }
+  };
+
   // ── HOME ──────────────────────────────────────────────────────────────────
   if (screen === 'home') {
     return (
@@ -333,7 +362,7 @@ export default function App() {
       {/* Watch — position:fixed, viewport coords, opacity gated on tracking */}
       <div className="watch-container" style={watchStyle}>
         <model-viewer
-          src="/relogio.glb"
+          src={storeMode && productInfo?.modelUrl ? productInfo.modelUrl : "/relogio.glb"}
           camera-controls
           disable-zoom
           auto-rotate
@@ -348,8 +377,26 @@ export default function App() {
         />
       </div>
 
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* STORE MODE INDICATOR */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {storeMode && (
+        <div className="store-mode-indicator">
+          <span className="store-mode-dot">●</span>
+          STORE MODE ACTIVE
+        </div>
+      )}
+
       <div className="hud-top">
-        <button className="back-btn" onClick={closeScanner}>← Voltar</button>
+        {/* Botão "Voltar para Loja" quando em Store Mode com productUrl */}
+        {storeMode && productInfo?.productUrl ? (
+          <button className="back-btn store-back-btn" onClick={handleBackToStore}>
+            ← Voltar para Loja
+          </button>
+        ) : (
+          <button className="back-btn" onClick={closeScanner}>← Voltar</button>
+        )}
+        
         <div className="ar-badge">
           <span className={`ar-dot ${tracking ? 'active' : ''}`} />
           AR ATIVO
@@ -365,8 +412,24 @@ export default function App() {
       <div className="action-container">
         {showBuy && (
           <div className="action-buttons">
-            <button className="action-btn primary">Comprar Agora</button>
-            <button className="action-btn secondary">Ver Detalhes</button>
+            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+            {/* STORE MODE: Botão "Adicionar ao Carrinho" */}
+            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+            {storeMode && productInfo?.cartUrl ? (
+              <button className="action-btn primary store-cart-btn" onClick={handleAddToCart}>
+                🛒 Adicionar ao Carrinho
+              </button>
+            ) : (
+              <button className="action-btn primary">Comprar Agora</button>
+            )}
+            
+            {storeMode && productInfo?.productUrl ? (
+              <button className="action-btn secondary" onClick={handleBackToStore}>
+                Ver na Loja
+              </button>
+            ) : (
+              <button className="action-btn secondary">Ver Detalhes</button>
+            )}
           </div>
         )}
       </div>

@@ -874,6 +874,90 @@ body {
   }
 }
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   EMBEDDED STORE MODE STYLES
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* Store Mode Indicator - Top Center */
+.store-mode-indicator {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  padding: 10px 20px;
+  border-radius: 25px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: #00ff88;
+  text-transform: uppercase;
+  pointer-events: none;
+  box-shadow: 0 4px 15px rgba(0, 255, 136, 0.2);
+}
+
+.store-mode-dot {
+  font-size: 10px;
+  color: #00ff88;
+  animation: storePulse 2s ease-in-out infinite;
+}
+
+@keyframes storePulse {
+  0%, 100% {
+    opacity: 1;
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+  }
+  50% {
+    opacity: 0.6;
+    text-shadow: 0 0 20px rgba(0, 255, 136, 1);
+  }
+}
+
+/* Store Back Button - Enhanced */
+.store-back-btn {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  color: #00ff88;
+}
+
+.store-back-btn:hover {
+  background: rgba(0, 255, 136, 0.1);
+  border-color: #00ff88;
+  box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+}
+
+/* Store Cart Button - Enhanced */
+.store-cart-btn {
+  background: linear-gradient(135deg, #00ff88 0%, #00cc6f 100%);
+  color: #000;
+  box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
+}
+
+.store-cart-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 255, 136, 0.4);
+}
+
+/* Responsive adjustments for Store Mode */
+@media (max-width: 480px) {
+  .store-mode-indicator {
+    font-size: 10px;
+    padding: 8px 16px;
+    letter-spacing: 1.5px;
+  }
+  
+  .store-mode-dot {
+    font-size: 8px;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    GHOST PROJECT AI SIGNATURE & B2B MODAL
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -1098,6 +1182,57 @@ body {
 .b2b-submit-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 30px rgba(212, 175, 55, 0.35);
+}
+
+/* Divider */
+.b2b-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 24px 0;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  font-weight: 300;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.b2b-divider::before,
+.b2b-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.b2b-divider span {
+  padding: 0 16px;
+}
+
+/* Full Access Button */
+.b2b-full-access-btn {
+  width: 100%;
+  padding: 18px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: transparent;
+  border: 2px solid #d4af37;
+  border-radius: 8px;
+  color: #d4af37;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  margin-bottom: 24px;
+}
+
+.b2b-full-access-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: #f4e5b8;
+  color: #f4e5b8;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
 }
 
 /* Footer */

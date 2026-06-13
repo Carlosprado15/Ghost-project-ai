@@ -1,0 +1,631 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   GHOST PROJECT AI - LANDING PAGE
+   Dark Mode Silent Luxury | Mobile First
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.landing-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.landing-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.landing-content {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 95vh;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 24px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 
+    0 25px 80px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  margin: 20px;
+  
+  /* Custom scrollbar - Silent Luxury */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 175, 55, 0.3) rgba(255, 255, 255, 0.05);
+}
+
+.landing-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.landing-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+
+.landing-content::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.landing-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.5);
+}
+
+/* ─── Header ────────────────────────────────────────────────────────────── */
+
+.landing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32px 40px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.landing-logo h1 {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  margin: 0 0 4px 0;
+  background: linear-gradient(135deg, #d4af37 0%, #f4e5b8 50%, #d4af37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-transform: uppercase;
+}
+
+.landing-tagline {
+  font-size: 11px;
+  font-weight: 300;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.landing-close {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 32px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.landing-close:hover {
+  background: rgba(212, 175, 55, 0.1);
+  border-color: rgba(212, 175, 55, 0.4);
+  color: #d4af37;
+  transform: rotate(90deg);
+}
+
+/* ─── Hero Section ──────────────────────────────────────────────────────── */
+
+.landing-hero {
+  padding: 60px 40px;
+  text-align: center;
+  background: 
+    radial-gradient(ellipse at center, rgba(212, 175, 55, 0.03) 0%, transparent 70%);
+}
+
+.landing-hero-title {
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 1px;
+  color: #ffffff;
+  margin: 0 0 20px 0;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.landing-hero-subtitle {
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ─── Features Grid ─────────────────────────────────────────────────────── */
+
+.landing-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  padding: 40px 40px 60px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.feature-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.feature-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(212, 175, 55, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.feature-card:hover::before {
+  opacity: 1;
+}
+
+.feature-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+  filter: grayscale(0.3);
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+  filter: grayscale(0);
+  transform: scale(1.1);
+}
+
+.feature-card h3 {
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  margin: 0 0 12px 0;
+}
+
+.feature-card p {
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+/* ─── CTA Section ───────────────────────────────────────────────────────── */
+
+.landing-cta-section {
+  padding: 60px 40px 40px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.landing-cta-title {
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+}
+
+.landing-cta-description {
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ─── Form Section ──────────────────────────────────────────────────────── */
+
+.landing-form-section {
+  padding: 40px 40px 60px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.landing-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+}
+
+.form-group input,
+.form-group textarea {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 300;
+  color: #ffffff;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  transition: all 0.3s ease;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(212, 175, 55, 0.5);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.landing-submit-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 18px 32px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: #07090d;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.25);
+  margin-top: 8px;
+}
+
+.landing-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(212, 175, 55, 0.4);
+}
+
+.landing-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.form-privacy {
+  font-size: 12px;
+  font-weight: 300;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  margin: 16px 0 0 0;
+}
+
+/* ─── Success Message ───────────────────────────────────────────────────── */
+
+.success-message {
+  text-align: center;
+  padding: 60px 40px;
+  background: rgba(0, 255, 136, 0.03);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  border-radius: 16px;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  background: rgba(0, 255, 136, 0.1);
+  border: 2px solid rgba(0, 255, 136, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  color: #00ff88;
+  margin: 0 auto 24px;
+  animation: successPulse 2s ease-in-out infinite;
+}
+
+@keyframes successPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 20px rgba(0, 255, 136, 0);
+  }
+}
+
+.success-message h3 {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #00ff88;
+  margin: 0 0 12px 0;
+}
+
+.success-message p {
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* ─── Footer ────────────────────────────────────────────────────────────── */
+
+.landing-footer {
+  padding: 32px 40px;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.landing-footer p {
+  font-size: 12px;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE - MOBILE FIRST
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .landing-content {
+    margin: 10px;
+    border-radius: 20px;
+    max-height: 98vh;
+  }
+
+  .landing-header {
+    padding: 24px 20px;
+  }
+
+  .landing-logo h1 {
+    font-size: 20px;
+    letter-spacing: 3px;
+  }
+
+  .landing-tagline {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+  }
+
+  .landing-close {
+    width: 40px;
+    height: 40px;
+    font-size: 28px;
+  }
+
+  .landing-hero {
+    padding: 40px 20px;
+  }
+
+  .landing-hero-title {
+    font-size: 28px;
+    letter-spacing: 0.5px;
+  }
+
+  .landing-hero-subtitle {
+    font-size: 16px;
+  }
+
+  .landing-features {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 30px 20px 40px;
+  }
+
+  .feature-card {
+    padding: 28px 20px;
+  }
+
+  .feature-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+  }
+
+  .feature-card h3 {
+    font-size: 16px;
+  }
+
+  .feature-card p {
+    font-size: 13px;
+  }
+
+  .landing-cta-section {
+    padding: 40px 20px 30px;
+  }
+
+  .landing-cta-title {
+    font-size: 26px;
+  }
+
+  .landing-cta-description {
+    font-size: 15px;
+  }
+
+  .landing-form-section {
+    padding: 30px 20px 40px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .landing-submit-btn {
+    padding: 16px 28px;
+    font-size: 14px;
+    letter-spacing: 2px;
+  }
+
+  .success-message {
+    padding: 40px 20px;
+  }
+
+  .success-icon {
+    width: 70px;
+    height: 70px;
+    font-size: 40px;
+  }
+
+  .success-message h3 {
+    font-size: 20px;
+  }
+
+  .success-message p {
+    font-size: 14px;
+  }
+
+  .landing-footer {
+    padding: 24px 20px;
+  }
+
+  .landing-footer p {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-content {
+    margin: 5px;
+    border-radius: 16px;
+  }
+
+  .landing-header {
+    padding: 20px 16px;
+  }
+
+  .landing-logo h1 {
+    font-size: 18px;
+    letter-spacing: 2px;
+  }
+
+  .landing-hero {
+    padding: 32px 16px;
+  }
+
+  .landing-hero-title {
+    font-size: 24px;
+  }
+
+  .landing-hero-subtitle {
+    font-size: 14px;
+  }
+
+  .landing-features {
+    padding: 24px 16px 32px;
+  }
+
+  .landing-cta-section {
+    padding: 32px 16px 24px;
+  }
+
+  .landing-cta-title {
+    font-size: 22px;
+  }
+
+  .landing-form-section {
+    padding: 24px 16px 32px;
+  }
+
+  .landing-footer {
+    padding: 20px 16px;
+  }
+}
+
+/* ─── Smooth Animations ─────────────────────────────────────────────────── */
+
+.landing-page {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.landing-content {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
