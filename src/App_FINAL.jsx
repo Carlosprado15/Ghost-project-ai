@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css';
-import { getEmbeddedParam, getModelUrl, getProductId } from './utils/urlParams';
+import { getEmbeddedParam, getModelUrl, getProductId, isStoreMode } from './utils/urlParams';
 import DiagnosticPage from './DiagnosticPage';
 import ReportPanel from './ReportPanel';
 import TestModelsPage from './TestModelsPage';
@@ -132,7 +132,12 @@ export default function App() {
   const activeRef = useRef(false);
   const buyTimer = useRef(null);
 
-  useModelViewer();
+  useModelViewer();useEffect(() => {
+    if (isStoreMode()) {
+      openScanner(null);
+    }
+  }, []);
+
 
   const handleBuyNow = () => {
     const productUrl = new URLSearchParams(window.location.search).get(
@@ -148,6 +153,8 @@ export default function App() {
     if (cameFromTestModels) {
       setShowTestModels(true);
       setCameFromTestModels(false);
+    } else if (isStoreMode()) {
+      window.location.href = getProductUrl() || '/';
     } else if (window.parent === window) {
       setScreen('home');
     }
