@@ -242,14 +242,25 @@
     }
   }
 
+  let lastHandle = null;
+
   function init() {
+    const currentHandle = getProductHandle();
+    if (!currentHandle || currentHandle === lastHandle) return;
+    
     const productId = getProductId();
     if (!productId) return;
-
+    
+    lastHandle = currentHandle;
+    
+    document.querySelectorAll('.ghost-badge, .ghost-ar-btn, .ghost-powered, .ghost-scanner-line').forEach(el => el.remove());
+    
     injectStyles();
     injectScannerOnImage();
     injectARButton(productId);
   }
+
+  setInterval(init, 800);
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
