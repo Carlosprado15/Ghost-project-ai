@@ -139,14 +139,17 @@ export default function App() {
   }, []);
 
 
-  const handleBuyNow = () => {
-    const productUrl = new URLSearchParams(window.location.search).get(
-      'productUrl'
-    );
-    if (productUrl) {
-      window.location.href = productUrl;
-    }
-  };
+const handleBuyNow = () => {
+  const params = new URLSearchParams(window.location.search);
+  const cartUrl = params.get('cartUrl');
+  const productUrl = params.get('productUrl');
+  
+  if (cartUrl) {
+    window.location.href = decodeURIComponent(cartUrl);
+  } else if (productUrl) {
+    window.location.href = decodeURIComponent(productUrl);
+  }
+};
 
   const handleContinueShopping = () => {
     closeScanner();
