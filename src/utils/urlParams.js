@@ -88,5 +88,8 @@ export function getModelUrl(productId) {
     return urlModel;
   }
 
+  if (productsData && productsData.length > 0) {
+    return productsData[0].modelUrl;
+  }
   return null;
 }
