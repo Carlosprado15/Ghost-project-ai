@@ -1,9 +1,9 @@
-
 (function() {
   'use strict';
 
-const GHOST_BASE_URL = 'https://ghost-project-ai-bbvc.vercel.app';
+  const GHOST_BASE_URL = 'https://ghost-project-ai-bbvc.vercel.app';
 
+  // SAAPS Foundation 1.0 - Build 3
   const PRODUCT_MAP = {
     'relogio-casio-para-neutro-2023-novos-estilos-definir-marca-superior-de-luxo-a-pr': 'CW001',
     'nidin-moda-banhado-a-ouro-corrente-mistura-pulseira-para-mulheres-colorido-crist': 'CW002',
@@ -182,42 +182,71 @@ const GHOST_BASE_URL = 'https://ghost-project-ai-bbvc.vercel.app';
 
   function injectARButton(productId) {
     const productUrl = window.location.href;
-    const cartUrl = new URLSearchParams(window.location.search).get('cartUrl');
-    const productUrl = window.location.href;
+    const cartUrl = window.location.origin + '/cart';
+    const arUrl = GHOST_BASE_URL +
+      '?productId=' + productId +
+      '&productUrl=' + encodeURIComponent(productUrl) +
+      '&cartUrl=' + encodeURIComponent(cartUrl) +
+      '&embedded=true';
 
-    const arButton = document.createElement('button');
-    arButton.className = 'ghost-ar-btn';
-    arButton.innerHTML = `
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 3C10.3431 3 9 4.34315 9 6C9 7.65685 10.3431 9 12 9C13.6569 9 15 7.65685 15 6C15 4.34315 13.6569 3 12 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M12 12C10.3431 12 9 13.3431 9 15C9 16.6569 10.3431 18 12 18C13.6569 18 15 16.6569 15 15C15 13.3431 13.6569 12 12 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M12 21C10.3431 21 9 22.3431 9 24C9 25.6569 10.3431 27 12 27C13.6569 27 15 25.6569 15 24C15 22.3431 13.6569 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M12 9V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M12 18V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M6 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M15 12H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M3 12H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M18 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    const badge = document.createElement('div');
+    badge.className = 'ghost-badge';
+    badge.innerHTML = `
+      <svg class="ghost-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
       </svg>
-      EXPERIMENTE EM REALIDADE AUMENTADA
+      <div class="ghost-badge-text">
+        <span class="ghost-badge-title">Ghost Spatial Preview™</span>
+        <span class="ghost-badge-subtitle">Compatível com visualização espacial em tempo real</span>
+      </div>
     `;
-    arButton.onclick = () => {
-      window.open(`${GHOST_BASE_URL}?productId=${productId}&productUrl=${encodeURIComponent(productUrl)}&cartUrl=${encodeURIComponent(cartUrl)}`, '_blank');
-    };
 
-    const targetElement = document.querySelector('.product-form__buttons') || document.querySelector('.product-form__controls-group');
-    if (targetElement) {
-      targetElement.parentNode.insertBefore(arButton, targetElement.nextSibling);
+    const btn = document.createElement('a');
+    btn.className = 'ghost-ar-btn';
+    btn.href = arUrl;
+    btn.innerHTML = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+      Ver em Realidade Aumentada
+    `;
+
+    const powered = document.createElement('p');
+    powered.className = 'ghost-powered';
+    powered.textContent = 'Powered by Ghost Project AI';
+
+    const selectors = [
+      'form[action="/cart/add"]',
+      '.product-form',
+      '.product__form',
+      '[data-product-form]',
+      '.shopify-product-form'
+    ];
+
+    let form = null;
+    for (const sel of selectors) {
+      form = document.querySelector(sel);
+      if (form) break;
+    }
+
+    if (form) {
+      form.parentNode.insertBefore(badge, form);
+      form.parentNode.insertBefore(btn, form);
+      form.parentNode.insertBefore(powered, form);
     }
   }
 
   function init() {
     const productId = getProductId();
-    if (productId) {
-      injectStyles();
-      injectScannerOnImage();
-      injectARButton(productId);
-    }
+    if (!productId) return;
+
+    injectStyles();
+    injectScannerOnImage();
+    injectARButton(productId);
   }
 
   if (document.readyState === 'loading') {
@@ -225,4 +254,5 @@ const GHOST_BASE_URL = 'https://ghost-project-ai-bbvc.vercel.app';
   } else {
     init();
   }
+
 })();
