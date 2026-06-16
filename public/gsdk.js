@@ -24,7 +24,15 @@
 
   function getProductHandle() {
     const match = window.location.pathname.match(/\/products\/([^/?]+)/);
-    return match ? match[1] : null;
+    if (match) return match[1];
+    
+    const canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) {
+      const canonicalMatch = canonical.href.match(/\/products\/([^/?]+)/);
+      if (canonicalMatch) return canonicalMatch[1];
+    }
+    
+    return null;
   }
 
   function getProductId() {
