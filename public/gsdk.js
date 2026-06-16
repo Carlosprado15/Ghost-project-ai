@@ -24,15 +24,7 @@
 
   function getProductHandle() {
     const match = window.location.pathname.match(/\/products\/([^/?]+)/);
-    if (match) return match[1];
-    
-    const canonical = document.querySelector('link[rel="canonical"]');
-    if (canonical) {
-      const canonicalMatch = canonical.href.match(/\/products\/([^/?]+)/);
-      if (canonicalMatch) return canonicalMatch[1];
-    }
-    
-    return null;
+    return match ? match[1] : null;
   }
 
   function getProductId() {
@@ -50,20 +42,6 @@
       .ghost-scanner-line {
         position: absolute;
         top: 0;
-        left: -100%;
-        width: 40%;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent 0%,
-          rgba(212, 175, 55, 0.08) 40%,
-          rgba(212, 175, 55, 0.18) 50%,
-          rgba(255, 255, 255, 0.12) 52%,
-          rgba(212, 175, 55, 0.08) 60%,
-          transparent 100%
-        );
-        animation: ghostScan 4s ease-in-out infinite;
-        top: -100%;
         left: 0;
         width: 100%;
         height: 40%;
@@ -76,12 +54,13 @@
           rgba(212, 175, 55, 0.08) 60%,
           transparent 100%
         );
+        animation: ghostScan 4s ease-in-out infinite;
         pointer-events: none;
         z-index: 10;
       }
       @keyframes ghostScan {
-        0% { top: -40%; }
-        100% { top: 140%; }
+        0% { top: 0%; }
+        100% { top: 100%; }
       }
       .ghost-badge {
         display: flex;
