@@ -55,12 +55,25 @@
           transparent 100%
         );
         animation: ghostScan 4s ease-in-out infinite;
+        top: -100%;
+        left: 0;
+        width: 100%;
+        height: 40%;
+        background: linear-gradient(
+          180deg,
+          transparent 0%,
+          rgba(212, 175, 55, 0.08) 40%,
+          rgba(212, 175, 55, 0.18) 50%,
+          rgba(255, 255, 255, 0.12) 52%,
+          rgba(212, 175, 55, 0.08) 60%,
+          transparent 100%
+        );
         pointer-events: none;
         z-index: 10;
       }
       @keyframes ghostScan {
-        0% { left: -40%; }
-        100% { left: 140%; }
+        0% { top: -40%; }
+        100% { top: 140%; }
       }
       .ghost-badge {
         display: flex;
@@ -182,6 +195,8 @@
 
   function injectARButton(productId) {
     const productUrl = window.location.href;
+    const pathParts = window.location.pathname.split('/');
+    const handle = pathParts[pathParts.indexOf('products') + 1];
     const cartUrl = window.location.origin + '/cart';
     const arUrl = GHOST_BASE_URL +
       '?productId=' + productId +
