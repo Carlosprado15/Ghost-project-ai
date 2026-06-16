@@ -88,10 +88,5 @@ export function getModelUrl(productId) {
     return urlModel;
   }
 
-  // Fallback: se não há productId nem modelUrl, usa o primeiro produto do JSON
-  if (productsData && productsData.length > 0) {
-    return productsData[0].modelUrl;
-  }
-
   return null;
 }

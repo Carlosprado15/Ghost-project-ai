@@ -3,7 +3,7 @@
 
   const GHOST_BASE_URL = 'https://ghost-project-ai-bbvc.vercel.app';
 
-  // SAAPS Foundation 1.0 - Build 3
+  // SAAPS Foundation 1.0 - Build 4
   const PRODUCT_MAP = {
     'relogio-casio-para-neutro-2023-novos-estilos-definir-marca-superior-de-luxo-a-pr': 'CW001',
     'nidin-moda-banhado-a-ouro-corrente-mistura-pulseira-para-mulheres-colorido-crist': 'CW002',
