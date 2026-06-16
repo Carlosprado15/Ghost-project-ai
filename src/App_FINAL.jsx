@@ -620,6 +620,41 @@ const handleBuyNow = () => {
       />
 
       {/* Se não há produto válido, mostrar erro sobreposto */}
+      {hasValidProduct && !tracking && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'rgba(0,0,0,0.85)',
+          zIndex: 25,
+          pointerEvents: 'none',
+        }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            border: '2px solid rgba(212,175,55,0.2)',
+            borderTopColor: 'rgba(212,175,55,0.9)',
+            borderRadius: '50%',
+            animation: 'ghostSpin 1s linear infinite',
+            marginBottom: '20px',
+          }} />
+          <p style={{
+            color: '#fff',
+            fontSize: '13px',
+            letterSpacing: '0.08em',
+            fontWeight: 500,
+            opacity: 0.85,
+          }}>
+            Calibrando experiência espacial
+          </p>
+        </div>
+      )}
       {!hasValidProduct ? (
         <div style={{
           position: 'fixed',
