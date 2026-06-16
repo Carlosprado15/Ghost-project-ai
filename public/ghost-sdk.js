@@ -2,7 +2,7 @@
 (function() {
   'use strict';
 
-  const GHOST_BASE_URL = 'https://ghost-project-ai-bbvc.vercel.app';
+const GHOST_BASE_URL = 'https://ghost-project-ai-bbvc.vercel.app';
 
   const PRODUCT_MAP = {
     'relogio-casio-para-neutro-2023-novos-estilos-definir-marca-superior-de-luxo-a-pr': 'CW001',
@@ -182,4 +182,47 @@
 
   function injectARButton(productId) {
     const productUrl = window.location.href;
-    const cartUrl
+    const cartUrl = new URLSearchParams(window.location.search).get('cartUrl');
+    const productUrl = window.location.href;
+
+    const arButton = document.createElement('button');
+    arButton.className = 'ghost-ar-btn';
+    arButton.innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 3C10.3431 3 9 4.34315 9 6C9 7.65685 10.3431 9 12 9C13.6569 9 15 7.65685 15 6C15 4.34315 13.6569 3 12 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 12C10.3431 12 9 13.3431 9 15C9 16.6569 10.3431 18 12 18C13.6569 18 15 16.6569 15 15C15 13.3431 13.6569 12 12 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 21C10.3431 21 9 22.3431 9 24C9 25.6569 10.3431 27 12 27C13.6569 27 15 25.6569 15 24C15 22.3431 13.6569 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 9V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 18V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M6 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M15 12H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3 12H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M18 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      EXPERIMENTE EM REALIDADE AUMENTADA
+    `;
+    arButton.onclick = () => {
+      window.open(`${GHOST_BASE_URL}?productId=${productId}&productUrl=${encodeURIComponent(productUrl)}&cartUrl=${encodeURIComponent(cartUrl)}`, '_blank');
+    };
+
+    const targetElement = document.querySelector('.product-form__buttons') || document.querySelector('.product-form__controls-group');
+    if (targetElement) {
+      targetElement.parentNode.insertBefore(arButton, targetElement.nextSibling);
+    }
+  }
+
+  function init() {
+    const productId = getProductId();
+    if (productId) {
+      injectStyles();
+      injectScannerOnImage();
+      injectARButton(productId);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
