@@ -331,7 +331,7 @@ const handleBuyNow = () => {
     e.preventDefault();
     setB2bStatus('sending');
     try {
-      const res = await fetch('https://formspree.io/f/REPLACE_FORM_ID', {
+      const res = await fetch('https://formspree.io/f/mpqegypq', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ email: b2bEmail, source: 'Ghost Project AI — Modal B2B' }),
