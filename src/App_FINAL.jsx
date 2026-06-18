@@ -75,6 +75,7 @@ export default function App() {
   const [showB2BModal, setShowB2BModal] = useState(false);
   const [showLandingPage, setShowLandingPage] = useState(false);
   const [b2bEmail, setB2bEmail] = useState('');
+  const [b2bStatus, setB2bStatus] = useState('idle'); // idle | sending | success | error
 
   const modelViewerRef = useRef(null);
 
@@ -326,11 +327,24 @@ const handleBuyNow = () => {
     setScreen('home');
   };
 
-  const handleB2BSubmit = (e) => {
+  const handleB2BSubmit = async (e) => {
     e.preventDefault();
-    console.log('Lead Ghost Project:', b2bEmail);
-    setB2bEmail('');
-    setShowB2BModal(false);
+    setB2bStatus('sending');
+    try {
+      const res = await fetch('https://formspree.io/f/REPLACE_FORM_ID', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ email: b2bEmail, source: 'Ghost Project AI — Modal B2B' }),
+      });
+      if (res.ok) {
+        setB2bStatus('success');
+        setB2bEmail('');
+      } else {
+        setB2bStatus('error');
+      }
+    } catch {
+      setB2bStatus('error');
+    }
   };
 
   const handleOpenLandingPage = () => {
@@ -414,7 +428,7 @@ const handleBuyNow = () => {
               </button>
             )}
 
-            <button className="scan-btn" onClick={openScanner}>
+            <button className="scan-btn" onClick={() => openScanner(getProductId() || 'CW001')}>
               START SCANNER
             </button>
           </div>
@@ -654,7 +668,7 @@ const handleBuyNow = () => {
 
       {/* B2B Modal */}
       {showB2BModal && (
-        <div className="b2b-modal-overlay" onClick={() => setShowB2BModal(false)}>
+        <div className="b2b-modal-overlay" onClick={() => { setShowB2BModal(false); setB2bStatus('idle'); }}>
           <div className="b2b-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="b2b-modal-body">
               <h1 className="b2b-title">GHOST PROJECT AI</h1>
@@ -695,19 +709,36 @@ const handleBuyNow = () => {
                 </p>
               </div>
 
-              <form className="b2b-form" onSubmit={handleB2BSubmit}>
-                <input
-                  type="email"
-                  className="b2b-input"
-                  placeholder="Digite seu e-mail corporativo"
-                  value={b2bEmail}
-                  onChange={(e) => setB2bEmail(e.target.value)}
-                  required
-                />
-                <button type="submit" className="b2b-submit-btn">
-                  SOLICITAR DEMONSTRAÇÃO PRIVADA
-                </button>
-              </form>
+              {b2bStatus === 'success' ? (
+                <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                  <p style={{ color: '#D4AF37', fontSize: '15px', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                    ACESSO SOLICITADO
+                  </p>
+                  <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px' }}>
+                    Entraremos em contato em breve.
+                  </p>
+                </div>
+              ) : (
+                <form className="b2b-form" onSubmit={handleB2BSubmit}>
+                  <input
+                    type="email"
+                    className="b2b-input"
+                    placeholder="Digite seu e-mail corporativo"
+                    value={b2bEmail}
+                    onChange={(e) => setB2bEmail(e.target.value)}
+                    required
+                    disabled={b2bStatus === 'sending'}
+                  />
+                  <button type="submit" className="b2b-submit-btn" disabled={b2bStatus === 'sending'}>
+                    {b2bStatus === 'sending' ? 'ENVIANDO...' : 'SOLICITAR DEMONSTRAÇÃO PRIVADA'}
+                  </button>
+                  {b2bStatus === 'error' && (
+                    <p style={{ color: '#ff6b6b', fontSize: '12px', textAlign: 'center', marginTop: '8px' }}>
+                      Erro ao enviar. Tente novamente.
+                    </p>
+                  )}
+                </form>
+              )}
 
               <div className="b2b-divider">
                 <span>ou</span>
@@ -725,7 +756,7 @@ const handleBuyNow = () => {
                 Segurança ponta a ponta. Seus dados de engenharia e negócios protegidos de acordo com diretrizes globais de privacidade.
               </p>
 
-              <button className="b2b-back-btn" onClick={() => setShowB2BModal(false)}>
+              <button className="b2b-back-btn" onClick={() => { setShowB2BModal(false); setB2bStatus('idle'); }}>
                 ← Voltar para a Experiência AR
               </button>
             </div>
