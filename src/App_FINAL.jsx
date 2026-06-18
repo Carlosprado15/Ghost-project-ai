@@ -58,6 +58,12 @@ function useModelViewer() {
   }, []);
 }
 
+function isDesktopDevice() {
+  return !/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+}
+
 // ─── Main component ──────────────────────────────────────────────────────────
 export default function App() {
   const [screen, setScreen] = useState('home');
@@ -76,6 +82,7 @@ export default function App() {
   const [showLandingPage, setShowLandingPage] = useState(false);
   const [b2bEmail, setB2bEmail] = useState('');
   const [b2bStatus, setB2bStatus] = useState('idle'); // idle | sending | success | error
+  const [showQRScreen, setShowQRScreen] = useState(false);
 
   const modelViewerRef = useRef(null);
 
@@ -372,6 +379,61 @@ const handleBuyNow = () => {
     );
   }
 
+  // ─── QR SCREEN (desktop) ─────────────────────────────────────────────────
+  if (showQRScreen) {
+    const qrUrl = window.location.href;
+    const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrUrl)}`;
+
+    return (
+      <div className="home">
+        <div className="home-background" style={{ backgroundImage: 'url("/logo.jpeg")' }} />
+        <div className="home-content">
+          <div style={{ textAlign: 'center' }}>
+            <p style={{
+              color: '#D4AF37',
+              fontSize: '10px',
+              letterSpacing: '0.22em',
+              fontWeight: 300,
+              marginBottom: '28px',
+              textTransform: 'uppercase',
+            }}>
+              Experiência AR disponível no celular
+            </p>
+            <div style={{
+              background: '#fff',
+              padding: '14px',
+              borderRadius: '12px',
+              display: 'inline-block',
+              marginBottom: '20px',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
+            }}>
+              <img src={qrSrc} alt="QR Code" width={220} height={220} />
+            </div>
+            <p style={{
+              color: 'rgba(255,255,255,0.65)',
+              fontSize: '13px',
+              letterSpacing: '0.04em',
+              marginBottom: '6px',
+            }}>
+              Escaneie com seu celular
+            </p>
+            <p style={{
+              color: 'rgba(255,255,255,0.3)',
+              fontSize: '11px',
+              letterSpacing: '0.08em',
+              marginBottom: '32px',
+            }}>
+              Powered by Ghost Project AI
+            </p>
+            <button className="scan-btn" onClick={() => setShowQRScreen(false)}>
+              ← Voltar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ─── HOME ────────────────────────────────────────────────────────────────
   if (screen === 'home') {
     return (
@@ -428,7 +490,13 @@ const handleBuyNow = () => {
               </button>
             )}
 
-            <button className="scan-btn" onClick={() => openScanner(getProductId() || 'CW001')}>
+            <button className="scan-btn" onClick={() => {
+              if (isDesktopDevice()) {
+                setShowQRScreen(true);
+              } else {
+                openScanner(getProductId() || 'CW001');
+              }
+            }}>
               START SCANNER
             </button>
           </div>
