@@ -83,6 +83,7 @@ export default function App() {
   const [b2bEmail, setB2bEmail] = useState('');
   const [b2bStatus, setB2bStatus] = useState('idle'); // idle | sending | success | error
   const [showQRScreen, setShowQRScreen] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
 
   const modelViewerRef = useRef(null);
 
@@ -358,6 +359,73 @@ const handleBuyNow = () => {
     setShowB2BModal(false);
     setShowLandingPage(true);
   };
+
+  const takeScreenshot = useCallback(async () => {
+    if (isCapturing) return;
+    setIsCapturing(true);
+    try {
+      const video = videoRef.current;
+      const mv    = modelViewerRef.current;
+      if (!video) return;
+
+      const w = video.videoWidth  || video.clientWidth;
+      const h = video.videoHeight || video.clientHeight;
+
+      const canvas = document.createElement('canvas');
+      canvas.width  = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+
+      if (camMode === 'user') { ctx.save(); ctx.translate(w, 0); ctx.scale(-1, 1); }
+      ctx.drawImage(video, 0, 0, w, h);
+      if (camMode === 'user') ctx.restore();
+
+      if (mv) {
+        const mvCanvas = mv.shadowRoot?.querySelector('canvas');
+        if (mvCanvas) {
+          const mvRect = mv.getBoundingClientRect();
+          const vRect  = video.getBoundingClientRect();
+          const sx = w / vRect.width;
+          const sy = h / vRect.height;
+          ctx.drawImage(mvCanvas,
+            (mvRect.left - vRect.left) * sx,
+            (mvRect.top  - vRect.top)  * sy,
+            mvRect.width  * sx,
+            mvRect.height * sy
+          );
+        }
+      }
+
+      const barH = Math.round(h * 0.06);
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(0, h - barH, w, barH);
+      ctx.fillStyle = '#D4AF37';
+      ctx.font = `500 ${Math.round(barH * 0.38)}px sans-serif`;
+      ctx.fillText('Powered by Ghost Project AI',
+        Math.round(w * 0.04),
+        h - Math.round(barH * 0.22)
+      );
+
+      canvas.toBlob((blob) => {
+        const file = new File([blob], 'ghost-project-ar.jpg', { type: 'image/jpeg' });
+        if (navigator.canShare?.({ files: [file] })) {
+          navigator.share({ files: [file], title: 'Ghost Project AI' }).catch(() => {});
+        } else {
+          const url = URL.createObjectURL(blob);
+          const a   = document.createElement('a');
+          a.href     = url;
+          a.download = 'ghost-project-ar.jpg';
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      }, 'image/jpeg', 0.92);
+
+    } catch (err) {
+      console.error('[Screenshot]', err);
+    } finally {
+      setIsCapturing(false);
+    }
+  }, [camMode, isCapturing]);
 
   // ─── LANDING PAGE ────────────────────────────────────────────────────────
   if (showLandingPage) {
@@ -655,6 +723,34 @@ const handleBuyNow = () => {
               <div className="corner br" />
             </div>
           </div>
+
+          {/* Botão screenshot — canto superior direito */}
+          <button
+            onClick={takeScreenshot}
+            disabled={isCapturing}
+            style={{
+              position: 'fixed',
+              top: '16px',
+              right: '16px',
+              zIndex: 20,
+              background: 'rgba(0,0,0,0.45)',
+              border: '1px solid rgba(255,255,255,0.18)',
+              borderRadius: '50%',
+              width: '44px',
+              height: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: isCapturing ? 'wait' : 'pointer',
+              fontSize: '20px',
+              opacity: isCapturing ? 0.4 : 1,
+              transition: 'opacity 0.2s',
+              backdropFilter: 'blur(4px)',
+            }}
+            title="Capturar experiência AR"
+          >
+            📸
+          </button>
 
           {/* Relógio 3D - ESTRUTURA CORRIGIDA: container com perspective + wrapper com rotações */}
           <div className="watch-container" style={watchContainerStyle}>
