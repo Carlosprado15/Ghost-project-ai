@@ -65,6 +65,18 @@ export class WristTracker {
       1.0
     );
 
+    this.pitchFilter = new OneEuroFilter(
+      this.config.rotationMinCutoff,
+      this.config.rotationBeta,
+      1.0
+    );
+
+    this.yawFilter = new OneEuroFilter(
+      this.config.rotationMinCutoff,
+      this.config.rotationBeta,
+      1.0
+    );
+
     // Estado do tracking
     this.state = {
       isTracking: false,
@@ -257,6 +269,8 @@ export class WristTracker {
       y: watchY,
       size: watchSize,
       rotation: watchRotation,
+      pitch: 0,
+      yaw: 0,
       palmWidth,
       forearmLength,
     };
@@ -278,11 +292,17 @@ export class WristTracker {
     // Filtrar rotação (com tratamento de wrap-around)
     const rotation = this._filterRotation(geometry.rotation, timestamp);
 
+    // Filtrar pitch e yaw
+    const pitch = this.pitchFilter.filter(geometry.pitch, timestamp);
+    const yaw = this.yawFilter.filter(geometry.yaw, timestamp);
+
     return {
       x: position.x,
       y: position.y,
       size,
       rotation,
+      pitch,
+      yaw,
       palmWidth: geometry.palmWidth,
       forearmLength: geometry.forearmLength,
     };
@@ -419,7 +439,9 @@ export class WristTracker {
     this.positionFilter.reset();
     this.rotationFilter.reset();
     this.scaleFilter.reset();
-    
+    this.pitchFilter.reset();
+    this.yawFilter.reset();
+
     this.state = {
       isTracking: false,
       isStable: false,

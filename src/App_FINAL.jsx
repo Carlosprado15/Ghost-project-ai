@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css';
-import { getEmbeddedParam, getModelUrl, getProductId, isStoreMode } from './utils/urlParams';
+import { getEmbeddedParam, getModelUrl, getProductId, getProductUrl, isStoreMode } from './utils/urlParams';
 import DiagnosticPage from './DiagnosticPage';
 import ReportPanel from './ReportPanel';
 import TestModelsPage from './TestModelsPage';
 import LandingPage from './LandingPage';
+import { WristTracker } from './tracking/WristTracker.js';
+import { RenderPipeline } from './tracking/RenderPipeline.js';
 
 // ─── CDN loaders ──────────────────────────────────────────────────────────────
 function loadScript(src, id) {
@@ -56,37 +58,11 @@ function useModelViewer() {
   }, []);
 }
 
-// ─── Conversão MediaPipe → viewport ─────────────────────────────────────────
-function landmarkToViewport(norm, videoEl, mirrorX) {
-  const iW = videoEl.videoWidth || 1280;
-  const iH = videoEl.videoHeight || 720;
-
-  const r = videoEl.getBoundingClientRect();
-
-  const scale = Math.max(r.width / iW, r.height / iH);
-
-  const dW = iW * scale;
-  const dH = iH * scale;
-
-  const ox = (r.width - dW) / 2;
-  const oy = (r.height - dH) / 2;
-
-  let x = norm.x * dW + ox + r.left;
-  const y = norm.y * dH + oy + r.top;
-
-  if (mirrorX) {
-    x = r.right - (norm.x * dW + ox);
-  }
-
-  return { x, y };
-}
-
 // ─── Main component ──────────────────────────────────────────────────────────
 export default function App() {
   const [screen, setScreen] = useState('home');
   const [camMode, setCamMode] = useState('environment');
   const [camError, setCamError] = useState('');
-  const [tracking, setTracking] = useState(false);
   const [showBuy, setShowBuy] = useState(false);
   const [showDiagnostic, setShowDiagnostic] = useState(false);
   const [showTestModels, setShowTestModels] = useState(false);
@@ -102,41 +78,76 @@ export default function App() {
 
   const modelViewerRef = useRef(null);
 
-  // Estado do relógio
-  const [watch, setWatch] = useState({
-    x: 0,
-    y: 0,
-    size: 220,
-    rotation: 0,
-    pitch: 0,      // ← NOVO: inclinação vertical
-    yaw: 0,        // ← NOVO: rotação lateral
-    visible: false,
+  // Estado do relógio (atualizado pelo pipeline)
+  const [watch, setWatch] = useState({ x: 0, y: 0, size: 0, rotation: 0 });
+  
+  // Estado de debug profissional
+  const [dbg, setDbg] = useState({
+    status: 'Aguardando',
+    isTracking: false,
+    isStable: false,
+    confidence: 0,
+    fps: 0,
+    frames: 0,
+    lostFrames: 0,
   });
 
-  // Refs para smoothing
-  const smoothPosRef = useRef({
-    x: 0,
-    y: 0,
-    size: 220,
-  });
+  // Refs
+  const videoRef    = useRef(null);
+  const canvasRef   = useRef(null);
+  const handsRef    = useRef(null);
+  const cameraRef   = useRef(null);
+  const streamRef   = useRef(null);
+  const buyTimer    = useRef(null);
+  const activeRef   = useRef(false);
+  
+  // Sistema de tracking profissional
+  const trackerRef  = useRef(null);
+  const pipelineRef = useRef(null);
+  const lmRef       = useRef(null);
+  const frameCount  = useRef(0);
 
-  const smoothRotRef = useRef(0);
-  const smoothPitchRef = useRef(0);  // ← NOVO
-  const smoothYawRef = useRef(0);    // ← NOVO
-  const lastValidDataRef = useRef(null);
+  // MISSÃO 004 — renderCallback: recebe pose do RenderPipeline e atualiza estado React
+  const renderCallback = useCallback((pose) => {
+    setWatch(pose);
+  }, []);
 
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
-  const handsRef = useRef(null);
-  const cameraRef = useRef(null);
-  const activeRef = useRef(false);
-  const buyTimer = useRef(null);
+  // MISSÃO 004 — debugCallback: atualiza fps no estado de debug
+  const debugCallback = useCallback((info) => {
+    setDbg(prev => ({ ...prev, fps: info.fps }));
+  }, []);
 
-  useModelViewer();useEffect(() => {
+  useModelViewer();
+
+  // Inicialização única da nova arquitetura de tracking (instâncias ociosas)
+  useEffect(() => {
+    trackerRef.current = new WristTracker({
+      minConfidence: 0.6,
+      minStabilityFrames: 8,
+      maxLostFrames: 30,
+      positionMinCutoff: 1.2,
+      positionBeta: 0.3,
+      rotationMinCutoff: 1.0,
+      rotationBeta: 0.5,
+      scaleMinCutoff: 0.8,
+      scaleBeta: 0.1,
+      watchSizeMultiplier: 1.5,
+      watchOffsetRatio: 0.18,
+    });
+    pipelineRef.current = new RenderPipeline();
+
+    return () => {
+      trackerRef.current?.reset();
+      pipelineRef.current?.stop();
+    };
+  }, []);
+
+  useEffect(() => {
     if (isStoreMode()) {
       openScanner(null);
     }
   }, []);
+
 
 
 const handleBuyNow = () => {
@@ -166,7 +177,6 @@ const handleBuyNow = () => {
   const openScanner = (productId = null) => {
     setCamError('');
     setShowBuy(false);
-    setTracking(false);
     setTestProductId(productId); // Set the product ID for testing
     setScreen('scanner');
 
@@ -187,172 +197,12 @@ const handleBuyNow = () => {
     (results) => {
       if (!activeRef.current || !videoRef.current) return;
 
-      const currentTime = performance.now();
+      const lms = results.multiHandLandmarks?.[0] ?? null;
+      const videoRect = videoRef.current.getBoundingClientRect();
+      const mirrorX = camMode === 'user';
 
-      if (!results.multiHandLandmarks?.length) {
-        // CORREÇÃO: Fade out suave e reset de rotações ao perder tracking
-        if (lastValidDataRef.current) {
-          // Fade out com reset gradual de pitch/yaw/rotation
-          setWatch(prev => ({ 
-            ...prev, 
-            visible: false,
-            pitch: 0,
-            yaw: 0,
-            rotation: 0
-          }));
-          
-          // Reset dos refs de smoothing para próxima detecção
-          setTimeout(() => {
-            if (!activeRef.current) return;
-            smoothPitchRef.current = 0;
-            smoothYawRef.current = 0;
-            smoothRotRef.current = 0;
-          }, 200); // Após fade out completo
-        }
-        setTracking(false);
-        return;
-      }
-
-      const lm = results.multiHandLandmarks[0];
-
-      const mirror = camMode === 'user';
-      const vid = videoRef.current;
-
-      // ─── Landmarks principais ─────────────────────────────────────────────
-      const wristPx = landmarkToViewport(lm[0], vid, mirror);
-
-      const indexMcp = landmarkToViewport(lm[5], vid, mirror);
-
-      const pinkyMcp = landmarkToViewport(lm[17], vid, mirror);
-
-      const middleMcp = landmarkToViewport(lm[9], vid, mirror);
-
-      // ─── Distância anatômica da palma ────────────────────────────────────
-      const anatomicalDistance = Math.hypot(
-        indexMcp.x - pinkyMcp.x,
-        indexMcp.y - pinkyMcp.y
-      );
-
-      // ─── ESCALA REALISTA DO RELÓGIO ──────────────────────────────────────
-      const watchScaleFactor = 1.45;
-
-      const minWatchSize = 140;
-      const maxWatchSize = 420;
-
-      let desiredSize = anatomicalDistance * watchScaleFactor;
-
-      desiredSize = Math.max(minWatchSize, Math.min(maxWatchSize, desiredSize));
-
-      // ─── OFFSET ANATÔMICO: deslocar para dentro do antebraço ─────────────
-      const forearmVectorX = middleMcp.x - wristPx.x;
-      const forearmVectorY = middleMcp.y - wristPx.y;
-      const forearmLength = Math.hypot(forearmVectorX, forearmVectorY);
-
-      const offsetAmount = 15; // pixels para dentro do antebraço
-      const offsetX = (forearmVectorX / forearmLength) * offsetAmount;
-      const offsetY = (forearmVectorY / forearmLength) * offsetAmount;
-
-      const adjustedWristX = wristPx.x + offsetX;
-      const adjustedWristY = wristPx.y + offsetY;
-
-      // ─── ROTAÇÃO: ângulo do antebraço ─────────────────────────────────────
-      let watchRotation = Math.atan2(forearmVectorY, forearmVectorX) * (180 / Math.PI);
-
-      // ─── PITCH: inclinação vertical (usando profundidade Z) ──────────────
-      const wristZ = lm[0].z;
-      const middleZ = lm[9].z;
-      const deltaZ = middleZ - wristZ;
-      
-      // Normalizar deltaZ para escala de pixels (REDUZIDO para 30% da amplitude original)
-      const zScale = 300; // Reduzido de 1000 para 300 (30% da amplitude)
-      const deltaZPx = deltaZ * zScale;
-      
-      // Pitch = ângulo de inclinação do antebraço
-      let watchPitch = Math.atan2(deltaZPx, forearmLength) * (180 / Math.PI);
-      
-      // Limitar pitch para evitar valores extremos (REDUZIDO para ±15°)
-      watchPitch = Math.max(-15, Math.min(15, watchPitch));
-
-      // ─── YAW: rotação lateral (torção da palma) ───────────────────────────
-      const indexZ = lm[5].z;
-      const pinkyZ = lm[17].z;
-      const palmTwistZ = indexZ - pinkyZ;
-      
-      // Normalizar para escala de pixels (usa o mesmo zScale reduzido)
-      const palmTwistZPx = palmTwistZ * zScale;
-      
-      // Yaw = torção da palma (quanto a mão está virada)
-      const palmWidth = Math.hypot(indexMcp.x - pinkyMcp.x, indexMcp.y - pinkyMcp.y);
-      let watchYaw = Math.atan2(palmTwistZPx, palmWidth) * (180 / Math.PI);
-      
-      // Limitar yaw para evitar valores extremos (REDUZIDO para ±20°)
-      watchYaw = Math.max(-20, Math.min(20, watchYaw));
-
-      // ─── DEAD ZONE para rotação (evitar micro-oscilações) ────────────────
-      const rotationDeadZone = 2.5; // graus
-      const rotationDiff = watchRotation - smoothRotRef.current;
-      
-      if (Math.abs(rotationDiff) < rotationDeadZone) {
-        watchRotation = smoothRotRef.current;
-      }
-
-      // ─── SMOOTHING para rotação ──────────────────────────────────────────
-      const alphaRot = 0.25;
-      smoothRotRef.current = smoothRotRef.current * (1 - alphaRot) + watchRotation * alphaRot;
-
-      // ─── SMOOTHING para pitch e yaw (mais lento para reduzir ruído Z) ────
-      const alpha3D = 0.09; // Reduzido de 0.20 para 0.09 (menos sensível ao ruído)
-      smoothPitchRef.current = smoothPitchRef.current * (1 - alpha3D) + watchPitch * alpha3D;
-      smoothYawRef.current = smoothYawRef.current * (1 - alpha3D) + watchYaw * alpha3D;
-
-      // ─── DEAD ZONE para posição (evitar tremor) ──────────────────────────
-      const positionDeadZone = 3; // pixels
-      
-      let targetX = adjustedWristX;
-      let targetY = adjustedWristY;
-      
-      if (lastValidDataRef.current) {
-        const deltaX = Math.abs(adjustedWristX - lastValidDataRef.current.x);
-        const deltaY = Math.abs(adjustedWristY - lastValidDataRef.current.y);
-        
-        if (deltaX < positionDeadZone) targetX = lastValidDataRef.current.x;
-        if (deltaY < positionDeadZone) targetY = lastValidDataRef.current.y;
-      }
-
-      // ─── SMOOTHING para posição e tamanho (mais rápido que pitch/yaw) ────
-      const alphaPos = 0.22; // Reduzido de 0.55 para 0.22 (mais responsivo)
-      const alphaSize = 0.35;
-
-      smoothPosRef.current.x =
-        smoothPosRef.current.x * (1 - alphaPos) + targetX * alphaPos;
-
-      smoothPosRef.current.y =
-        smoothPosRef.current.y * (1 - alphaPos) + targetY * alphaPos;
-
-      smoothPosRef.current.size =
-        smoothPosRef.current.size * (1 - alphaSize) + desiredSize * alphaSize;
-
-      // ─── Armazenar última posição válida ─────────────────────────────────
-      lastValidDataRef.current = {
-        x: smoothPosRef.current.x,
-        y: smoothPosRef.current.y,
-        rotation: smoothRotRef.current,
-        pitch: smoothPitchRef.current,    // ← NOVO
-        yaw: smoothYawRef.current          // ← NOVO
-      };
-
-      // ─── Atualizar relógio ───────────────────────────────────────────────
-      setWatch({
-        x: smoothPosRef.current.x,
-        y: smoothPosRef.current.y,
-        size: smoothPosRef.current.size,
-        rotation: smoothRotRef.current,
-        pitch: smoothPitchRef.current,     // ← NOVO
-        yaw: smoothYawRef.current,         // ← NOVO
-        visible: true,
-      });
-
-      setTracking(true);
+      const pose = trackerRef.current.update(lms, null, videoRect, mirrorX);
+      pipelineRef.current.updatePose(pose);
     },
     [camMode]
   );
@@ -362,6 +212,9 @@ const handleBuyNow = () => {
     if (screen !== 'scanner') return;
 
     activeRef.current = true;
+
+    // MISSÃO 004 — iniciar pipeline de renderização
+    pipelineRef.current.start(renderCallback, debugCallback);
 
     (async () => {
       try {
@@ -442,6 +295,9 @@ const handleBuyNow = () => {
     return () => {
       activeRef.current = false;
 
+      // MISSÃO 004 — parar pipeline ao sair do scanner
+      pipelineRef.current?.stop();
+
       clearTimeout(buyTimer.current);
 
       cameraRef.current?.stop();
@@ -458,7 +314,7 @@ const handleBuyNow = () => {
         videoRef.current.srcObject = null;
       }
     };
-  }, [screen, camMode, onHandsResults]);
+  }, [screen, camMode, onHandsResults, renderCallback, debugCallback]);
 
   const closeScanner = () => {
     activeRef.current = false;
@@ -466,7 +322,6 @@ const handleBuyNow = () => {
     clearTimeout(buyTimer.current);
 
     setShowBuy(false);
-    setTracking(false);
 
     setScreen('home');
   };
@@ -569,6 +424,8 @@ const handleBuyNow = () => {
   }
 
   // ─── Watch Style ─────────────────────────────────────────────────────────
+  const shouldRenderWatch = trackerRef.current?.shouldRender?.() ?? false;
+
   // CORREÇÃO CRÍTICA: Perspective no container pai + ordem correta do transform
   const watchContainerStyle = {
     position: 'fixed',
@@ -578,7 +435,7 @@ const handleBuyNow = () => {
     height: `${watch.size}px`,
     pointerEvents: 'none',
     zIndex: 15,
-    opacity: watch.visible ? 1 : 0,
+    opacity: shouldRenderWatch ? 1 : 0,
     transition: 'opacity 0.15s ease, width 0.1s ease, height 0.1s ease',
     // PERSPECTIVE aplicada no container PAI
     perspective: '800px',
@@ -590,12 +447,7 @@ const handleBuyNow = () => {
   const watchStyle = {
     width: '100%',
     height: '100%',
-    // ORDEM CRÍTICA: rotações 3D aplicadas DEPOIS do posicionamento
-    transform: `
-      rotateZ(${watch.rotation}deg)
-      rotateX(${watch.pitch}deg)
-      rotateY(${watch.yaw}deg)
-    `,
+    transform: `rotateZ(${watch.rotation}deg)`,
     transformStyle: 'preserve-3d',
     transformOrigin: 'center center',
     filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.4))',
@@ -620,7 +472,7 @@ const handleBuyNow = () => {
       />
 
       {/* Se não há produto válido, mostrar erro sobreposto */}
-      {hasValidProduct && !tracking && (
+      {hasValidProduct && !shouldRenderWatch && (
         <div style={{
           position: 'fixed',
           top: 0,
@@ -738,7 +590,7 @@ const handleBuyNow = () => {
                 max-camera-orbit="auto auto 105%"
                 camera-controls="false"
                 tone-mapping="neutral"
-                orientation={`${watch.pitch}deg ${watch.yaw}deg ${watch.rotation - 90}deg`}
+                orientation={`0deg 0deg ${watch.rotation - 90}deg`}
                 scale="2 2 2"
                 style={{
                   width: '100%',

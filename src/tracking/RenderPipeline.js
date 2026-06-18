@@ -122,6 +122,8 @@ export class RenderPipeline {
       y: this._lerp(current.y, target.y, speed),
       size: this._lerp(current.size, target.size, speed),
       rotation: this._lerpAngle(current.rotation, target.rotation, speed),
+      pitch: this._lerpAngle(current.pitch ?? 0, target.pitch ?? 0, speed),
+      yaw: this._lerpAngle(current.yaw ?? 0, target.yaw ?? 0, speed),
       confidence: target.confidence,
       timestamp: target.timestamp,
       isPersisted: target.isPersisted,

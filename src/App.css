@@ -277,6 +277,7 @@ body {
   position: fixed;
   top: 0;
   left: 0;
+
   width: 100vw;
   height: 100vh;
   background: rgba(0, 0, 0, 0.8);
@@ -998,8 +999,6 @@ body {
 .b2b-modal-overlay {
   position: fixed;
   top: 0;
-}
-
   left: 0;
   width: 100vw;
   height: 100vh;
@@ -1016,7 +1015,6 @@ body {
 
 @keyframes ghostSpin {
   to { transform: rotate(360deg); }
-}
 }
 
 /* B2B Modal Content */
