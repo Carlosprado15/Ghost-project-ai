@@ -99,6 +99,7 @@ export default function App() {
   const [pipelineStage, setPipelineStage]          = useState(null);
   const [pipelineError, setPipelineError]          = useState(null);
   const [generatedModelUrl, setGeneratedModelUrl]  = useState(null);
+  const [show360, setShow360]                      = useState(false);
 
   // Precision Fit — offset manual sobre a pose do WristTracker
   const [pfOffset, setPfOffset] = useState({ x: 0, y: 0, scale: 1, rotation: 0 });
@@ -244,7 +245,7 @@ export default function App() {
 
   useEffect(() => {
     if (ProductAdapter.isStoreMode()) {
-      openScanner(null);
+      setShow360(true);
     }
   }, []);
 
@@ -297,27 +298,6 @@ const handleBuyNow = () => {
     setPipelineStage(null);
     setPipelineError(null);
     setWatch({ x: 0, y: 0, size: 0, rotation: 0 });
-
-    // ── DIAGNÓSTICO M021 ──────────────────────────────────────────────────────
-    console.group('%c[M021] openScanner', 'color:#D4AF37;font-weight:bold');
-    console.log('[M021] productId recebido:', productId);
-    console.log('[M021] _productForLoad:', JSON.stringify({
-      productId: _productForLoad?.productId,
-      modelUrl:  _productForLoad?.modelUrl,
-      cartUrl:   _productForLoad?.cartUrl,
-      productUrl:_productForLoad?.productUrl,
-    }));
-    console.log('[M021] _staticModelUrl:', _staticModelUrl);
-    console.log('[M021] hasGeneratedRef APÓS set:', hasGeneratedRef.current);
-    console.log('[M021] generatedModelUrl (state — ainda não comitado):', _staticModelUrl);
-    if (_staticModelUrl) {
-      // Verifica se o arquivo existe (HTTP HEAD)
-      fetch(_staticModelUrl, { method: 'HEAD' })
-        .then(r => console.log(`[M021] HEAD ${_staticModelUrl} → ${r.status} ${r.statusText}`))
-        .catch(e => console.error(`[M021] HEAD ${_staticModelUrl} → ERRO:`, e.message));
-    }
-    console.groupEnd();
-    // ─────────────────────────────────────────────────────────────────────────
 
     // Perf: marca abertura do scanner
     perfRef.current = {
@@ -522,35 +502,16 @@ const handleBuyNow = () => {
   }, []);
 
   const captureAndGenerate = useCallback(async () => {
-    // ── DIAGNÓSTICO M021 ──────────────────────────────────────────────────────
-    console.group('%c[M021] captureAndGenerate CHAMADO', 'color:#ff4444;font-weight:bold;font-size:13px');
-    console.log('[M021] hasGeneratedRef no início:', hasGeneratedRef.current);
-    console.log('[M021] testProductId:', testProductId);
-    console.log('[M021] stack trace:', new Error().stack?.split('\n').slice(1,5).join(' | '));
-    // ─────────────────────────────────────────────────────────────────────────
-
-    if (hasGeneratedRef.current) {
-      console.log('[M021] captureAndGenerate → BLOQUEADO por hasGeneratedRef=true');
-      console.groupEnd();
-      return;
-    }
+    if (hasGeneratedRef.current) return;
     // Guard absoluto: produto com GLB estático nunca executa pipeline
     const _guardProd = testProductId
       ? ProductAdapter.fromParams({ productId: testProductId })
       : ProductAdapter.getActive();
 
-    // ── DIAGNÓSTICO M021 ──────────────────────────────────────────────────────
-    console.log('[M021] _guardProd.productId:', _guardProd?.productId, '| _guardProd.modelUrl:', _guardProd?.modelUrl);
-    // ─────────────────────────────────────────────────────────────────────────
-
     if (_guardProd?.modelUrl) {
-      console.log('[M021] captureAndGenerate → BLOQUEADO por _guardProd.modelUrl =', _guardProd.modelUrl);
-      console.groupEnd();
       hasGeneratedRef.current = true; return;
     }
     hasGeneratedRef.current = true;
-    console.warn('[M021] captureAndGenerate → PIPELINE ATIVADO — nenhum guard bloqueou!');
-    console.groupEnd();
 
     setPipelineError(null);
 
@@ -650,29 +611,11 @@ const handleBuyNow = () => {
       }));
     }
 
-    // ── DIAGNÓSTICO M021 ──────────────────────────────────────────────────────
-    console.log(
-      '%c[M021] trackingActive effect', 'color:#4ecdc4;font-weight:bold',
-      '| trackingActive:', trackingActive,
-      '| screen:', screen,
-      '| hasGeneratedRef:', hasGeneratedRef.current,
-      '| testProductId:', testProductId,
-    );
-    // ─────────────────────────────────────────────────────────────────────────
-
     if (!trackingActive || screen !== 'scanner' || hasGeneratedRef.current) return;
     // Guard extra: nunca disparar pipeline se produto tem GLB
     const _activeProd = testProductId
       ? ProductAdapter.fromParams({ productId: testProductId })
       : ProductAdapter.getActive();
-
-    // ── DIAGNÓSTICO M021 ──────────────────────────────────────────────────────
-    console.log(
-      '%c[M021] trackingActive — passou guard hasGenerated', 'color:#ff6b6b;font-weight:bold',
-      '| _activeProd.modelUrl:', _activeProd?.modelUrl,
-      '| _activeProd.productId:', _activeProd?.productId,
-    );
-    // ─────────────────────────────────────────────────────────────────────────
 
     if (_activeProd?.modelUrl) return;
     const t = setTimeout(captureAndGenerate, 1500);
@@ -685,38 +628,14 @@ const handleBuyNow = () => {
     return () => clearTimeout(t);
   }, [pipelineStage]);
 
-  // REGRA 4 (MISSÃO 019): fallback para pipeline se GLB falhar ao carregar
+  // Fallback para pipeline se GLB falhar ao carregar
   useEffect(() => {
     const mv = modelViewerRef.current;
-
-    // ── DIAGNÓSTICO M021 ──────────────────────────────────────────────────────
-    console.log(
-      '%c[M021] model-viewer error useEffect', 'color:#a29bfe;font-weight:bold',
-      '| screen:', screen,
-      '| mv existe?', !!mv,
-      '| generatedModelUrl (closure):', generatedModelUrl,
-      '| hasGeneratedRef:', hasGeneratedRef.current,
-    );
-    // ─────────────────────────────────────────────────────────────────────────
-
     if (!mv || screen !== 'scanner') return;
-    const handleModelError = (event) => {
-      // ── DIAGNÓSTICO M021 ──────────────────────────────────────────────────────
-      console.group('%c[M021] model-viewer DISPAROU evento "error"', 'color:#fd79a8;font-weight:bold;font-size:13px');
-      console.log('[M021] event.type:', event?.type);
-      console.log('[M021] event.detail:', JSON.stringify(event?.detail ?? null));
-      console.log('[M021] generatedModelUrl na closure:', generatedModelUrl);
-      console.log('[M021] hasGeneratedRef ANTES:', hasGeneratedRef.current);
-      // ─────────────────────────────────────────────────────────────────────────
-
+    const handleModelError = () => {
       if (!generatedModelUrl) {
-        console.warn('[SmartLoading] GLB falhou ao carregar — ativando pipeline como fallback');
-        console.log('[M021] hasGeneratedRef → false (reset pelo error handler)');
         hasGeneratedRef.current = false;
-      } else {
-        console.log('[M021] error ignorado — generatedModelUrl existe:', generatedModelUrl);
       }
-      console.groupEnd();
     };
     mv.addEventListener('error', handleModelError);
     return () => mv.removeEventListener('error', handleModelError);
@@ -910,6 +829,145 @@ const handleBuyNow = () => {
             </button>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // ─── 360° PREVIEW ────────────────────────────────────────────────────────
+  if (show360) {
+    const p360 = ProductAdapter.getActive();
+    return (
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        background: '#0a0a0a',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 0,
+        fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      }}>
+        {/* Cabeçalho */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          padding: '20px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <p style={{
+            color: 'rgba(255,255,255,0.32)',
+            fontSize: '9px',
+            letterSpacing: '0.32em',
+            fontWeight: 400,
+            textTransform: 'uppercase',
+            margin: 0,
+          }}>
+            Ghost Project AI
+          </p>
+        </div>
+
+        {/* Título do produto */}
+        {p360?.productName && (
+          <p style={{
+            color: 'rgba(255,255,255,0.70)',
+            fontSize: '13px',
+            fontWeight: 400,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            marginBottom: '8px',
+            marginTop: '0',
+            textAlign: 'center',
+          }}>
+            {p360.productName}
+          </p>
+        )}
+
+        {/* Visualizador 360° */}
+        <Hero3D
+          modelSrc={p360?.modelUrl}
+          productName={p360?.productName}
+        />
+
+        {/* Botões de ação */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+          width: '100%',
+          maxWidth: '320px',
+          padding: '0 24px',
+          marginTop: '4px',
+        }}>
+          <button
+            onClick={() => {
+              setShow360(false);
+              openScanner(p360?.productId || null);
+            }}
+            style={{
+              background: 'rgba(212,175,55,0.12)',
+              border: '1px solid rgba(212,175,55,0.55)',
+              borderRadius: '14px',
+              color: '#D4AF37',
+              fontSize: '11px',
+              fontWeight: 600,
+              letterSpacing: '0.22em',
+              padding: '14px 20px',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
+            }}
+          >
+            VER EM AR
+          </button>
+          <button
+            onClick={() => {
+              setShow360(false);
+              handleBuyNow();
+            }}
+            style={{
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.14)',
+              borderRadius: '14px',
+              color: 'rgba(255,255,255,0.72)',
+              fontSize: '11px',
+              fontWeight: 500,
+              letterSpacing: '0.18em',
+              padding: '13px 20px',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
+            }}
+          >
+            COMPRAR AGORA
+          </button>
+        </div>
+
+        {/* Watermark */}
+        <p style={{
+          position: 'absolute',
+          bottom: '16px',
+          left: 0,
+          right: 0,
+          textAlign: 'center',
+          color: 'rgba(255,255,255,0.15)',
+          fontSize: '9px',
+          letterSpacing: '0.20em',
+          fontWeight: 400,
+          textTransform: 'uppercase',
+          margin: 0,
+          pointerEvents: 'none',
+        }}>
+          Powered by Ghost Project AI
+        </p>
       </div>
     );
   }
@@ -1414,20 +1472,22 @@ const handleBuyNow = () => {
             </div>
           </div>
 
-          {/* HUD */}
-          <div className="hud-top">
-            <button className="back-btn" onClick={() => {
-              if (cameFromTestModels) {
-                closeScanner();
-                setShowTestModels(true);
-                setCameFromTestModels(false);
-              } else {
-                closeScanner();
-              }
-            }}>
-              ← Voltar{cameFromTestModels ? ' ao Catálogo' : ''}
-            </button>
-          </div>
+          {/* HUD — botão Voltar visível apenas fora do store mode */}
+          {(!ProductAdapter.isStoreMode() || cameFromTestModels) && (
+            <div className="hud-top">
+              <button className="back-btn" onClick={() => {
+                if (cameFromTestModels) {
+                  closeScanner();
+                  setShowTestModels(true);
+                  setCameFromTestModels(false);
+                } else {
+                  closeScanner();
+                }
+              }}>
+                ← Voltar{cameFromTestModels ? ' ao Catálogo' : ''}
+              </button>
+            </div>
+          )}
 
           {/* CTA */}
           <div className="action-container">
@@ -1446,14 +1506,20 @@ const handleBuyNow = () => {
             )}
           </div>
 
-          {/* Ghost Project AI Signature */}
+          {/* Ghost Project AI Signature — interativo fora da loja, watermark na loja */}
           <div className="ghost-signature">
-            <button 
-              className="ghost-signature-btn"
-              onClick={() => setShowB2BModal(true)}
-            >
-              Powered by Ghost Project AI
-            </button>
+            {ProductAdapter.isStoreMode() ? (
+              <span className="ghost-signature-btn" style={{ cursor: 'default', pointerEvents: 'none', opacity: 0.4 }}>
+                Powered by Ghost Project AI
+              </span>
+            ) : (
+              <button
+                className="ghost-signature-btn"
+                onClick={() => setShowB2BModal(true)}
+              >
+                Powered by Ghost Project AI
+              </button>
+            )}
           </div>
         </>
       )}

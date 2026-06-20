@@ -121,9 +121,10 @@ export class WristTracker {
       return this._handleLostTracking();
     }
 
-    // Resetar contador de frames perdidos
+    // Resetar contador de frames perdidos e marcar tracking ativo imediatamente
     this.state.lostFrames = 0;
     this.state.confidence = confidence;
+    this.state.isTracking = true;
 
     // Calcular geometria anatômica
     const geometry = this._calculateWristGeometry(
@@ -468,6 +469,6 @@ export class WristTracker {
    * Verifica se deve renderizar o relógio
    */
   shouldRender() {
-    return this.state.isTracking && this.state.isStable;
+    return this.state.isTracking;
   }
 }
