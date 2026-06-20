@@ -3,7 +3,7 @@ import './App.css';
 import { ProductAdapter } from './sdk/product-adapter';
 import { GhostProject } from './sdk/GhostProject';
 import { ClickWearAdapter } from './sdk/store-adapters/clickwear';
-import Hero3D from './components/Hero3D';
+
 import TestModelsPage from './TestModelsPage';
 import LandingPage from './LandingPage';
 import { WristTracker } from './tracking/WristTracker.js';
@@ -287,9 +287,13 @@ const handleBuyNow = () => {
     setPfOffset({ x: 0, y: 0, scale: 1, rotation: 0 });
     setPfEditing(false);
 
-    // Reset pipeline para nova sessão
-    hasGeneratedRef.current = false;
-    setGeneratedModelUrl(null);
+    // MISSÃO 020: produto com modelUrl → carrega imediatamente, pipeline completamente bloqueado
+    const _productForLoad = productId
+      ? ProductAdapter.fromParams({ productId })
+      : ProductAdapter.getActive();
+    const _staticModelUrl = _productForLoad?.modelUrl || null;
+    hasGeneratedRef.current = Boolean(_staticModelUrl);
+    setGeneratedModelUrl(_staticModelUrl);
     setPipelineStage(null);
     setPipelineError(null);
     setWatch({ x: 0, y: 0, size: 0, rotation: 0 });
@@ -498,6 +502,11 @@ const handleBuyNow = () => {
 
   const captureAndGenerate = useCallback(async () => {
     if (hasGeneratedRef.current) return;
+    // Guard absoluto: produto com GLB estático nunca executa pipeline
+    const _guardProd = testProductId
+      ? ProductAdapter.fromParams({ productId: testProductId })
+      : ProductAdapter.getActive();
+    if (_guardProd?.modelUrl) { hasGeneratedRef.current = true; return; }
     hasGeneratedRef.current = true;
 
     setPipelineError(null);
@@ -561,6 +570,8 @@ const handleBuyNow = () => {
         assetRepoRef.current?.save(asset).catch((saveErr) => {
           console.warn('[Asset] Falha ao persistir no localStorage — dado disponível apenas em memória:', saveErr.message);
         });
+        // REGRA 5: atualizar ProductAdapter para usar GLB gerado nas próximas execuções
+        ProductAdapter.cacheGeneratedModel(pid, url);
       }
     } catch (err) {
       console.error('[Pipeline]', err);
@@ -596,15 +607,34 @@ const handleBuyNow = () => {
       }));
     }
     if (!trackingActive || screen !== 'scanner' || hasGeneratedRef.current) return;
+    // Guard extra: nunca disparar pipeline se produto tem GLB
+    const _activeProd = testProductId
+      ? ProductAdapter.fromParams({ productId: testProductId })
+      : ProductAdapter.getActive();
+    if (_activeProd?.modelUrl) return;
     const t = setTimeout(captureAndGenerate, 1500);
     return () => clearTimeout(t);
-  }, [trackingActive, screen, captureAndGenerate]);
+  }, [trackingActive, screen, captureAndGenerate, testProductId]);
 
   useEffect(() => {
     if (pipelineStage !== 'READY') return;
     const t = setTimeout(() => setPipelineStage(null), 3000);
     return () => clearTimeout(t);
   }, [pipelineStage]);
+
+  // REGRA 4 (MISSÃO 019): fallback para pipeline se GLB falhar ao carregar
+  useEffect(() => {
+    const mv = modelViewerRef.current;
+    if (!mv || screen !== 'scanner') return;
+    const handleModelError = () => {
+      if (!generatedModelUrl) {
+        console.warn('[SmartLoading] GLB falhou ao carregar — ativando pipeline como fallback');
+        hasGeneratedRef.current = false;
+      }
+    };
+    mv.addEventListener('error', handleModelError);
+    return () => mv.removeEventListener('error', handleModelError);
+  }, [screen, generatedModelUrl]);
 
   const closeScanner = () => {
     GhostProject._emit('onClose', {});
@@ -800,13 +830,6 @@ const handleBuyNow = () => {
 
   // ─── HOME ────────────────────────────────────────────────────────────────
   if (screen === 'home') {
-    // Resolve active product via SDK — never reads URL params directly
-    const _activeProduct  = ProductAdapter.getActive();
-    const heroProductId   = _activeProduct.productId   || ClickWearAdapter.DEFAULT_PRODUCT_ID;
-    const heroModelSrc    = _activeProduct.modelUrl    || ClickWearAdapter.DEFAULT_MODEL_PATH;
-    const heroProductName = _activeProduct.productName;
-    const heroProductImg  = _activeProduct.productImage;
-
     return (
       <div className="home">
         <div
@@ -861,13 +884,6 @@ const handleBuyNow = () => {
             </div>
 
             {camError && <p className="cam-error">{camError}</p>}
-
-            {/* Hero 3D Product Preview — MISSÃO 007/008 */}
-            <Hero3D
-              modelSrc={heroModelSrc}
-              productImage={heroProductImg}
-              productName={heroProductName}
-            />
 
             {/* Botão TEST MODELS visível apenas em desenvolvimento */}
             {import.meta.env.DEV && (

@@ -1,8 +1,10 @@
 import productsData from '../data/products.json';
 
 let _activeProduct = null;
+const _generatedModels = {};
 
 function _lookupModelUrl(productId) {
+  if (productId && _generatedModels[productId]) return _generatedModels[productId];
   if (!productId) return productsData[0]?.modelUrl ?? null;
   const product = productsData.find(p => p.id === productId);
   return product?.modelUrl ?? productsData[0]?.modelUrl ?? null;
@@ -52,6 +54,10 @@ export const ProductAdapter = {
 
   setActive(product) {
     _activeProduct = product;
+  },
+
+  cacheGeneratedModel(productId, url) {
+    if (productId && url) _generatedModels[productId] = url;
   },
 
   getActive() {
