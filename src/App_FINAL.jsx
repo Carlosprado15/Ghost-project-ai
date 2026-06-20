@@ -141,6 +141,9 @@ export default function App() {
   // Health issues registrados pelo Auto Health Check (Etapa 2)
   const [healthIssues, setHealthIssues] = useState([]);
 
+  // M025 — estado de diagnóstico do model-viewer (remover após fix)
+  const [mvDebug, setMvDebug] = useState({ defined: false, event: '—', loaded: false });
+
   const renderCallback = useCallback((pose) => {
     setWatch(pose);
     // Perf: tempo até primeira renderização
@@ -641,6 +644,36 @@ const handleBuyNow = () => {
     return () => mv.removeEventListener('error', handleModelError);
   }, [screen, generatedModelUrl]);
 
+  // M025 — rastrear estado do model-viewer em dispositivo físico (remover após fix)
+  useEffect(() => {
+    if (screen !== 'scanner') return;
+
+    const updateDefined = () =>
+      setMvDebug(prev => ({ ...prev, defined: !!customElements.get('model-viewer') }));
+    updateDefined();
+    customElements.whenDefined('model-viewer').then(updateDefined).catch(() => {});
+
+    const mv = modelViewerRef.current;
+    if (!mv) return;
+
+    const onLoad = () => setMvDebug(prev => ({ ...prev, event: 'LOAD OK', loaded: true }));
+    const onError = (e) => setMvDebug(prev => ({ ...prev, event: `ERR:${e?.type ?? '?'}` }));
+    const onProgress = (e) => {
+      const pct = Math.round((e.detail?.totalProgress ?? 0) * 100);
+      setMvDebug(prev => ({ ...prev, event: `loading ${pct}%` }));
+    };
+
+    mv.addEventListener('load', onLoad);
+    mv.addEventListener('error', onError);
+    mv.addEventListener('progress', onProgress);
+
+    return () => {
+      mv.removeEventListener('load', onLoad);
+      mv.removeEventListener('error', onError);
+      mv.removeEventListener('progress', onProgress);
+    };
+  }, [screen]);
+
   const closeScanner = () => {
     GhostProject._emit('onClose', {});
     activeRef.current = false;
@@ -1135,6 +1168,24 @@ const handleBuyNow = () => {
         className="video-feed"
         style={camMode === 'user' ? { transform: 'scaleX(-1)' } : {}}
       />
+
+      {/* M025 DIAG — overlay temporário de diagnóstico (remover após fix) */}
+      <div style={{
+        position: 'fixed', top: 70, right: 8, zIndex: 9999,
+        background: 'rgba(0,0,0,0.85)', border: '1px solid rgba(255,220,0,0.5)',
+        borderRadius: 8, padding: '6px 10px', fontSize: 10,
+        color: '#fff', fontFamily: 'monospace', lineHeight: 1.7,
+        maxWidth: 230, pointerEvents: 'none',
+      }}>
+        <div style={{ color: '#FFD700', fontWeight: 'bold', marginBottom: 2 }}>M025 DIAG</div>
+        <div>mvDefined: <b style={{ color: mvDebug.defined ? '#4eff91' : '#ff4e4e' }}>{String(mvDebug.defined)}</b></div>
+        <div>mvEvent: <b style={{ color: '#4ec9ff' }}>{mvDebug.event}</b></div>
+        <div>src: <b style={{ color: '#c9a' }}>{String(generatedModelUrl || modelUrl || 'NULL').slice(-22)}</b></div>
+        <div>tracking: <b style={{ color: trackingActive ? '#4eff91' : '#ff4e4e' }}>{String(trackingActive)}</b></div>
+        <div>shouldRender: <b style={{ color: shouldRenderWatch ? '#4eff91' : '#ff4e4e' }}>{String(shouldRenderWatch)}</b></div>
+        <div>watch.size: <b style={{ color: '#ffff88' }}>{watch.size.toFixed(1)}</b></div>
+        <div>x,y: <b style={{ color: '#ffff88' }}>{watch.x.toFixed(0)},{watch.y.toFixed(0)}</b></div>
+      </div>
 
       {/* Indicador de recalibração — exibido quando tracking é perdido */}
       {hasValidProduct && !shouldRenderWatch && (
