@@ -298,6 +298,27 @@ const handleBuyNow = () => {
     setPipelineError(null);
     setWatch({ x: 0, y: 0, size: 0, rotation: 0 });
 
+    // ── DIAGNÓSTICO M021 ──────────────────────────────────────────────────────
+    console.group('%c[M021] openScanner', 'color:#D4AF37;font-weight:bold');
+    console.log('[M021] productId recebido:', productId);
+    console.log('[M021] _productForLoad:', JSON.stringify({
+      productId: _productForLoad?.productId,
+      modelUrl:  _productForLoad?.modelUrl,
+      cartUrl:   _productForLoad?.cartUrl,
+      productUrl:_productForLoad?.productUrl,
+    }));
+    console.log('[M021] _staticModelUrl:', _staticModelUrl);
+    console.log('[M021] hasGeneratedRef APÓS set:', hasGeneratedRef.current);
+    console.log('[M021] generatedModelUrl (state — ainda não comitado):', _staticModelUrl);
+    if (_staticModelUrl) {
+      // Verifica se o arquivo existe (HTTP HEAD)
+      fetch(_staticModelUrl, { method: 'HEAD' })
+        .then(r => console.log(`[M021] HEAD ${_staticModelUrl} → ${r.status} ${r.statusText}`))
+        .catch(e => console.error(`[M021] HEAD ${_staticModelUrl} → ERRO:`, e.message));
+    }
+    console.groupEnd();
+    // ─────────────────────────────────────────────────────────────────────────
+
     // Perf: marca abertura do scanner
     perfRef.current = {
       scannerOpenedAt:  performance.now(),
@@ -501,13 +522,35 @@ const handleBuyNow = () => {
   }, []);
 
   const captureAndGenerate = useCallback(async () => {
-    if (hasGeneratedRef.current) return;
+    // ── DIAGNÓSTICO M021 ──────────────────────────────────────────────────────
+    console.group('%c[M021] captureAndGenerate CHAMADO', 'color:#ff4444;font-weight:bold;font-size:13px');
+    console.log('[M021] hasGeneratedRef no início:', hasGeneratedRef.current);
+    console.log('[M021] testProductId:', testProductId);
+    console.log('[M021] stack trace:', new Error().stack?.split('\n').slice(1,5).join(' | '));
+    // ─────────────────────────────────────────────────────────────────────────
+
+    if (hasGeneratedRef.current) {
+      console.log('[M021] captureAndGenerate → BLOQUEADO por hasGeneratedRef=true');
+      console.groupEnd();
+      return;
+    }
     // Guard absoluto: produto com GLB estático nunca executa pipeline
     const _guardProd = testProductId
       ? ProductAdapter.fromParams({ productId: testProductId })
       : ProductAdapter.getActive();
-    if (_guardProd?.modelUrl) { hasGeneratedRef.current = true; return; }
+
+    // ── DIAGNÓSTICO M021 ──────────────────────────────────────────────────────
+    console.log('[M021] _guardProd.productId:', _guardProd?.productId, '| _guardProd.modelUrl:', _guardProd?.modelUrl);
+    // ─────────────────────────────────────────────────────────────────────────
+
+    if (_guardProd?.modelUrl) {
+      console.log('[M021] captureAndGenerate → BLOQUEADO por _guardProd.modelUrl =', _guardProd.modelUrl);
+      console.groupEnd();
+      hasGeneratedRef.current = true; return;
+    }
     hasGeneratedRef.current = true;
+    console.warn('[M021] captureAndGenerate → PIPELINE ATIVADO — nenhum guard bloqueou!');
+    console.groupEnd();
 
     setPipelineError(null);
 
@@ -606,11 +649,31 @@ const handleBuyNow = () => {
           : null,
       }));
     }
+
+    // ── DIAGNÓSTICO M021 ──────────────────────────────────────────────────────
+    console.log(
+      '%c[M021] trackingActive effect', 'color:#4ecdc4;font-weight:bold',
+      '| trackingActive:', trackingActive,
+      '| screen:', screen,
+      '| hasGeneratedRef:', hasGeneratedRef.current,
+      '| testProductId:', testProductId,
+    );
+    // ─────────────────────────────────────────────────────────────────────────
+
     if (!trackingActive || screen !== 'scanner' || hasGeneratedRef.current) return;
     // Guard extra: nunca disparar pipeline se produto tem GLB
     const _activeProd = testProductId
       ? ProductAdapter.fromParams({ productId: testProductId })
       : ProductAdapter.getActive();
+
+    // ── DIAGNÓSTICO M021 ──────────────────────────────────────────────────────
+    console.log(
+      '%c[M021] trackingActive — passou guard hasGenerated', 'color:#ff6b6b;font-weight:bold',
+      '| _activeProd.modelUrl:', _activeProd?.modelUrl,
+      '| _activeProd.productId:', _activeProd?.productId,
+    );
+    // ─────────────────────────────────────────────────────────────────────────
+
     if (_activeProd?.modelUrl) return;
     const t = setTimeout(captureAndGenerate, 1500);
     return () => clearTimeout(t);
@@ -625,12 +688,35 @@ const handleBuyNow = () => {
   // REGRA 4 (MISSÃO 019): fallback para pipeline se GLB falhar ao carregar
   useEffect(() => {
     const mv = modelViewerRef.current;
+
+    // ── DIAGNÓSTICO M021 ──────────────────────────────────────────────────────
+    console.log(
+      '%c[M021] model-viewer error useEffect', 'color:#a29bfe;font-weight:bold',
+      '| screen:', screen,
+      '| mv existe?', !!mv,
+      '| generatedModelUrl (closure):', generatedModelUrl,
+      '| hasGeneratedRef:', hasGeneratedRef.current,
+    );
+    // ─────────────────────────────────────────────────────────────────────────
+
     if (!mv || screen !== 'scanner') return;
-    const handleModelError = () => {
+    const handleModelError = (event) => {
+      // ── DIAGNÓSTICO M021 ──────────────────────────────────────────────────────
+      console.group('%c[M021] model-viewer DISPAROU evento "error"', 'color:#fd79a8;font-weight:bold;font-size:13px');
+      console.log('[M021] event.type:', event?.type);
+      console.log('[M021] event.detail:', JSON.stringify(event?.detail ?? null));
+      console.log('[M021] generatedModelUrl na closure:', generatedModelUrl);
+      console.log('[M021] hasGeneratedRef ANTES:', hasGeneratedRef.current);
+      // ─────────────────────────────────────────────────────────────────────────
+
       if (!generatedModelUrl) {
         console.warn('[SmartLoading] GLB falhou ao carregar — ativando pipeline como fallback');
+        console.log('[M021] hasGeneratedRef → false (reset pelo error handler)');
         hasGeneratedRef.current = false;
+      } else {
+        console.log('[M021] error ignorado — generatedModelUrl existe:', generatedModelUrl);
       }
+      console.groupEnd();
     };
     mv.addEventListener('error', handleModelError);
     return () => mv.removeEventListener('error', handleModelError);
