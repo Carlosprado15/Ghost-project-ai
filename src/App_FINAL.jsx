@@ -82,6 +82,9 @@ const PIPELINE_LABELS = {
 
 // ─── Main component ──────────────────────────────────────────────────────────
 export default function App() {
+  // M025 — flag de diagnóstico via URL (?debug=1) ou modo DEV (remover após fix)
+  const showDebug = import.meta.env.DEV || new URLSearchParams(window.location.search).has('debug');
+
   const [screen, setScreen] = useState('home');
   const [camMode, setCamMode] = useState('environment');
   const [camError, setCamError] = useState('');
@@ -1169,23 +1172,51 @@ const handleBuyNow = () => {
         style={camMode === 'user' ? { transform: 'scaleX(-1)' } : {}}
       />
 
-      {/* M025 DIAG — overlay temporário de diagnóstico (remover após fix) */}
-      <div style={{
-        position: 'fixed', top: 70, right: 8, zIndex: 9999,
-        background: 'rgba(0,0,0,0.85)', border: '1px solid rgba(255,220,0,0.5)',
-        borderRadius: 8, padding: '6px 10px', fontSize: 10,
-        color: '#fff', fontFamily: 'monospace', lineHeight: 1.7,
-        maxWidth: 230, pointerEvents: 'none',
-      }}>
-        <div style={{ color: '#FFD700', fontWeight: 'bold', marginBottom: 2 }}>M025 DIAG</div>
-        <div>mvDefined: <b style={{ color: mvDebug.defined ? '#4eff91' : '#ff4e4e' }}>{String(mvDebug.defined)}</b></div>
-        <div>mvEvent: <b style={{ color: '#4ec9ff' }}>{mvDebug.event}</b></div>
-        <div>src: <b style={{ color: '#c9a' }}>{String(generatedModelUrl || modelUrl || 'NULL').slice(-22)}</b></div>
-        <div>tracking: <b style={{ color: trackingActive ? '#4eff91' : '#ff4e4e' }}>{String(trackingActive)}</b></div>
-        <div>shouldRender: <b style={{ color: shouldRenderWatch ? '#4eff91' : '#ff4e4e' }}>{String(shouldRenderWatch)}</b></div>
-        <div>watch.size: <b style={{ color: '#ffff88' }}>{watch.size.toFixed(1)}</b></div>
-        <div>x,y: <b style={{ color: '#ffff88' }}>{watch.x.toFixed(0)},{watch.y.toFixed(0)}</b></div>
-      </div>
+      {/* M025 DIAG — painel de diagnóstico completo (remover após fix) */}
+      {showDebug && (() => {
+        const ts   = trackerRef.current?.getState?.() ?? {};
+        const mvSrc = modelViewerRef.current?.getAttribute('src') ?? '—';
+        const pipeActive = pipelineRef.current?.isActive?.() ?? false;
+        const wristOk = (ts.confidence ?? 0) > 0;
+        const G = '#4eff91', R = '#ff4e4e', Y = '#ffff88', B = '#4ec9ff';
+        const row = (label, val, color = '#fff') => (
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+            <span style={{ color: 'rgba(255,255,255,0.55)' }}>{label}</span>
+            <b style={{ color }}>{val}</b>
+          </div>
+        );
+        return (
+          <div style={{
+            position: 'fixed', top: 66, right: 8, zIndex: 9999,
+            background: 'rgba(0,0,0,0.90)', border: '1px solid rgba(255,215,0,0.55)',
+            borderRadius: 10, padding: '8px 11px', fontSize: 10.5,
+            color: '#fff', fontFamily: 'monospace', lineHeight: 1.75,
+            minWidth: 215, pointerEvents: 'none',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+          }}>
+            <div style={{ color: '#FFD700', fontWeight: 'bold', fontSize: 11, marginBottom: 4, letterSpacing: '0.08em' }}>
+              ◈ M025 DIAG
+            </div>
+            {row('trackingActive',   String(trackingActive),    trackingActive   ? G : R)}
+            {row('isTracking',       String(ts.isTracking ?? false), (ts.isTracking ?? false) ? G : R)}
+            {row('shouldRender()',   String(shouldRenderWatch), shouldRenderWatch ? G : R)}
+            {row('wrist detectado',  wristOk ? 'SIM' : 'NÃO',  wristOk ? G : R)}
+            {row('confidence',       ((ts.confidence ?? 0) * 100).toFixed(0) + '%', Y)}
+            {row('stableFrames',     String(ts.stableFrames ?? 0), Y)}
+            {row('lostFrames',       String(ts.lostFrames ?? 0), (ts.lostFrames ?? 0) > 0 ? '#ffaa44' : Y)}
+            {row('watch.size',       watch.size.toFixed(1) + 'px', Y)}
+            {row('x , y',           watch.x.toFixed(0) + ' , ' + watch.y.toFixed(0), Y)}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '4px 0' }} />
+            {row('pipeline ativo',   String(pipeActive),        pipeActive ? G : R)}
+            {row('modelUrl',         (modelUrl ?? 'null').slice(-20),        modelUrl ? G : R)}
+            {row('genModelUrl',      generatedModelUrl ? generatedModelUrl.slice(-20) : 'null', generatedModelUrl ? G : '#aaa')}
+            {row('mv.src (attr)',    mvSrc === '—' ? '—' : mvSrc.slice(-20), mvSrc !== '—' ? G : R)}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '4px 0' }} />
+            {row('mvDefined',        String(mvDebug.defined),   mvDebug.defined ? G : R)}
+            {row('mvEvent',          mvDebug.event,             mvDebug.event === 'LOAD OK' ? G : mvDebug.event.startsWith('ERR') ? R : B)}
+          </div>
+        );
+      })()}
 
       {/* Indicador de recalibração — exibido quando tracking é perdido */}
       {hasValidProduct && !shouldRenderWatch && (
