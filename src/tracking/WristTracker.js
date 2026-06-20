@@ -194,30 +194,32 @@ export class WristTracker {
       score *= avgVisibility;
     }
 
-    // 2. Geometria da mão (distância entre dedos deve ser razoável)
+    // 2. Geometria da mão em coordenadas normalizadas (0-1), independente de
+    //    resolução da câmera, orientação do dispositivo ou escala da tela.
+    //    Usar coords de pixel causava palmWidth > 300 em retrato → confidence < 0.6.
     const palmWidth = Math.hypot(
-      indexMcp.x - pinkyMcp.x,
-      indexMcp.y - pinkyMcp.y
+      landmarks[5].x - landmarks[17].x,
+      landmarks[5].y - landmarks[17].y
     );
-    
-    // Palma muito pequena ou muito grande = baixa confidence
-    if (palmWidth < 30 || palmWidth > 300) {
+
+    // < 0.04 = mão muito distante; > 0.5 = mão muito perto da câmera
+    if (palmWidth < 0.04 || palmWidth > 0.5) {
       score *= 0.5;
     }
 
     // 3. Distância pulso-palma (deve ser proporcional)
     const wristToPalm = Math.hypot(
-      indexMcp.x - wrist.x,
-      indexMcp.y - wrist.y
+      landmarks[5].x - landmarks[0].x,
+      landmarks[5].y - landmarks[0].y
     );
-    
-    const ratio = wristToPalm / palmWidth;
+
+    const ratio = wristToPalm / (palmWidth || 0.001);
     if (ratio < 0.5 || ratio > 3.0) {
       score *= 0.7;
     }
 
     // 4. Profundidade Z (se muito diferente, pode ser oclusão)
-    const zVariance = Math.abs(wrist.z - indexMcp.z);
+    const zVariance = Math.abs((landmarks[0].z || 0) - (landmarks[5].z || 0));
     if (zVariance > 0.15) {
       score *= 0.8;
     }
