@@ -1,0 +1,305 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   HERO 3D — MISSÃO 007 + 008
+   Apenas classes novas. Nenhum estilo existente é modificado.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Keyframes ─────────────────────────────────────────────────────────── */
+
+@keyframes hero3d-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes hero3d-glow {
+  0%, 100% {
+    text-shadow:
+      0 0 10px rgba(212, 175, 55, 0.70),
+      0 0 28px rgba(212, 175, 55, 0.40),
+      0 0 55px rgba(212, 175, 55, 0.15);
+  }
+  50% {
+    text-shadow:
+      0 0 16px rgba(212, 175, 55, 0.95),
+      0 0 40px rgba(212, 175, 55, 0.60),
+      0 0 80px rgba(212, 175, 55, 0.25);
+  }
+}
+
+@keyframes hero3d-enter {
+  from {
+    opacity: 0;
+    transform: translateY(26px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes hero3d-placeholder-pulse {
+  0%, 100% { opacity: 0.25; transform: rotateY(0deg); }
+  50%       { opacity: 0.40; transform: rotateY(180deg); }
+}
+
+@keyframes hero3d-img-float {
+  0%, 100% { transform: rotateY(-8deg) rotateX(2deg); }
+  50%       { transform: rotateY(8deg)  rotateX(-2deg); }
+}
+
+/* ─── Wrapper ───────────────────────────────────────────────────────────── */
+
+.hero3d-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 2vmin, 14px);
+  width: 100%;
+  margin-bottom: clamp(12px, 3vmin, 20px);
+  animation: hero3d-enter 1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+/* ─── Label ─────────────────────────────────────────────────────────────── */
+
+.hero3d-label {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 5px;
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: uppercase;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+  margin: 0;
+  user-select: none;
+}
+
+/* ─── Stage ─────────────────────────────────────────────────────────────── */
+
+.hero3d-stage {
+  position: relative;
+  width: clamp(160px, 46vmin, 260px);
+  height: clamp(160px, 46vmin, 260px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: grab;
+}
+
+.hero3d-stage:active {
+  cursor: grabbing;
+}
+
+/* Golden glow overlay on hover/touch */
+.hero3d-stage::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    rgba(212, 175, 55, 0.10) 0%,
+    rgba(212, 175, 55, 0.04) 50%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero3d-stage:hover {
+  transform: scale(1.08);
+}
+
+.hero3d-stage:hover::before {
+  opacity: 1;
+}
+
+/* ─── Ring ──────────────────────────────────────────────────────────────── */
+
+.hero3d-ring-orbit {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  animation: hero3d-spin 9s linear infinite;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.hero3d-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ─── Model wrap ────────────────────────────────────────────────────────── */
+
+.hero3d-model-wrap {
+  position: absolute;
+  inset: 22px;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.hero3d-model-wrap model-viewer {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+/* ─── Image fallback ────────────────────────────────────────────────────── */
+
+.hero3d-img-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 400px;
+}
+
+.hero3d-product-img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  animation: hero3d-img-float 20s ease-in-out infinite;
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6));
+}
+
+/* ─── Placeholder (no GLB, no image) ───────────────────────────────────── */
+
+.hero3d-placeholder {
+  width: 60%;
+  height: 60%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 35%,
+    rgba(212, 175, 55, 0.25) 0%,
+    rgba(212, 175, 55, 0.08) 50%,
+    transparent 70%
+  );
+  animation: hero3d-placeholder-pulse 22s ease-in-out infinite;
+  transform-style: preserve-3d;
+}
+
+/* ─── 3D Badge ──────────────────────────────────────────────────────────── */
+
+.hero3d-badge {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 5px;
+  color: #d4af37;
+  text-transform: uppercase;
+  animation: hero3d-glow 3.2s ease-in-out infinite, hero3d-enter 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+  pointer-events: none;
+  user-select: none;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.5) 0%, transparent 75%);
+  padding: 2px 14px 4px;
+  border-radius: 4px;
+}
+
+/* ─── Loader (enquanto GLB carrega) ─────────────────────────────────────── */
+
+@keyframes hero3d-load-spin {
+  to { transform: rotate(360deg); }
+}
+
+.hero3d-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero3d-loader-ring {
+  width: 28px;
+  height: 28px;
+  border: 2px solid rgba(212, 175, 55, 0.15);
+  border-top-color: rgba(212, 175, 55, 0.75);
+  border-radius: 50%;
+  animation: hero3d-load-spin 0.9s linear infinite;
+}
+
+/* ─── Desktop ───────────────────────────────────────────────────────────── */
+
+@media (min-width: 769px) {
+  .hero3d-label {
+    font-size: 12px;
+    letter-spacing: 6px;
+  }
+
+  .hero3d-badge {
+    font-size: 24px;
+    letter-spacing: 6px;
+    bottom: 16px;
+  }
+}
+
+/* ─── Small mobile ──────────────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .hero3d-label {
+    font-size: 9px;
+    letter-spacing: 3.5px;
+  }
+
+  .hero3d-badge {
+    font-size: 16px;
+    letter-spacing: 4px;
+    bottom: 8px;
+  }
+}
+
+/* ─── Short screens (landscape mobile) ─────────────────────────────────── */
+
+@media (max-height: 600px) {
+  .hero3d-stage {
+    width: clamp(120px, 36vmin, 155px);
+    height: clamp(120px, 36vmin, 155px);
+  }
+
+  .hero3d-wrapper {
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .hero3d-badge {
+    font-size: 14px;
+    bottom: 6px;
+  }
+}
+
+/* ─── Accessibility — reduced motion ────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero3d-ring-orbit {
+    animation-duration: 30s;
+  }
+
+  .hero3d-wrapper {
+    animation: none;
+    opacity: 1;
+  }
+
+  .hero3d-badge {
+    animation-duration: 8s;
+  }
+
+  .hero3d-product-img {
+    animation-duration: 60s;
+  }
+
+  .hero3d-placeholder {
+    animation-duration: 60s;
+  }
+}

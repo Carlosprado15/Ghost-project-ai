@@ -1,12 +1,19 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css';
-import { getEmbeddedParam, getModelUrl, getProductId, getProductUrl, isStoreMode } from './utils/urlParams';
-import DiagnosticPage from './DiagnosticPage';
-import ReportPanel from './ReportPanel';
+import { ProductAdapter } from './sdk/product-adapter';
+import { GhostProject } from './sdk/GhostProject';
+import { ClickWearAdapter } from './sdk/store-adapters/clickwear';
+import Hero3D from './components/Hero3D';
 import TestModelsPage from './TestModelsPage';
 import LandingPage from './LandingPage';
 import { WristTracker } from './tracking/WristTracker.js';
 import { RenderPipeline } from './tracking/RenderPipeline.js';
+import { PrecisionFitController } from './tracking/PrecisionFitController.js';
+import { createDefaultPipeline } from './pipeline/defaultPipeline.js';
+import { LocalStorageAssetRepository } from './assets/LocalStorageAssetRepository.js';
+import { ProductAsset } from './assets/ProductAsset.js';
+import { AssetStatus } from './assets/AssetStatus.js';
+import GhostDiagnostics from './components/GhostDiagnostics.jsx';
 
 // ─── CDN loaders ──────────────────────────────────────────────────────────────
 function loadScript(src, id) {
@@ -64,72 +71,154 @@ function isDesktopDevice() {
   );
 }
 
+const PIPELINE_LABELS = {
+  UPLOADING:   '↑ ENVIANDO IMAGEM',
+  GENERATING:  '⚙ GERANDO MODELO 3D',
+  DOWNLOADING: '↓ BAIXANDO MODELO',
+  VALIDATING:  '◎ VALIDANDO',
+  READY:       '✓ MODELO PRONTO',
+  ERROR:       '✕ FALHA NA GERAÇÃO',
+};
+
 // ─── Main component ──────────────────────────────────────────────────────────
 export default function App() {
   const [screen, setScreen] = useState('home');
   const [camMode, setCamMode] = useState('environment');
   const [camError, setCamError] = useState('');
   const [showBuy, setShowBuy] = useState(false);
-  const [showDiagnostic, setShowDiagnostic] = useState(false);
   const [showTestModels, setShowTestModels] = useState(false);
-  const [showReportPanel, setShowReportPanel] = useState(false); // New state for ReportPanel
   const [testProductId, setTestProductId] = useState(null);
   const [cameFromTestModels, setCameFromTestModels] = useState(false);
-  const [modelLoadingStartTime, setModelLoadingStartTime] = useState(null);
-  const [modelViewerLoadedTime, setModelViewerLoadedTime] = useState(null);
-  const [firstDisplayTime, setFirstDisplayTime] = useState(null);
   const [showB2BModal, setShowB2BModal] = useState(false);
   const [showLandingPage, setShowLandingPage] = useState(false);
   const [b2bEmail, setB2bEmail] = useState('');
-  const [b2bStatus, setB2bStatus] = useState('idle'); // idle | sending | success | error
+  const [b2bStatus, setB2bStatus] = useState('idle');
   const [showQRScreen, setShowQRScreen] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [screenshotDone, setScreenshotDone] = useState(false);
+  const [pipelineStage, setPipelineStage]          = useState(null);
+  const [pipelineError, setPipelineError]          = useState(null);
+  const [generatedModelUrl, setGeneratedModelUrl]  = useState(null);
+
+  // Precision Fit — offset manual sobre a pose do WristTracker
+  const [pfOffset, setPfOffset] = useState({ x: 0, y: 0, scale: 1, rotation: 0 });
+  const [pfEditing, setPfEditing] = useState(false);
+  const [pfHintVisible, setPfHintVisible] = useState(false);
 
   const modelViewerRef = useRef(null);
 
-  // Estado do relógio (atualizado pelo pipeline)
   const [watch, setWatch] = useState({ x: 0, y: 0, size: 0, rotation: 0 });
-  
-  // Estado de debug profissional
-  const [dbg, setDbg] = useState({
-    status: 'Aguardando',
-    isTracking: false,
-    isStable: false,
-    confidence: 0,
-    fps: 0,
-    frames: 0,
-    lostFrames: 0,
-  });
 
   // Refs
   const videoRef    = useRef(null);
-  const canvasRef   = useRef(null);
   const handsRef    = useRef(null);
   const cameraRef   = useRef(null);
   const streamRef   = useRef(null);
   const buyTimer    = useRef(null);
   const activeRef   = useRef(false);
-  
-  // Sistema de tracking profissional
-  const trackerRef  = useRef(null);
-  const pipelineRef = useRef(null);
-  const lmRef       = useRef(null);
-  const frameCount  = useRef(0);
 
-  // MISSÃO 004 — renderCallback: recebe pose do RenderPipeline e atualiza estado React
+  const trackerRef       = useRef(null);
+  const pipelineRef      = useRef(null);
+  const precisionFitRef  = useRef(null);
+  const scannerDivRef    = useRef(null);
+  const pfHintTimerRef   = useRef(null);
+  const imagePipelineRef = useRef(null);
+  const assetRepoRef     = useRef(null);
+  const hasGeneratedRef  = useRef(false);
+
+  // Performance metrics (Etapa 4)
+  const perfRef = useRef({
+    scannerOpenedAt:  null,
+    firstTrackingAt:  null,
+    modelLoadedAt:    null,
+    glbStartAt:       null,
+    glbEndAt:         null,
+    firstRenderAt:    null,
+  });
+  const [perfMetrics, setPerfMetrics] = useState({});
+
+  // Health issues registrados pelo Auto Health Check (Etapa 2)
+  const [healthIssues, setHealthIssues] = useState([]);
+
   const renderCallback = useCallback((pose) => {
     setWatch(pose);
+    // Perf: tempo até primeira renderização
+    if (pose.size > 0 && perfRef.current.firstRenderAt === null && perfRef.current.scannerOpenedAt !== null) {
+      perfRef.current.firstRenderAt = performance.now();
+    }
   }, []);
 
-  // MISSÃO 004 — debugCallback: atualiza fps no estado de debug
-  const debugCallback = useCallback((info) => {
-    setDbg(prev => ({ ...prev, fps: info.fps }));
+  const debugCallback = useCallback(() => {}, []);
+
+  // ─── Auto Health Check (Etapa 2) ─────────────────────────────────────────
+  const runHealthCheck = useCallback(async () => {
+    const issues = [];
+
+    // câmera
+    if (!navigator.mediaDevices?.getUserMedia) {
+      issues.push('getUserMedia indisponível — câmera não funcionará');
+    } else {
+      try {
+        if (navigator.permissions) {
+          const perm = await navigator.permissions.query({ name: 'camera' }).catch(() => null);
+          if (perm?.state === 'denied') issues.push('Permissão de câmera negada');
+        }
+      } catch { /* ignorar */ }
+    }
+
+    // WebGL / renderização
+    try {
+      const c = document.createElement('canvas');
+      const gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+      if (!gl) issues.push('WebGL indisponível — renderização 3D não funcionará');
+    } catch {
+      issues.push('Erro ao verificar WebGL');
+    }
+
+    // model-viewer
+    if (typeof customElements !== 'undefined' && !customElements.get('model-viewer')) {
+      // não é falha — carrega sob demanda; apenas aviso interno
+      console.info('[HealthCheck] model-viewer ainda não registrado (normal em DEV antes do scanner)');
+    }
+
+    // pipeline
+    if (!imagePipelineRef.current) {
+      issues.push('ImageToModelPipeline não inicializado');
+    }
+
+    // Precision Fit
+    if (!precisionFitRef.current) {
+      issues.push('PrecisionFitController não inicializado');
+    }
+
+    // providers
+    const providers = imagePipelineRef.current?.providerSelector?.getAll?.() ?? [];
+    if (providers.length === 0) {
+      issues.push('Nenhum provider 3D registrado — geração de modelos indisponível');
+    }
+
+    // cache
+    try {
+      localStorage.setItem('__ghost_hc__', '1');
+      localStorage.removeItem('__ghost_hc__');
+    } catch {
+      issues.push('localStorage indisponível — assets não serão persistidos');
+    }
+
+    if (issues.length > 0) {
+      console.warn('[HealthCheck] Problemas detectados:', issues);
+    } else {
+      console.info('[HealthCheck] Todos os sistemas OK');
+    }
+
+    setHealthIssues(issues);
   }, []);
 
   useModelViewer();
 
   // Inicialização única da nova arquitetura de tracking (instâncias ociosas)
   useEffect(() => {
+    assetRepoRef.current   = new LocalStorageAssetRepository();
     trackerRef.current = new WristTracker({
       minConfidence: 0.6,
       minStabilityFrames: 8,
@@ -144,6 +233,8 @@ export default function App() {
       watchOffsetRatio: 0.18,
     });
     pipelineRef.current = new RenderPipeline();
+    precisionFitRef.current = new PrecisionFitController();
+    imagePipelineRef.current = createDefaultPipeline();
 
     return () => {
       trackerRef.current?.reset();
@@ -152,7 +243,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (isStoreMode()) {
+    if (ProductAdapter.isStoreMode()) {
       openScanner(null);
     }
   }, []);
@@ -160,39 +251,62 @@ export default function App() {
 
 
 const handleBuyNow = () => {
-  const params = new URLSearchParams(window.location.search);
-  const cartUrl = params.get('cartUrl');
-  const productUrl = params.get('productUrl');
-  
+  const { cartUrl, productUrl } = ProductAdapter.getActive();
+  GhostProject._emit('onPurchase', { cartUrl, productUrl });
   if (cartUrl) {
     window.location.href = decodeURIComponent(cartUrl);
   } else if (productUrl) {
     window.location.href = decodeURIComponent(productUrl);
+  } else {
+    closeScanner();
   }
 };
 
   const handleContinueShopping = () => {
+    GhostProject._emit('onContinueShopping', {});
     closeScanner();
     if (cameFromTestModels) {
       setShowTestModels(true);
       setCameFromTestModels(false);
-    } else if (isStoreMode()) {
-      window.location.href = getProductUrl() || '/';
+    } else if (ProductAdapter.isStoreMode()) {
+      window.location.href = ProductAdapter.getActive().productUrl || '/';
     } else if (window.parent === window) {
       setScreen('home');
     }
   };
 
   const openScanner = (productId = null) => {
+    GhostProject._emit('onOpen', { productId });
     setCamError('');
     setShowBuy(false);
-    setTestProductId(productId); // Set the product ID for testing
+    setTestProductId(productId);
     setScreen('scanner');
 
-    // Reset model loading states
-    setModelLoadingStartTime(performance.now());
-    setModelViewerLoadedTime(null);
-    setFirstDisplayTime(null);
+    // Reset Precision Fit ao iniciar nova sessão
+    precisionFitRef.current?.reset();
+    setPfOffset({ x: 0, y: 0, scale: 1, rotation: 0 });
+    setPfEditing(false);
+
+    // Reset pipeline para nova sessão
+    hasGeneratedRef.current = false;
+    setGeneratedModelUrl(null);
+    setPipelineStage(null);
+    setPipelineError(null);
+    setWatch({ x: 0, y: 0, size: 0, rotation: 0 });
+
+    // Perf: marca abertura do scanner
+    perfRef.current = {
+      scannerOpenedAt:  performance.now(),
+      firstTrackingAt:  null,
+      modelLoadedAt:    null,
+      glbStartAt:       null,
+      glbEndAt:         null,
+      firstRenderAt:    null,
+    };
+    setPerfMetrics({});
+
+    // Auto Health Check (Etapa 2) — assíncrono, nunca interrompe
+    runHealthCheck().catch(() => {});
   };
 
   const handleSelectTestProduct = (productId) => {
@@ -222,7 +336,6 @@ const handleBuyNow = () => {
 
     activeRef.current = true;
 
-    // MISSÃO 004 — iniciar pipeline de renderização
     pipelineRef.current.start(renderCallback, debugCallback);
 
     (async () => {
@@ -250,11 +363,7 @@ const handleBuyNow = () => {
         // Aguarda modelo estabilizar
         await new Promise((resolve) => setTimeout(resolve, 400));
 
-        // CORREÇÃO CIRÚRGICA: Verificar se videoRef.current existe antes da inicialização da câmera
-        if (!videoRef.current) {
-          console.error("VIDEO_REF_NULL: videoRef.current é null no momento da inicialização da câmera");
-          return;
-        }
+        if (!videoRef.current) return;
 
         const camera = new window.Camera(videoRef.current, {
           onFrame: async () => {
@@ -304,8 +413,8 @@ const handleBuyNow = () => {
     return () => {
       activeRef.current = false;
 
-      // MISSÃO 004 — parar pipeline ao sair do scanner
       pipelineRef.current?.stop();
+      imagePipelineRef.current?.cancel?.().catch(() => {});
 
       clearTimeout(buyTimer.current);
 
@@ -325,7 +434,180 @@ const handleBuyNow = () => {
     };
   }, [screen, camMode, onHandsResults, renderCallback, debugCallback]);
 
+  // Precision Fit — touch handlers com passive:false para permitir preventDefault
+  useEffect(() => {
+    if (screen !== 'scanner') return;
+    const el = scannerDivRef.current;
+    if (!el) return;
+
+    const pf = precisionFitRef.current;
+
+    const onStart = (e) => {
+      if (e.touches.length === 2 && pf) {
+        pf.handleTouchStart(e.touches);
+        setPfEditing(true);
+      }
+    };
+
+    const onMove = (e) => {
+      if (pf?.isEditing && e.touches.length === 2) {
+        e.preventDefault();
+        pf.handleTouchMove(e.touches);
+        setPfOffset({ x: pf.offsetX, y: pf.offsetY, scale: pf.offsetScale, rotation: pf.offsetRotation });
+      }
+    };
+
+    const onEnd = (e) => {
+      if (pf) {
+        pf.handleTouchEnd(e.touches.length);
+        setPfEditing(pf.isEditing);
+      }
+    };
+
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove', onMove, { passive: false });
+    el.addEventListener('touchend', onEnd, { passive: true });
+    el.addEventListener('touchcancel', onEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+      el.removeEventListener('touchcancel', onEnd);
+    };
+  }, [screen]);
+
+  // Precision Fit UX — controla hint "Ajuste com dois dedos" e auto-hide em 2s
+  useEffect(() => {
+    if (pfEditing) {
+      setPfHintVisible(true);
+      clearTimeout(pfHintTimerRef.current);
+      pfHintTimerRef.current = setTimeout(() => setPfHintVisible(false), 2000);
+    } else {
+      clearTimeout(pfHintTimerRef.current);
+      setPfHintVisible(false);
+    }
+    return () => clearTimeout(pfHintTimerRef.current);
+  }, [pfEditing]);
+
+  const handlePrecisionFitReset = useCallback(() => {
+    precisionFitRef.current?.reset();
+    setPfOffset({ x: 0, y: 0, scale: 1, rotation: 0 });
+    setPfEditing(false);
+  }, []);
+
+  const captureAndGenerate = useCallback(async () => {
+    if (hasGeneratedRef.current) return;
+    hasGeneratedRef.current = true;
+
+    setPipelineError(null);
+
+    // Perf: início da geração GLB
+    const glbStart = performance.now();
+    perfRef.current.glbStartAt = glbStart;
+
+    try {
+      const video = videoRef.current;
+      if (!video || video.readyState < 2) {
+        hasGeneratedRef.current = false;
+        return;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width  = video.videoWidth  || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext('2d');
+      if (camMode === 'user') { ctx.save(); ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
+      ctx.drawImage(video, 0, 0);
+      if (camMode === 'user') ctx.restore();
+
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.9));
+      if (!blob || !activeRef.current) return;
+
+      const url = await imagePipelineRef.current.run(blob, {
+        onProgress: (stage) => { if (activeRef.current) setPipelineStage(stage); },
+      });
+
+      if (url && activeRef.current) {
+        // Perf: fim da geração + modelo disponível
+        const now = performance.now();
+        perfRef.current.glbEndAt    = now;
+        perfRef.current.modelLoadedAt = now;
+        setPerfMetrics(prev => ({
+          ...prev,
+          glbGenerationTime: now - glbStart,
+          timeToModel: perfRef.current.scannerOpenedAt
+            ? now - perfRef.current.scannerOpenedAt
+            : null,
+        }));
+
+        setGeneratedModelUrl(url);
+        setPipelineStage('READY');
+
+        // Persistir asset gerado no repositório local
+        // Error recovery (Etapa 3): falha silenciosa — nunca bloqueia o app
+        const pid = testProductId || ProductAdapter.getActive().productId || 'ghost_generated';
+        const asset = new ProductAsset({
+          productId:    pid,
+          storeId:      'ghost',
+          sku:          pid,
+          name:         'Produto Gerado',
+          brand:        'Ghost Project AI',
+          category:     'generated',
+          glbModel:     url,
+          metadata:     { generatedAt: Date.now(), provider: 'auto' },
+        });
+        asset.status = AssetStatus.READY;
+        assetRepoRef.current?.save(asset).catch((saveErr) => {
+          console.warn('[Asset] Falha ao persistir no localStorage — dado disponível apenas em memória:', saveErr.message);
+        });
+      }
+    } catch (err) {
+      console.error('[Pipeline]', err);
+      if (activeRef.current) {
+        setPipelineStage('ERROR');
+        setPipelineError('Falha ao gerar modelo. Tente novamente.');
+        hasGeneratedRef.current = false;
+        perfRef.current.glbStartAt = null;
+      }
+    }
+  }, [camMode, testProductId]);
+
+  const retryGenerate = useCallback(() => {
+    setPipelineStage(null);
+    setPipelineError(null);
+    hasGeneratedRef.current = false;
+    const t = setTimeout(captureAndGenerate, 500);
+    return () => clearTimeout(t);
+  }, [captureAndGenerate]);
+
+  const trackingActive = watch.size > 0;
+  useEffect(() => {
+    // Perf: tempo até primeiro tracking ativo
+    if (trackingActive && perfRef.current.firstTrackingAt === null && perfRef.current.scannerOpenedAt !== null) {
+      const now = performance.now();
+      perfRef.current.firstTrackingAt = now;
+      setPerfMetrics(prev => ({
+        ...prev,
+        timeToTracking: now - perfRef.current.scannerOpenedAt,
+        firstRenderTime: perfRef.current.firstRenderAt
+          ? perfRef.current.firstRenderAt - perfRef.current.scannerOpenedAt
+          : null,
+      }));
+    }
+    if (!trackingActive || screen !== 'scanner' || hasGeneratedRef.current) return;
+    const t = setTimeout(captureAndGenerate, 1500);
+    return () => clearTimeout(t);
+  }, [trackingActive, screen, captureAndGenerate]);
+
+  useEffect(() => {
+    if (pipelineStage !== 'READY') return;
+    const t = setTimeout(() => setPipelineStage(null), 3000);
+    return () => clearTimeout(t);
+  }, [pipelineStage]);
+
   const closeScanner = () => {
+    GhostProject._emit('onClose', {});
     activeRef.current = false;
 
     clearTimeout(buyTimer.current);
@@ -408,8 +690,13 @@ const handleBuyNow = () => {
 
       canvas.toBlob((blob) => {
         const file = new File([blob], 'ghost-project-ar.jpg', { type: 'image/jpeg' });
+        GhostProject._emit('onScreenshot', { blob });
+        setScreenshotDone(true);
+        setTimeout(() => setScreenshotDone(false), 1600);
         if (navigator.canShare?.({ files: [file] })) {
-          navigator.share({ files: [file], title: 'Ghost Project AI' }).catch(() => {});
+          navigator.share({ files: [file], title: 'Ghost Project AI' })
+            .then(() => GhostProject._emit('onShare', {}))
+            .catch(() => {});
         } else {
           const url = URL.createObjectURL(blob);
           const a   = document.createElement('a');
@@ -421,6 +708,7 @@ const handleBuyNow = () => {
       }, 'image/jpeg', 0.92);
 
     } catch (err) {
+      // Error recovery (Etapa 3): screenshot falhou — log sem interromper app
       console.error('[Screenshot]', err);
     } finally {
       setIsCapturing(false);
@@ -430,11 +718,6 @@ const handleBuyNow = () => {
   // ─── LANDING PAGE ────────────────────────────────────────────────────────
   if (showLandingPage) {
     return <LandingPage onClose={() => setShowLandingPage(false)} />;
-  }
-
-  // ─── DIAGNOSTIC ──────────────────────────────────────────────────────────
-  if (showDiagnostic) {
-    return <DiagnosticPage onBack={() => setShowDiagnostic(false)} />;
   }
 
   // ─── TEST MODELS ─────────────────────────────────────────────────────────
@@ -450,46 +733,59 @@ const handleBuyNow = () => {
   // ─── QR SCREEN (desktop) ─────────────────────────────────────────────────
   if (showQRScreen) {
     const qrUrl = window.location.href;
-    const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrUrl)}`;
+    const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}`;
 
     return (
       <div className="home">
         <div className="home-background" style={{ backgroundImage: 'url("/logo.jpeg")' }} />
         <div className="home-content">
-          <div style={{ textAlign: 'center' }}>
+          <div style={{ textAlign: 'center', animation: 'hero3d-enter 0.7s cubic-bezier(0.16,1,0.3,1) both' }}>
             <p style={{
               color: '#D4AF37',
-              fontSize: '10px',
-              letterSpacing: '0.22em',
+              fontSize: '9px',
+              letterSpacing: '0.32em',
+              fontWeight: 400,
+              marginBottom: '6px',
+              textTransform: 'uppercase',
+              opacity: 0.9,
+            }}>
+              Ghost Project AI
+            </p>
+            <p style={{
+              color: 'rgba(255,255,255,0.48)',
+              fontSize: '11px',
+              letterSpacing: '0.18em',
               fontWeight: 300,
               marginBottom: '28px',
               textTransform: 'uppercase',
             }}>
-              Experiência AR disponível no celular
+              Experiência AR no celular
             </p>
             <div style={{
               background: '#fff',
               padding: '14px',
-              borderRadius: '12px',
+              borderRadius: '16px',
               display: 'inline-block',
-              marginBottom: '20px',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
+              marginBottom: '22px',
+              boxShadow: '0 0 0 1px rgba(212,175,55,0.38), 0 12px 48px rgba(0,0,0,0.7)',
             }}>
-              <img src={qrSrc} alt="QR Code" width={220} height={220} />
+              <img src={qrSrc} alt="QR Code" width={200} height={200} />
             </div>
             <p style={{
-              color: 'rgba(255,255,255,0.65)',
+              color: 'rgba(255,255,255,0.72)',
               fontSize: '13px',
-              letterSpacing: '0.04em',
-              marginBottom: '6px',
+              letterSpacing: '0.05em',
+              fontWeight: 300,
+              marginBottom: '5px',
             }}>
-              Escaneie com seu celular
+              Aponte a câmera do celular
             </p>
             <p style={{
-              color: 'rgba(255,255,255,0.3)',
-              fontSize: '11px',
-              letterSpacing: '0.08em',
-              marginBottom: '32px',
+              color: 'rgba(212,175,55,0.52)',
+              fontSize: '10px',
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              marginBottom: '36px',
             }}>
               Powered by Ghost Project AI
             </p>
@@ -504,6 +800,13 @@ const handleBuyNow = () => {
 
   // ─── HOME ────────────────────────────────────────────────────────────────
   if (screen === 'home') {
+    // Resolve active product via SDK — never reads URL params directly
+    const _activeProduct  = ProductAdapter.getActive();
+    const heroProductId   = _activeProduct.productId   || ClickWearAdapter.DEFAULT_PRODUCT_ID;
+    const heroModelSrc    = _activeProduct.modelUrl    || ClickWearAdapter.DEFAULT_MODEL_PATH;
+    const heroProductName = _activeProduct.productName;
+    const heroProductImg  = _activeProduct.productImage;
+
     return (
       <div className="home">
         <div
@@ -526,6 +829,18 @@ const handleBuyNow = () => {
             </p>
           </div>
 
+          {/* Ghost Diagnostics — disponível também na home em DEV */}
+          {import.meta.env.DEV && (
+            <GhostDiagnostics
+              trackerRef={trackerRef}
+              pipelineRef={pipelineRef}
+              precisionFitRef={precisionFitRef}
+              imagePipelineRef={imagePipelineRef}
+              perfMetrics={perfMetrics}
+              healthIssues={healthIssues}
+            />
+          )}
+
           <div className="home-buttons">
             <div className="cam-selector">
               <button
@@ -547,6 +862,13 @@ const handleBuyNow = () => {
 
             {camError && <p className="cam-error">{camError}</p>}
 
+            {/* Hero 3D Product Preview — MISSÃO 007/008 */}
+            <Hero3D
+              modelSrc={heroModelSrc}
+              productImage={heroProductImg}
+              productName={heroProductName}
+            />
+
             {/* Botão TEST MODELS visível apenas em desenvolvimento */}
             {import.meta.env.DEV && (
               <button
@@ -562,7 +884,7 @@ const handleBuyNow = () => {
               if (isDesktopDevice()) {
                 setShowQRScreen(true);
               } else {
-                openScanner(getProductId() || 'CW001');
+                openScanner(ProductAdapter.getActive().productId || ClickWearAdapter.DEFAULT_PRODUCT_ID);
               }
             }}>
               START SCANNER
@@ -576,41 +898,74 @@ const handleBuyNow = () => {
   // ─── Watch Style ─────────────────────────────────────────────────────────
   const shouldRenderWatch = trackerRef.current?.shouldRender?.() ?? false;
 
-  // CORREÇÃO CRÍTICA: Perspective no container pai + ordem correta do transform
+  // Precision Fit: aplica offset manual sobre a pose do WristTracker
+  const finalWatch = {
+    ...watch,
+    x: watch.x + pfOffset.x,
+    y: watch.y + pfOffset.y,
+    size: watch.size * pfOffset.scale,
+    rotation: watch.rotation + pfOffset.rotation,
+  };
+
   const watchContainerStyle = {
     position: 'fixed',
-    left: `${watch.x}px`,
-    top: `${watch.y}px`,
-    width: `${watch.size}px`,
-    height: `${watch.size}px`,
+    left: `${finalWatch.x}px`,
+    top: `${finalWatch.y}px`,
+    width: `${finalWatch.size}px`,
+    height: `${finalWatch.size}px`,
     pointerEvents: 'none',
     zIndex: 15,
     opacity: shouldRenderWatch ? 1 : 0,
-    transition: 'opacity 0.15s ease, width 0.1s ease, height 0.1s ease',
-    // PERSPECTIVE aplicada no container PAI
-    perspective: '800px',
+    transition: pfEditing
+      ? 'opacity 0.3s ease, filter 0.25s cubic-bezier(0.25,0.46,0.45,0.94), transform 0.18s cubic-bezier(0.34,1.56,0.64,1)'
+      : 'opacity 0.55s cubic-bezier(0.4,0,0.2,1), filter 0.55s cubic-bezier(0.4,0,0.2,1), transform 0.55s cubic-bezier(0.34,1.2,0.64,1), width 0.08s linear, height 0.08s linear',
+    perspective: '900px',
     perspectiveOrigin: '50% 50%',
-    // Translate para centralizar no pulso
-    transform: 'translate(-50%, -50%)',
+    transform: pfEditing
+      ? 'translate(-50%, -50%) scale(1.06)'
+      : shouldRenderWatch
+        ? 'translate(-50%, -50%) scale(1)'
+        : 'translate(-50%, -50%) scale(0.92)',
+    filter: pfEditing
+      ? [
+          'drop-shadow(0 16px 48px rgba(0,0,0,0.72))',
+          'drop-shadow(0 0 28px rgba(212,175,55,0.95))',
+          'drop-shadow(0 0 56px rgba(212,175,55,0.52))',
+          'drop-shadow(0 0 96px rgba(212,175,55,0.22))',
+        ].join(' ')
+      : 'drop-shadow(0 10px 30px rgba(0,0,0,0.5))',
   };
 
   const watchStyle = {
     width: '100%',
     height: '100%',
-    transform: `rotateZ(${watch.rotation}deg)`,
+    transform: `rotateZ(${finalWatch.rotation}deg)`,
     transformStyle: 'preserve-3d',
     transformOrigin: 'center center',
     filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.4))',
   };
 
   // ─── SCANNER ─────────────────────────────────────────────────────────────
-  // VALIDATION: Obter productId e modelUrl
-  const productId = testProductId || getProductId();
-  const modelUrl = getModelUrl(productId);
+  const _scanProduct  = testProductId
+    ? ProductAdapter.fromParams({ productId: testProductId })
+    : ProductAdapter.getActive();
+  const productId     = _scanProduct.productId;
+  const modelUrl      = _scanProduct.modelUrl;
   const hasValidProduct = productId && modelUrl;
 
   return (
-    <div className="scanner">
+    <div className="scanner" ref={scannerDivRef}>
+      {/* Ghost Diagnostics — apenas em desenvolvimento (Etapas 1, 2, 4) */}
+      {import.meta.env.DEV && (
+        <GhostDiagnostics
+          trackerRef={trackerRef}
+          pipelineRef={pipelineRef}
+          precisionFitRef={precisionFitRef}
+          imagePipelineRef={imagePipelineRef}
+          perfMetrics={perfMetrics}
+          healthIssues={healthIssues}
+        />
+      )}
       {/* Video sempre renderizado quando screen === 'scanner' */}
       <video
         ref={videoRef}
@@ -621,40 +976,50 @@ const handleBuyNow = () => {
         style={camMode === 'user' ? { transform: 'scaleX(-1)' } : {}}
       />
 
-      {/* Se não há produto válido, mostrar erro sobreposto */}
+      {/* Indicador de recalibração — exibido quando tracking é perdido */}
       {hasValidProduct && !shouldRenderWatch && (
         <div style={{
           position: 'fixed',
-          top: 0,
+          bottom: '148px',
           left: 0,
-          width: '100%',
-          height: '100%',
+          right: 0,
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'rgba(0,0,0,0.85)',
-          zIndex: 25,
+          zIndex: 18,
           pointerEvents: 'none',
+          animation: 'ghostFadeInY 0.5s cubic-bezier(0.4,0,0.2,1) both',
         }}>
           <div style={{
-            width: '48px',
-            height: '48px',
-            border: '2px solid rgba(212,175,55,0.2)',
-            borderTopColor: 'rgba(212,175,55,0.9)',
-            borderRadius: '50%',
-            animation: 'ghostSpin 1s linear infinite',
-            marginBottom: '20px',
-          }} />
-          <p style={{
-            color: '#fff',
-            fontSize: '13px',
-            letterSpacing: '0.08em',
-            fontWeight: 500,
-            opacity: 0.85,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            background: 'rgba(0,0,0,0.58)',
+            border: '1px solid rgba(212,175,55,0.18)',
+            borderRadius: '24px',
+            padding: '10px 22px',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
           }}>
-            Calibrando experiência espacial
-          </p>
+            <div style={{
+              width: '14px',
+              height: '14px',
+              border: '1.5px solid rgba(212,175,55,0.22)',
+              borderTopColor: '#D4AF37',
+              borderRadius: '50%',
+              animation: 'ghostSpin 1s linear infinite',
+              flexShrink: 0,
+            }} />
+            <p style={{
+              color: 'rgba(255,255,255,0.68)',
+              fontSize: '11px',
+              letterSpacing: '0.12em',
+              fontWeight: 400,
+              whiteSpace: 'nowrap',
+              margin: 0,
+            }}>
+              Recalibrando
+            </p>
+          </div>
         </div>
       )}
       {!hasValidProduct ? (
@@ -724,6 +1089,18 @@ const handleBuyNow = () => {
             </div>
           </div>
 
+          {/* Flash visual no momento da captura */}
+          {isCapturing && (
+            <div style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(255,255,255,0.14)',
+              zIndex: 50,
+              pointerEvents: 'none',
+              animation: 'screenshotFlash 0.35s ease forwards',
+            }} />
+          )}
+
           {/* Botão screenshot — canto superior direito */}
           <button
             onClick={takeScreenshot}
@@ -733,8 +1110,12 @@ const handleBuyNow = () => {
               top: '16px',
               right: '16px',
               zIndex: 20,
-              background: 'rgba(0,0,0,0.45)',
-              border: '1px solid rgba(255,255,255,0.18)',
+              background: screenshotDone
+                ? 'rgba(46,213,115,0.22)'
+                : 'rgba(0,0,0,0.45)',
+              border: screenshotDone
+                ? '1px solid rgba(46,213,115,0.52)'
+                : '1px solid rgba(255,255,255,0.18)',
               borderRadius: '50%',
               width: '44px',
               height: '44px',
@@ -742,22 +1123,159 @@ const handleBuyNow = () => {
               alignItems: 'center',
               justifyContent: 'center',
               cursor: isCapturing ? 'wait' : 'pointer',
-              fontSize: '20px',
-              opacity: isCapturing ? 0.4 : 1,
-              transition: 'opacity 0.2s',
-              backdropFilter: 'blur(4px)',
+              fontSize: screenshotDone ? '16px' : '19px',
+              opacity: isCapturing ? 0.5 : 1,
+              transform: screenshotDone ? 'scale(1.1)' : 'scale(1)',
+              transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
+              backdropFilter: 'blur(6px)',
+              WebkitBackdropFilter: 'blur(6px)',
             }}
             title="Capturar experiência AR"
           >
-            📸
+            {isCapturing ? '⏳' : screenshotDone ? '✓' : '📸'}
           </button>
 
-          {/* Relógio 3D - ESTRUTURA CORRIGIDA: container com perspective + wrapper com rotações */}
+          {/* Pipeline — indicador de progresso + erro + retry */}
+          {pipelineStage && (
+            <div style={{
+              position: 'fixed',
+              top: '16px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 22,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              background: pipelineStage === 'READY'
+                ? 'rgba(46,213,115,0.12)'
+                : pipelineStage === 'ERROR'
+                  ? 'rgba(255,68,68,0.12)'
+                  : 'rgba(0,0,0,0.52)',
+              border: `1px solid ${
+                pipelineStage === 'READY'
+                  ? 'rgba(46,213,115,0.5)'
+                  : pipelineStage === 'ERROR'
+                    ? 'rgba(255,68,68,0.45)'
+                    : 'rgba(255,255,255,0.12)'
+              }`,
+              borderRadius: '20px',
+              padding: '5px 16px',
+              color: pipelineStage === 'READY'
+                ? '#2ed573'
+                : pipelineStage === 'ERROR'
+                  ? '#ff6b6b'
+                  : 'rgba(255,255,255,0.82)',
+              fontSize: '10px',
+              letterSpacing: '0.12em',
+              fontWeight: 500,
+              backdropFilter: 'blur(6px)',
+              WebkitBackdropFilter: 'blur(6px)',
+              whiteSpace: 'nowrap',
+            }}>
+              <span style={{ pointerEvents: 'none' }}>
+                {PIPELINE_LABELS[pipelineStage] ?? pipelineStage}
+              </span>
+              {pipelineStage === 'ERROR' && (
+                <button
+                  onClick={retryGenerate}
+                  style={{
+                    background: 'rgba(255,255,255,0.12)',
+                    border: '1px solid rgba(255,255,255,0.22)',
+                    borderRadius: '12px',
+                    color: '#fff',
+                    fontSize: '10px',
+                    fontWeight: 600,
+                    letterSpacing: '0.08em',
+                    padding: '3px 10px',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Retry
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Precision Fit — indicador de modo ativo */}
+          {pfEditing && (
+            <div style={{
+              position: 'fixed',
+              top: '70px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 20,
+              background: 'rgba(212,175,55,0.18)',
+              border: '1px solid rgba(212,175,55,0.55)',
+              borderRadius: '20px',
+              padding: '5px 16px',
+              color: '#D4AF37',
+              fontSize: '11px',
+              letterSpacing: '0.14em',
+              fontWeight: 500,
+              pointerEvents: 'none',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              animation: 'pfEnter 0.25s cubic-bezier(0.4,0,0.2,1) both',
+            }}>
+              PRECISION FIT
+            </div>
+          )}
+
+          {/* Botão Reset Position — discreto, canto inferior esquerdo */}
+          <button
+            onClick={handlePrecisionFitReset}
+            style={{
+              position: 'fixed',
+              bottom: '100px',
+              left: '16px',
+              zIndex: 20,
+              background: 'rgba(0,0,0,0.4)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '8px',
+              padding: '6px 10px',
+              color: 'rgba(255,255,255,0.55)',
+              fontSize: '10px',
+              letterSpacing: '0.08em',
+              cursor: 'pointer',
+              backdropFilter: 'blur(4px)',
+              transition: 'opacity 0.2s',
+              opacity: (pfOffset.x !== 0 || pfOffset.y !== 0 || pfOffset.scale !== 1 || pfOffset.rotation !== 0) ? 1 : 0.3,
+            }}
+            title="Resetar ajuste manual"
+          >
+            Reset Position
+          </button>
+
           <div className="watch-container" style={watchContainerStyle}>
+            {/* Precision Fit UX — hint flutuante acima do produto */}
+            <div style={{
+              position: 'absolute',
+              bottom: '100%',
+              left: '50%',
+              marginBottom: '10px',
+              color: '#D4AF37',
+              fontSize: '12px',
+              fontWeight: 500,
+              letterSpacing: '0.1em',
+              background: 'rgba(0,0,0,0.58)',
+              padding: '6px 14px',
+              borderRadius: '14px',
+              whiteSpace: 'nowrap',
+              opacity: pfHintVisible ? 1 : 0,
+              transform: pfHintVisible ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(5px)',
+              transition: 'opacity 0.35s ease, transform 0.35s cubic-bezier(0.4,0,0.2,1)',
+              pointerEvents: 'none',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              zIndex: 1,
+            }}>
+              Ajuste com dois dedos
+            </div>
             <div style={watchStyle}>
               <model-viewer
                 ref={modelViewerRef}
-                src={modelUrl}
+                src={generatedModelUrl || modelUrl}
                 disable-zoom
                 shadow-intensity="0.8"
                 exposure="1.0"
@@ -768,19 +1286,13 @@ const handleBuyNow = () => {
                 max-camera-orbit="auto auto 105%"
                 camera-controls="false"
                 tone-mapping="neutral"
-                orientation={`0deg 0deg ${watch.rotation - 90}deg`}
+                orientation={`0deg 0deg ${finalWatch.rotation - 90}deg`}
                 scale="2 2 2"
                 style={{
                   width: '100%',
                   height: '100%',
                   background: 'transparent',
                   opacity: 0.98
-                }}
-                onLoad={() => setModelViewerLoadedTime(performance.now())}
-                onUpdate={() => {
-                  if (!firstDisplayTime && modelViewerRef.current?.modelIsVisible) {
-                    setFirstDisplayTime(performance.now());
-                  }
                 }}
               />
             </div>
