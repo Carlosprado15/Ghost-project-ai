@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css';
 import { ProductAdapter } from './sdk/product-adapter';
 import { GhostProject } from './sdk/GhostProject';
-import { ClickWearAdapter } from './sdk/store-adapters/clickwear';
 
 import TestModelsPage from './TestModelsPage';
 import LandingPage from './LandingPage';
@@ -82,9 +81,6 @@ const PIPELINE_LABELS = {
 
 // ─── Main component ──────────────────────────────────────────────────────────
 export default function App() {
-  // M025 — flag de diagnóstico via URL (?debug=1) ou modo DEV (remover após fix)
-  const showDebug = import.meta.env.DEV || new URLSearchParams(window.location.search).has('debug');
-
   const [screen, setScreen] = useState('home');
   const [camMode, setCamMode] = useState('environment');
   const [camError, setCamError] = useState('');
@@ -144,8 +140,6 @@ export default function App() {
   // Health issues registrados pelo Auto Health Check (Etapa 2)
   const [healthIssues, setHealthIssues] = useState([]);
 
-  // M025 — estado de diagnóstico do model-viewer (remover após fix)
-  const [mvDebug, setMvDebug] = useState({ defined: false, event: '—', loaded: false });
 
   const renderCallback = useCallback((pose) => {
     setWatch(pose);
@@ -370,9 +364,6 @@ const handleBuyNow = () => {
         hands.onResults(onHandsResults);
 
         handsRef.current = hands;
-
-        // Aguarda modelo estabilizar
-        await new Promise((resolve) => setTimeout(resolve, 400));
 
         if (!videoRef.current) return;
 
@@ -646,36 +637,6 @@ const handleBuyNow = () => {
     mv.addEventListener('error', handleModelError);
     return () => mv.removeEventListener('error', handleModelError);
   }, [screen, generatedModelUrl]);
-
-  // M025 — rastrear estado do model-viewer em dispositivo físico (remover após fix)
-  useEffect(() => {
-    if (screen !== 'scanner') return;
-
-    const updateDefined = () =>
-      setMvDebug(prev => ({ ...prev, defined: !!customElements.get('model-viewer') }));
-    updateDefined();
-    customElements.whenDefined('model-viewer').then(updateDefined).catch(() => {});
-
-    const mv = modelViewerRef.current;
-    if (!mv) return;
-
-    const onLoad = () => setMvDebug(prev => ({ ...prev, event: 'LOAD OK', loaded: true }));
-    const onError = (e) => setMvDebug(prev => ({ ...prev, event: `ERR:${e?.type ?? '?'}` }));
-    const onProgress = (e) => {
-      const pct = Math.round((e.detail?.totalProgress ?? 0) * 100);
-      setMvDebug(prev => ({ ...prev, event: `loading ${pct}%` }));
-    };
-
-    mv.addEventListener('load', onLoad);
-    mv.addEventListener('error', onError);
-    mv.addEventListener('progress', onProgress);
-
-    return () => {
-      mv.removeEventListener('load', onLoad);
-      mv.removeEventListener('error', onError);
-      mv.removeEventListener('progress', onProgress);
-    };
-  }, [screen]);
 
   const closeScanner = () => {
     GhostProject._emit('onClose', {});
@@ -1080,7 +1041,7 @@ const handleBuyNow = () => {
               if (isDesktopDevice()) {
                 setShowQRScreen(true);
               } else {
-                openScanner(ProductAdapter.getActive().productId || ClickWearAdapter.DEFAULT_PRODUCT_ID);
+                openScanner(ProductAdapter.getActive().productId || null);
               }
             }}>
               START SCANNER
@@ -1114,7 +1075,7 @@ const handleBuyNow = () => {
     opacity: shouldRenderWatch ? 1 : 0,
     transition: pfEditing
       ? 'opacity 0.3s ease, filter 0.25s cubic-bezier(0.25,0.46,0.45,0.94), transform 0.18s cubic-bezier(0.34,1.56,0.64,1)'
-      : 'opacity 0.55s cubic-bezier(0.4,0,0.2,1), filter 0.55s cubic-bezier(0.4,0,0.2,1), transform 0.55s cubic-bezier(0.34,1.2,0.64,1), width 0.08s linear, height 0.08s linear',
+      : 'opacity 0.10s ease, filter 0.10s ease, transform 0.18s cubic-bezier(0.34,1.2,0.64,1), width 0.08s linear, height 0.08s linear',
     perspective: '900px',
     perspectiveOrigin: '50% 50%',
     transform: pfEditing
@@ -1171,52 +1132,6 @@ const handleBuyNow = () => {
         className="video-feed"
         style={camMode === 'user' ? { transform: 'scaleX(-1)' } : {}}
       />
-
-      {/* M025 DIAG — painel de diagnóstico completo (remover após fix) */}
-      {showDebug && (() => {
-        const ts   = trackerRef.current?.getState?.() ?? {};
-        const mvSrc = modelViewerRef.current?.getAttribute('src') ?? '—';
-        const pipeActive = pipelineRef.current?.isActive?.() ?? false;
-        const wristOk = (ts.confidence ?? 0) > 0;
-        const G = '#4eff91', R = '#ff4e4e', Y = '#ffff88', B = '#4ec9ff';
-        const row = (label, val, color = '#fff') => (
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
-            <span style={{ color: 'rgba(255,255,255,0.55)' }}>{label}</span>
-            <b style={{ color }}>{val}</b>
-          </div>
-        );
-        return (
-          <div style={{
-            position: 'fixed', top: 66, right: 8, zIndex: 9999,
-            background: 'rgba(0,0,0,0.90)', border: '1px solid rgba(255,215,0,0.55)',
-            borderRadius: 10, padding: '8px 11px', fontSize: 10.5,
-            color: '#fff', fontFamily: 'monospace', lineHeight: 1.75,
-            minWidth: 215, pointerEvents: 'none',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
-          }}>
-            <div style={{ color: '#FFD700', fontWeight: 'bold', fontSize: 11, marginBottom: 4, letterSpacing: '0.08em' }}>
-              ◈ M025 DIAG
-            </div>
-            {row('trackingActive',   String(trackingActive),    trackingActive   ? G : R)}
-            {row('isTracking',       String(ts.isTracking ?? false), (ts.isTracking ?? false) ? G : R)}
-            {row('shouldRender()',   String(shouldRenderWatch), shouldRenderWatch ? G : R)}
-            {row('wrist detectado',  wristOk ? 'SIM' : 'NÃO',  wristOk ? G : R)}
-            {row('confidence',       ((ts.confidence ?? 0) * 100).toFixed(0) + '%', Y)}
-            {row('stableFrames',     String(ts.stableFrames ?? 0), Y)}
-            {row('lostFrames',       String(ts.lostFrames ?? 0), (ts.lostFrames ?? 0) > 0 ? '#ffaa44' : Y)}
-            {row('watch.size',       watch.size.toFixed(1) + 'px', Y)}
-            {row('x , y',           watch.x.toFixed(0) + ' , ' + watch.y.toFixed(0), Y)}
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '4px 0' }} />
-            {row('pipeline ativo',   String(pipeActive),        pipeActive ? G : R)}
-            {row('modelUrl',         (modelUrl ?? 'null').slice(-20),        modelUrl ? G : R)}
-            {row('genModelUrl',      generatedModelUrl ? generatedModelUrl.slice(-20) : 'null', generatedModelUrl ? G : '#aaa')}
-            {row('mv.src (attr)',    mvSrc === '—' ? '—' : mvSrc.slice(-20), mvSrc !== '—' ? G : R)}
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '4px 0' }} />
-            {row('mvDefined',        String(mvDebug.defined),   mvDebug.defined ? G : R)}
-            {row('mvEvent',          mvDebug.event,             mvDebug.event === 'LOAD OK' ? G : mvDebug.event.startsWith('ERR') ? R : B)}
-          </div>
-        );
-      })()}
 
       {/* Indicador de recalibração — exibido quando tracking é perdido */}
       {hasValidProduct && !shouldRenderWatch && (
@@ -1542,7 +1457,7 @@ const handleBuyNow = () => {
                 max-camera-orbit="auto auto 105%"
                 camera-controls="false"
                 tone-mapping="neutral"
-                orientation={`0deg 0deg ${finalWatch.rotation - 90}deg`}
+                orientation="0deg 0deg -90deg"
                 scale="2 2 2"
                 style={{
                   width: '100%',

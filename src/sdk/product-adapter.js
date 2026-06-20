@@ -4,10 +4,12 @@ let _activeProduct = null;
 const _generatedModels = {};
 
 function _lookupModelUrl(productId) {
-  if (productId && _generatedModels[productId]) return _generatedModels[productId];
-  if (!productId) return productsData[0]?.modelUrl ?? null;
-  const product = productsData.find(p => p.id === productId);
-  return product?.modelUrl ?? productsData[0]?.modelUrl ?? null;
+  if (!productId) return null;
+  if (_generatedModels[productId]) return _generatedModels[productId];
+  const product = productsData.find(
+    p => p.id === productId || p.handle === productId
+  );
+  return product?.modelUrl ?? null;
 }
 
 function _resolveModelUrl(productId, overrideUrl) {
