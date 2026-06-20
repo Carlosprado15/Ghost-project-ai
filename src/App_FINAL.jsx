@@ -1082,7 +1082,7 @@ const handleBuyNow = () => {
       {hasValidProduct && !shouldRenderWatch && (
         <div style={{
           position: 'fixed',
-          bottom: '148px',
+          top: 'calc(50% + 148px)',
           left: 0,
           right: 0,
           display: 'flex',
@@ -1094,27 +1094,27 @@ const handleBuyNow = () => {
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            background: 'rgba(0,0,0,0.58)',
-            border: '1px solid rgba(212,175,55,0.18)',
-            borderRadius: '24px',
-            padding: '10px 22px',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
+            gap: '7px',
+            background: 'rgba(0,0,0,0.36)',
+            border: '1px solid rgba(212,175,55,0.10)',
+            borderRadius: '20px',
+            padding: '6px 15px',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
           }}>
             <div style={{
-              width: '14px',
-              height: '14px',
-              border: '1.5px solid rgba(212,175,55,0.22)',
-              borderTopColor: '#D4AF37',
+              width: '10px',
+              height: '10px',
+              border: '1.5px solid rgba(212,175,55,0.15)',
+              borderTopColor: 'rgba(212,175,55,0.65)',
               borderRadius: '50%',
               animation: 'ghostSpin 1s linear infinite',
               flexShrink: 0,
             }} />
             <p style={{
-              color: 'rgba(255,255,255,0.68)',
-              fontSize: '11px',
-              letterSpacing: '0.12em',
+              color: 'rgba(255,255,255,0.42)',
+              fontSize: '10px',
+              letterSpacing: '0.10em',
               fontWeight: 400,
               whiteSpace: 'nowrap',
               margin: 0,
@@ -1210,31 +1210,45 @@ const handleBuyNow = () => {
             style={{
               position: 'fixed',
               top: '16px',
-              right: '16px',
+              right: '14px',
               zIndex: 20,
               background: screenshotDone
-                ? 'rgba(46,213,115,0.22)'
-                : 'rgba(0,0,0,0.45)',
+                ? 'rgba(46,213,115,0.28)'
+                : 'rgba(0,0,0,0.62)',
               border: screenshotDone
-                ? '1px solid rgba(46,213,115,0.52)'
-                : '1px solid rgba(255,255,255,0.18)',
-              borderRadius: '50%',
-              width: '44px',
-              height: '44px',
+                ? '1px solid rgba(46,213,115,0.65)'
+                : '1px solid rgba(255,255,255,0.30)',
+              borderRadius: '16px',
+              minWidth: '62px',
+              padding: '10px 10px 8px',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
+              gap: '4px',
               cursor: isCapturing ? 'wait' : 'pointer',
-              fontSize: screenshotDone ? '16px' : '19px',
               opacity: isCapturing ? 0.5 : 1,
-              transform: screenshotDone ? 'scale(1.1)' : 'scale(1)',
+              transform: screenshotDone ? 'scale(1.05)' : 'scale(1)',
               transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
-              backdropFilter: 'blur(6px)',
-              WebkitBackdropFilter: 'blur(6px)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.40)',
             }}
-            title="Capturar experiência AR"
+            title="Compartilhar experiência AR"
           >
-            {isCapturing ? '⏳' : screenshotDone ? '✓' : '📸'}
+            <span style={{ fontSize: screenshotDone ? '17px' : '19px', lineHeight: 1 }}>
+              {isCapturing ? '⏳' : screenshotDone ? '✓' : '📸'}
+            </span>
+            <span style={{
+              color: screenshotDone ? 'rgba(46,213,115,0.9)' : 'rgba(255,255,255,0.80)',
+              fontSize: '8px',
+              fontWeight: 600,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
+            }}>
+              {screenshotDone ? 'Salvo!' : 'Compartilhar'}
+            </span>
           </button>
 
           {/* Pipeline — indicador de progresso + erro + retry */}
@@ -1426,7 +1440,7 @@ const handleBuyNow = () => {
                   className="action-btn secondary"
                   onClick={handleContinueShopping}
                 >
-                  Continuar Comprando
+                  Escolher Outro Produto
                 </button>
               </div>
             )}
