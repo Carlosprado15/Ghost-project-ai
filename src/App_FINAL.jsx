@@ -1050,7 +1050,7 @@ const handleBuyNow = () => {
               if (isDesktopDevice()) {
                 setShowQRScreen(true);
               } else {
-                openScanner(ProductAdapter.getActive().productId || null);
+                openScanner(ProductAdapter.getActive().productId || ClickWearAdapter.DEFAULT_PRODUCT_ID);
               }
             }}>
               START SCANNER
