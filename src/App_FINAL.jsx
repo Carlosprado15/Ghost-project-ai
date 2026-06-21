@@ -246,13 +246,13 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (ProductAdapter.isStoreMode()) {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('embedded') === 'true') {
-        openScanner(ProductAdapter.getActive().productId);
-      } else {
-        setShow360(true);
-      }
+    const params = new URLSearchParams(window.location.search);
+    // Lê productId diretamente da URL — evita qualquer intermediário
+    const embeddedProductId = params.get('productId');
+    if (embeddedProductId && params.get('embedded') === 'true') {
+      openScanner(embeddedProductId);
+    } else if (ProductAdapter.isStoreMode()) {
+      setShow360(true);
     }
   }, []);
 
@@ -1050,7 +1050,7 @@ const handleBuyNow = () => {
               if (isDesktopDevice()) {
                 setShowQRScreen(true);
               } else {
-                openScanner(ProductAdapter.getActive().productId || ClickWearAdapter.DEFAULT_PRODUCT_ID);
+                openScanner(ProductAdapter.getActive().productId || null);
               }
             }}>
               START SCANNER

@@ -1,5 +1,8 @@
 import productsData from '../data/products.json';
 
+// Incrementar esta versão força browsers e CDN a baixar novamente os GLBs
+const MODEL_CACHE_VERSION = 'v029';
+
 let _activeProduct = null;
 const _generatedModels = {};
 
@@ -9,19 +12,18 @@ function _lookupModelUrl(productId) {
   const product = productsData.find(
     p => p.id === productId || p.handle === productId
   );
-  return product?.modelUrl ?? null;
+  const url = product?.modelUrl ?? null;
+  // Adiciona versão para invalidar cache de CDN/browser entre deploys
+  return url ? `${url}?${MODEL_CACHE_VERSION}` : null;
 }
 
 function _resolveModelUrl(productId, overrideUrl) {
   if (overrideUrl) return overrideUrl;
+  // Usa apenas o parâmetro explícito 'modelUrl' como override
+  // Parâmetros genéricos (model, url, file, glb) foram removidos pois
+  // poderiam coincidir acidentalmente com parâmetros de URLs de loja
   const params = new URLSearchParams(window.location.search);
-  const urlModel =
-    params.get('modelUrl') ||
-    params.get('glb') ||
-    params.get('gltf') ||
-    params.get('file') ||
-    params.get('model') ||
-    params.get('url');
+  const urlModel = params.get('modelUrl') || null;
   return urlModel || _lookupModelUrl(productId);
 }
 
