@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css';
 import { ProductAdapter } from './sdk/product-adapter';
 import { GhostProject } from './sdk/GhostProject';
-import { ClickWearAdapter } from './sdk/store-adapters/clickwear';
 
 import TestModelsPage from './TestModelsPage';
 import LandingPage from './LandingPage';
@@ -1061,7 +1060,7 @@ const handleBuyNow = () => {
               if (isDesktopDevice()) {
                 setShowQRScreen(true);
               } else {
-                openScanner(ProductAdapter.getActive().productId || ClickWearAdapter.DEFAULT_PRODUCT_ID);
+                openScanner(ProductAdapter.getActive().productId);
               }
             }}>
               START SCANNER
