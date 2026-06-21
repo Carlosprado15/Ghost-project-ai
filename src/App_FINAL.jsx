@@ -247,7 +247,12 @@ export default function App() {
 
   useEffect(() => {
     if (ProductAdapter.isStoreMode()) {
-      setShow360(true);
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('embedded') === 'true') {
+        openScanner(ProductAdapter.getActive().productId);
+      } else {
+        setShow360(true);
+      }
     }
   }, []);
 
@@ -1460,7 +1465,6 @@ const handleBuyNow = () => {
                 field-of-view="26deg"
                 min-camera-orbit="auto auto 105%"
                 max-camera-orbit="auto auto 105%"
-                camera-controls="false"
                 tone-mapping="neutral"
                 orientation="0deg 0deg -90deg"
                 scale="2 2 2"
