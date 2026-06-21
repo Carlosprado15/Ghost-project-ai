@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  const GHOST_BASE_URL = 'https://ghost-project-ai-bbvc.vercel.app';
+  const GHOST_BASE_URL = 'https://ghost-project-ai.vercel.app';
 
   // SAAPS Foundation 1.0 - Build 4
   const PRODUCT_MAP = {
