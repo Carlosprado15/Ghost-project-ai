@@ -2,9 +2,11 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css';
 import { ProductAdapter } from './sdk/product-adapter';
 import { GhostProject } from './sdk/GhostProject';
+import { ClickWearAdapter } from './sdk/store-adapters/clickwear';
 
 import TestModelsPage from './TestModelsPage';
 import LandingPage from './LandingPage';
+import UrlDiagnosticsPanel from './components/UrlDiagnosticsPanel';
 import { WristTracker } from './tracking/WristTracker.js';
 import { RenderPipeline } from './tracking/RenderPipeline.js';
 import { PrecisionFitController } from './tracking/PrecisionFitController.js';
@@ -845,6 +847,7 @@ const handleBuyNow = () => {
         gap: 0,
         fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       }}>
+        <UrlDiagnosticsPanel />
         {/* Cabeçalho */}
         <div style={{
           position: 'absolute',
@@ -973,6 +976,7 @@ const handleBuyNow = () => {
   if (screen === 'home') {
     return (
       <div className="home">
+        <UrlDiagnosticsPanel />
         <div
           className="home-background"
           style={{
@@ -1041,7 +1045,7 @@ const handleBuyNow = () => {
               if (isDesktopDevice()) {
                 setShowQRScreen(true);
               } else {
-                openScanner(ProductAdapter.getActive().productId || null);
+                openScanner(ProductAdapter.getActive().productId || ClickWearAdapter.DEFAULT_PRODUCT_ID);
               }
             }}>
               START SCANNER
@@ -1112,6 +1116,7 @@ const handleBuyNow = () => {
 
   return (
     <div className="scanner" ref={scannerDivRef}>
+      <UrlDiagnosticsPanel />
       {/* Ghost Diagnostics — apenas em desenvolvimento (Etapas 1, 2, 4) */}
       {import.meta.env.DEV && (
         <GhostDiagnostics
