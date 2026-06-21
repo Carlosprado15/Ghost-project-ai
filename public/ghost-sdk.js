@@ -22,14 +22,22 @@
     'relogio-masculino-2023-moda-masculino-relogios-de-luxo-aco-inoxidavel-quartzo-re': 'CW015'
   };
 
+  function isDesktop() {
+    return !/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+
   function getProductHandle() {
+    // Priority 1: handle injetado pelo Shopify Liquid em theme.liquid
+    if (typeof window.__ghostHandle === 'string' && window.__ghostHandle !== '') {
+      return window.__ghostHandle;
+    }
     const match = window.location.pathname.match(/\/products\/([^/?]+)/);
     return match ? match[1] : null;
   }
 
   function getProductId() {
     const handle = getProductHandle();
-    return handle ? PRODUCT_MAP[handle] : null;
+    return handle ? (PRODUCT_MAP[handle] || null) : null;
   }
 
   function injectStyles() {
@@ -220,7 +228,7 @@
 
     const btn = document.createElement('a');
     btn.className = 'ghost-ar-btn';
-    btn.href = arUrl;
+    btn.href = isDesktop() ? arUrl + '&desktop=1' : arUrl;
     btn.innerHTML = `
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <path d="M12 2L2 7l10 5 10-5-10-5z"/>

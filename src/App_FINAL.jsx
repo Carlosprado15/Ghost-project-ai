@@ -247,10 +247,14 @@ export default function App() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    // Lê productId diretamente da URL — evita qualquer intermediário
     const embeddedProductId = params.get('productId');
     if (embeddedProductId && params.get('embedded') === 'true') {
-      openScanner(embeddedProductId);
+      if (isDesktopDevice()) {
+        // Desktop: sem câmera — mostra QR direto para o usuário escanear com celular
+        setShowQRScreen(true);
+      } else {
+        openScanner(embeddedProductId);
+      }
     } else if (ProductAdapter.isStoreMode()) {
       setShow360(true);
     }
@@ -771,7 +775,14 @@ const handleBuyNow = () => {
 
   // ─── QR SCREEN (desktop) ─────────────────────────────────────────────────
   if (showQRScreen) {
-    const qrUrl = window.location.href;
+    const _qrParams = new URLSearchParams(window.location.search);
+    // Garante que productId e embedded estejam no QR
+    if (!_qrParams.get('productId')) {
+      const _activePid = ProductAdapter.getActive().productId;
+      if (_activePid) _qrParams.set('productId', _activePid);
+    }
+    _qrParams.set('embedded', 'true');
+    const qrUrl = window.location.origin + window.location.pathname + '?' + _qrParams.toString();
     const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}`;
 
     return (
