@@ -1,10 +1,30 @@
 <!-- Ghost Project AI - Botão Ver em AR -->
 {% assign ghost_base_url = "https://ghost-project-ai-bbvc.vercel.app" %}
 {% assign product_url = shop.url | append: product.url %}
+{% assign ghost_product_id = "" %}
 
+{% case product.handle %}
+  {% when "relogio-casio-para-neutro-2023-novos-estilos-definir-marca-superior-de-luxo-a-pr" %}{% assign ghost_product_id = "CW001" %}
+  {% when "nidin-moda-banhado-a-ouro-corrente-mistura-pulseira-para-mulheres-colorido-crist" %}{% assign ghost_product_id = "CW002" %}
+  {% when "vinterly-pulseiras-magneticas-de-cobre-puro-para-mulheres-joias-de-terapia-vint" %}{% assign ghost_product_id = "CW003" %}
+  {% when "pulseiras-de-cobre-puro-vinterly-estilo-viking-yggdrasil-15mm-ajustaveis-joi" %}{% assign ghost_product_id = "CW004" %}
+  {% when "pulseira-magnetico-bioquantico-de-equilibrio-original" %}{% assign ghost_product_id = "CW005" %}
+  {% when "bluetooth-conectado-telefone-relogio-inteligente-das-mulheres-dos-homens-musica" %}{% assign ghost_product_id = "CW006" %}
+  {% when "amoled-relogio-inteligente-banda-smartwatch-feminino-masculino-frequencia-cardia" %}{% assign ghost_product_id = "CW007" %}
+  {% when "curren-relogio-de-ouro-feminino-relogios-senhoras-criativo-aco-pulseira-relogios" %}{% assign ghost_product_id = "CW008" %}
+  {% when "diamante-relogio-feminino-marca-de-luxo-2025-strass-elegante-senhoras-relogios-r" %}{% assign ghost_product_id = "CW009" %}
+  {% when "novo-relogio-inteligente-masculino-de-2-01-polegadas-para-atividades-ao-ar-livre" %}{% assign ghost_product_id = "CW010" %}
+  {% when "gps-ecg-ppg-bluetooth-chamada-smartwatch-pulseira-esportiva-relogio-inteligent" %}{% assign ghost_product_id = "CW011" %}
+  {% when "curren-relogios-masculinos-marca-superior-de-luxo-moda-amp-casual-negocios-rel" %}{% assign ghost_product_id = "CW012" %}
+  {% when "reloj-hombre-2023-relogio-masculino-minimalista-ultra-fino-relogios-moda-masculi" %}{% assign ghost_product_id = "CW013" %}
+  {% when "curren-relogio-de-pulso-masculino-cronografo-a-prova-d-39-agua-militar-do-exe" %}{% assign ghost_product_id = "CW014" %}
+  {% when "relogio-masculino-2023-moda-masculino-relogios-de-luxo-aco-inoxidavel-quartzo-re" %}{% assign ghost_product_id = "CW015" %}
+{% endcase %}
+
+{% if ghost_product_id != "" %}
 <div class="ghost-ar-container" style="margin: 16px 0;">
-  <a 
-    href="{{ ghost_base_url }}?productId={% raw %}{{ product.metafields.ghost.product_id }}{% endraw %}&productUrl={{ product_url | url_encode }}&cartUrl={{ shop.url | append: '/cart' | url_encode }}&embedded=true"
+  <a
+    href="{{ ghost_base_url }}?productId={{ ghost_product_id }}&productUrl={{ product_url | url_encode }}&cartUrl={{ shop.url | append: '/cart' | url_encode }}&embedded=true"
     class="ghost-ar-btn"
     style="
       display: flex;
@@ -35,3 +55,4 @@
     Powered by Ghost Project AI
   </p>
 </div>
+{% endif %}
