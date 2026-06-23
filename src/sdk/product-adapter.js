@@ -13,8 +13,9 @@ function _lookupModelUrl(productId) {
     p => p.id === productId || p.handle === productId
   );
   const url = product?.modelUrl ?? null;
-  // Adiciona versão para invalidar cache de CDN/browser entre deploys
-  return url ? `${url}?${MODEL_CACHE_VERSION}` : null;
+  const finalUrl = url ? `${url}?${MODEL_CACHE_VERSION}` : null;
+  console.log('[M043][Etapa5-ProductAdapter] productId:', productId, '| produto encontrado:', product?.id ?? null, '| modelUrl:', finalUrl);
+  return finalUrl;
 }
 
 function _resolveModelUrl(productId, overrideUrl) {

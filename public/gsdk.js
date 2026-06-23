@@ -44,7 +44,9 @@
 
   function getProductId() {
     const handle = getProductHandle();
-    return handle ? (PRODUCT_MAP[handle] || null) : null;
+    const productId = handle ? (PRODUCT_MAP[handle] || null) : null;
+    console.log('[M043][Etapa1-gsdk] handle:', handle, '| productId:', productId);
+    return productId;
   }
 
   function injectStyles() {
@@ -205,6 +207,8 @@
       '&productUrl=' + encodeURIComponent(productUrl) +
       '&cartUrl=' + encodeURIComponent(cartUrl) +
       '&embedded=true';
+
+    console.log('[M043][Etapa2-gsdk] handle (pathname):', handle, '| productId:', productId, '| arUrl:', arUrl);
 
     const badge = document.createElement('div');
     badge.className = 'ghost-badge';

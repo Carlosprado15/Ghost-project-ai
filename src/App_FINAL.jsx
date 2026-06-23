@@ -247,6 +247,7 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const embeddedProductId = params.get('productId');
+    console.log('[M043][Etapa3-App] productId recebido:', embeddedProductId, '| embedded:', params.get('embedded'), '| productUrl:', params.get('productUrl'));
     if (embeddedProductId && params.get('embedded') === 'true') {
       if (isDesktopDevice()) {
         // Desktop: sem câmera — mostra QR direto para o usuário escanear com celular
@@ -287,6 +288,7 @@ const handleBuyNow = () => {
   };
 
   const openScanner = (productId = null) => {
+    console.log('[M043][Etapa4-openScanner] productId recebido:', productId);
     GhostProject._emit('onOpen', { productId });
     setCamError('');
     setShowBuy(false);
@@ -634,6 +636,12 @@ const handleBuyNow = () => {
     const t = setTimeout(() => setPipelineStage(null), 3000);
     return () => clearTimeout(t);
   }, [pipelineStage]);
+
+  // [M043] Etapa 6 — log do src final carregado no model-viewer
+  useEffect(() => {
+    if (screen !== 'scanner') return;
+    console.log('[M043][Etapa6-model-viewer] generatedModelUrl (state):', generatedModelUrl);
+  }, [screen, generatedModelUrl]);
 
   // Fallback para pipeline se GLB falhar ao carregar
   useEffect(() => {
