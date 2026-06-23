@@ -1,5 +1,5 @@
 <!-- Ghost Project AI - Botão Ver em AR -->
-{% assign ghost_base_url = "https://ghost-project-ai-bbvc.vercel.app" %}
+{% assign ghost_base_url = "https://ghost-project-ai.vercel.app" %}
 {% assign product_url = shop.url | append: product.url %}
 {% assign ghost_product_id = "" %}
 
@@ -24,7 +24,7 @@
 {% if ghost_product_id != "" %}
 <div class="ghost-ar-container" style="margin: 16px 0;">
   <a
-    href="{{ ghost_base_url }}?productId={{ ghost_product_id }}&productUrl={{ product_url | url_encode }}&cartUrl={{ shop.url | append: '/cart' | url_encode }}&embedded=true"
+    href="{{ ghost_base_url }}/?productId={{ ghost_product_id }}&productUrl={{ product_url | url_encode }}&cartUrl={{ shop.url | append: '/cart' | url_encode }}&embedded=true"
     class="ghost-ar-btn"
     style="
       display: flex;
