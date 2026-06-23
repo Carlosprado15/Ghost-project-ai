@@ -201,7 +201,7 @@
     const handle = pathParts[pathParts.indexOf('products') + 1];
     const cartUrl = window.location.origin + '/cart';
     const arUrl = GHOST_BASE_URL +
-      '?productId=' + productId +
+      '/?productId=' + productId +
       '&productUrl=' + encodeURIComponent(productUrl) +
       '&cartUrl=' + encodeURIComponent(cartUrl) +
       '&embedded=true';

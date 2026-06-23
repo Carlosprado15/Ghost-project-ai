@@ -1,9 +1,16 @@
 (function() {
   'use strict';
 
+  // Oculta imediatamente o botão Liquid legado para evitar flash antes do SDK injetar o correto
+  (function() {
+    var s = document.createElement('style');
+    s.textContent = '.ghost-ar-container,.ghost-ar-button{display:none!important}';
+    document.head.appendChild(s);
+  })();
+
   const GHOST_BASE_URL = 'https://ghost-project-ai.vercel.app';
 
-  // SAAPS Foundation 1.0 - Build 4
+  // SAAPS Foundation 1.0 - Build 5
   const PRODUCT_MAP = {
     'relogio-casio-para-neutro-2023-novos-estilos-definir-marca-superior-de-luxo-a-pr': 'CW001',
     'nidin-moda-banhado-a-ouro-corrente-mistura-pulseira-para-mulheres-colorido-crist': 'CW002',
@@ -50,20 +57,6 @@
       .ghost-scanner-line {
         position: absolute;
         top: 0;
-        left: -100%;
-        width: 40%;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent 0%,
-          rgba(212, 175, 55, 0.08) 40%,
-          rgba(212, 175, 55, 0.18) 50%,
-          rgba(255, 255, 255, 0.12) 52%,
-          rgba(212, 175, 55, 0.08) 60%,
-          transparent 100%
-        );
-        animation: ghostScan 4s ease-in-out infinite;
-        top: -100%;
         left: 0;
         width: 100%;
         height: 40%;
@@ -76,12 +69,13 @@
           rgba(212, 175, 55, 0.08) 60%,
           transparent 100%
         );
+        animation: ghostScan 4s ease-in-out infinite;
         pointer-events: none;
         z-index: 10;
       }
       @keyframes ghostScan {
-        0% { top: -40%; }
-        100% { top: 140%; }
+        0% { top: 0%; }
+        100% { top: 100%; }
       }
       .ghost-badge {
         display: flex;
@@ -207,7 +201,7 @@
     const handle = pathParts[pathParts.indexOf('products') + 1];
     const cartUrl = window.location.origin + '/cart';
     const arUrl = GHOST_BASE_URL +
-      '?productId=' + productId +
+      '/?productId=' + productId +
       '&productUrl=' + encodeURIComponent(productUrl) +
       '&cartUrl=' + encodeURIComponent(cartUrl) +
       '&embedded=true';
@@ -228,6 +222,7 @@
 
     const btn = document.createElement('a');
     btn.className = 'ghost-ar-btn';
+    // Desktop: abre direto no QR screen para o usuário escanear com o celular
     btn.href = isDesktop() ? arUrl + '&desktop=1' : arUrl;
     btn.innerHTML = `
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -263,14 +258,25 @@
     }
   }
 
+  let lastHandle = null;
+
   function init() {
+    const currentHandle = getProductHandle();
+    if (!currentHandle || currentHandle === lastHandle) return;
+    
     const productId = getProductId();
     if (!productId) return;
-
+    
+    lastHandle = currentHandle;
+    
+    document.querySelectorAll('.ghost-badge, .ghost-ar-btn, .ghost-powered, .ghost-scanner-line, .ghost-ar-container, .ghost-ar-button').forEach(el => el.remove());
+    
     injectStyles();
     injectScannerOnImage();
     injectARButton(productId);
   }
+
+  setInterval(init, 800);
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
