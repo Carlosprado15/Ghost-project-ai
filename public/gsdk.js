@@ -1,9 +1,16 @@
 (function() {
   'use strict';
 
+  // Oculta imediatamente o botão Liquid legado para evitar flash antes do SDK injetar o correto
+  (function() {
+    var s = document.createElement('style');
+    s.textContent = '.ghost-ar-container,.ghost-ar-button{display:none!important}';
+    document.head.appendChild(s);
+  })();
+
   const GHOST_BASE_URL = 'https://ghost-project-ai.vercel.app';
 
-  // SAAPS Foundation 1.0 - Build 4
+  // SAAPS Foundation 1.0 - Build 5
   const PRODUCT_MAP = {
     'relogio-casio-para-neutro-2023-novos-estilos-definir-marca-superior-de-luxo-a-pr': 'CW001',
     'nidin-moda-banhado-a-ouro-corrente-mistura-pulseira-para-mulheres-colorido-crist': 'CW002',
@@ -262,7 +269,7 @@
     
     lastHandle = currentHandle;
     
-    document.querySelectorAll('.ghost-badge, .ghost-ar-btn, .ghost-powered, .ghost-scanner-line').forEach(el => el.remove());
+    document.querySelectorAll('.ghost-badge, .ghost-ar-btn, .ghost-powered, .ghost-scanner-line, .ghost-ar-container, .ghost-ar-button').forEach(el => el.remove());
     
     injectStyles();
     injectScannerOnImage();
