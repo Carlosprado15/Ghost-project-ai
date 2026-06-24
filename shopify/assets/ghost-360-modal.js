@@ -1,7 +1,6 @@
 (function () {
   'use strict';
 
-  // Mirrors PRODUCT_MAP from gsdk.js — handle -> CW code
   var PRODUCT_MAP = {
     'relogio-casio-para-neutro-2023-novos-estilos-definir-marca-superior-de-luxo-a-pr': 'CW001',
     'nidin-moda-banhado-a-ouro-corrente-mistura-pulseira-para-mulheres-colorido-crist': 'CW002',
@@ -63,10 +62,13 @@
 
   function openModal(code, title) {
     clearTimeout(closeTimer);
+    var glbUrl = BASE + code + '.glb';
+    console.log('[CW360] openModal | code:', code, '| glbUrl:', glbUrl, '| title:', title);
     loadMV(function () {
       if (productName) productName.textContent = title || '';
       showLoading();
-      viewer.setAttribute('src', BASE + code + '.glb');
+      viewer.setAttribute('src', glbUrl);
+      console.log('[CW360] model-viewer src definido para:', viewer.getAttribute('src'));
       modal.removeAttribute('aria-hidden');
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
@@ -90,14 +92,38 @@
     }, 260);
   }
 
+  function auditButtons() {
+    var buttons = document.querySelectorAll('.cw-360-hint[data-cw-handle]');
+    console.log('[CW360] ====== AUDITORIA DE BOTOES 360 ======');
+    console.log('[CW360] Total de botoes encontrados:', buttons.length);
+    buttons.forEach(function (btn, i) {
+      var handle = btn.getAttribute('data-cw-handle');
+      var code = PRODUCT_MAP[handle];
+      var card = btn.closest('product-card');
+      var cardId = card ? card.getAttribute('data-product-id') : 'SEM product-card';
+      console.log(
+        '[CW360] Botao #' + (i + 1) +
+        ' | handle: "' + handle + '"' +
+        ' | CW: ' + (code || 'NAO MAPEADO') +
+        ' | product-card id: ' + cardId
+      );
+    });
+    console.log('[CW360] ======================================');
+  }
+
   function init() {
     modal = document.getElementById('cw-360-modal');
-    if (!modal) return;
+    if (!modal) {
+      console.warn('[CW360] ERRO: elemento #cw-360-modal nao encontrado no DOM');
+      return;
+    }
     backdrop = document.getElementById('cw-360-backdrop');
     viewer = document.getElementById('cw-360-viewer');
     closeBtn = document.getElementById('cw-360-close');
     productName = document.getElementById('cw-360-product-name');
     loadingEl = document.getElementById('cw-360-loading');
+
+    console.log('[CW360] Modal inicializado | viewer:', !!viewer, '| modal:', !!modal);
 
     closeBtn.addEventListener('click', closeModal);
     backdrop.addEventListener('click', closeModal);
@@ -106,18 +132,40 @@
       if (e.key === 'Escape' && !modal.hasAttribute('aria-hidden')) closeModal();
     });
 
-    viewer.addEventListener('load', hideLoading);
-    viewer.addEventListener('error', hideLoading);
+    viewer.addEventListener('load', function () {
+      console.log('[CW360] model-viewer carregou o modelo:', viewer.getAttribute('src'));
+      hideLoading();
+    });
+    viewer.addEventListener('error', function () {
+      console.error('[CW360] model-viewer ERRO ao carregar:', viewer.getAttribute('src'));
+      hideLoading();
+    });
 
     document.addEventListener('click', function (e) {
       var btn = e.target.closest('.cw-360-hint[data-cw-handle]');
       if (!btn) return;
       e.preventDefault();
       e.stopPropagation();
-      var code = PRODUCT_MAP[btn.getAttribute('data-cw-handle')];
+
+      var handle = btn.getAttribute('data-cw-handle');
+      var code = PRODUCT_MAP[handle];
       var title = getProductTitle(btn);
-      if (code) openModal(code, title);
+
+      console.log('[CW360] ===== CLIQUE NO BOTAO 360 =====');
+      console.log('[CW360] handle lido do botao:', '"' + handle + '"');
+      console.log('[CW360] code do PRODUCT_MAP:', code || 'UNDEFINED (handle nao encontrado no mapa!)');
+      console.log('[CW360] titulo do produto:', title || '(vazio)');
+
+      if (!code) {
+        console.error('[CW360] PROBLEMA: handle "' + handle + '" NAO existe no PRODUCT_MAP.');
+        console.log('[CW360] Chaves do PRODUCT_MAP:', Object.keys(PRODUCT_MAP));
+        return;
+      }
+
+      openModal(code, title);
     }, true);
+
+    auditButtons();
   }
 
   if (document.readyState === 'loading') {
