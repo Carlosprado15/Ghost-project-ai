@@ -22,8 +22,9 @@
   var BASE = 'https://ghost-project-ai.vercel.app/models/';
   var mvReady = false;
   var mvCallbacks = [];
-  var modal, backdrop, viewer, closeBtn, productName, loadingEl;
+  var modal, backdrop, mount, closeBtn, productName, loadingEl;
   var closeTimer;
+  var initialized = false;
 
   function loadMV(cb) {
     if (mvReady) { cb(); return; }
@@ -60,15 +61,36 @@
     if (loadingEl) loadingEl.classList.add('cw-360-hidden');
   }
 
+  function destroyViewer() {
+    if (!mount) return;
+    while (mount.firstChild) {
+      mount.removeChild(mount.firstChild);
+    }
+  }
+
+  function buildViewer(glbUrl) {
+    var mv = document.createElement('model-viewer');
+    mv.setAttribute('src', glbUrl);
+    mv.setAttribute('camera-controls', '');
+    mv.setAttribute('auto-rotate', '');
+    mv.setAttribute('auto-rotate-delay', '3000');
+    mv.setAttribute('rotation-per-second', '14deg');
+    mv.setAttribute('shadow-intensity', '0.8');
+    mv.setAttribute('exposure', '0.9');
+    mv.setAttribute('touch-action', 'pan-y');
+    mv.style.cssText = 'width:100%;height:100%;display:block;';
+    mv.addEventListener('load', hideLoading);
+    mv.addEventListener('error', hideLoading);
+    return mv;
+  }
+
   function openModal(code, title) {
     clearTimeout(closeTimer);
-    var glbUrl = BASE + code + '.glb';
-    console.log('[CW360] openModal | code:', code, '| glbUrl:', glbUrl, '| title:', title);
     loadMV(function () {
       if (productName) productName.textContent = title || '';
       showLoading();
-      viewer.setAttribute('src', glbUrl);
-      console.log('[CW360] model-viewer src definido para:', viewer.getAttribute('src'));
+      destroyViewer();
+      mount.appendChild(buildViewer(BASE + code + '.glb'));
       modal.removeAttribute('aria-hidden');
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
@@ -87,43 +109,22 @@
     clearTimeout(closeTimer);
     closeTimer = setTimeout(function () {
       modal.style.display = 'none';
-      viewer.removeAttribute('src');
+      destroyViewer();
       hideLoading();
     }, 260);
   }
 
-  function auditButtons() {
-    var buttons = document.querySelectorAll('.cw-360-hint[data-cw-handle]');
-    console.log('[CW360] ====== AUDITORIA DE BOTOES 360 ======');
-    console.log('[CW360] Total de botoes encontrados:', buttons.length);
-    buttons.forEach(function (btn, i) {
-      var handle = btn.getAttribute('data-cw-handle');
-      var code = PRODUCT_MAP[handle];
-      var card = btn.closest('product-card');
-      var cardId = card ? card.getAttribute('data-product-id') : 'SEM product-card';
-      console.log(
-        '[CW360] Botao #' + (i + 1) +
-        ' | handle: "' + handle + '"' +
-        ' | CW: ' + (code || 'NAO MAPEADO') +
-        ' | product-card id: ' + cardId
-      );
-    });
-    console.log('[CW360] ======================================');
-  }
-
   function init() {
+    if (initialized) return;
+    initialized = true;
+
     modal = document.getElementById('cw-360-modal');
-    if (!modal) {
-      console.warn('[CW360] ERRO: elemento #cw-360-modal nao encontrado no DOM');
-      return;
-    }
+    if (!modal) return;
     backdrop = document.getElementById('cw-360-backdrop');
-    viewer = document.getElementById('cw-360-viewer');
+    mount = document.getElementById('cw-360-viewer-mount');
     closeBtn = document.getElementById('cw-360-close');
     productName = document.getElementById('cw-360-product-name');
     loadingEl = document.getElementById('cw-360-loading');
-
-    console.log('[CW360] Modal inicializado | viewer:', !!viewer, '| modal:', !!modal);
 
     closeBtn.addEventListener('click', closeModal);
     backdrop.addEventListener('click', closeModal);
@@ -132,40 +133,15 @@
       if (e.key === 'Escape' && !modal.hasAttribute('aria-hidden')) closeModal();
     });
 
-    viewer.addEventListener('load', function () {
-      console.log('[CW360] model-viewer carregou o modelo:', viewer.getAttribute('src'));
-      hideLoading();
-    });
-    viewer.addEventListener('error', function () {
-      console.error('[CW360] model-viewer ERRO ao carregar:', viewer.getAttribute('src'));
-      hideLoading();
-    });
-
     document.addEventListener('click', function (e) {
       var btn = e.target.closest('.cw-360-hint[data-cw-handle]');
       if (!btn) return;
       e.preventDefault();
       e.stopPropagation();
-
-      var handle = btn.getAttribute('data-cw-handle');
-      var code = PRODUCT_MAP[handle];
+      var code = PRODUCT_MAP[btn.getAttribute('data-cw-handle')];
       var title = getProductTitle(btn);
-
-      console.log('[CW360] ===== CLIQUE NO BOTAO 360 =====');
-      console.log('[CW360] handle lido do botao:', '"' + handle + '"');
-      console.log('[CW360] code do PRODUCT_MAP:', code || 'UNDEFINED (handle nao encontrado no mapa!)');
-      console.log('[CW360] titulo do produto:', title || '(vazio)');
-
-      if (!code) {
-        console.error('[CW360] PROBLEMA: handle "' + handle + '" NAO existe no PRODUCT_MAP.');
-        console.log('[CW360] Chaves do PRODUCT_MAP:', Object.keys(PRODUCT_MAP));
-        return;
-      }
-
-      openModal(code, title);
+      if (code) openModal(code, title);
     }, true);
-
-    auditButtons();
   }
 
   if (document.readyState === 'loading') {
