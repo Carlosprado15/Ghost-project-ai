@@ -1,0 +1,449 @@
+/* === Click & Wear — Premium AR Theme === */
+
+/* ── AR Badge on Product Cards ── */
+product-card { position: relative; }
+
+.cw-ar-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(10,10,10,0.82);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 4px;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: none;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ── Back button refinement ── */
+.ghost-back-button {
+  color: rgba(0,0,0,0.45);
+  transition: color 0.2s;
+}
+.ghost-back-button:hover { color: rgba(0,0,0,0.85); }
+
+/* ── Override gsdk.js injected 360° viewer style ── */
+.ghost-360-wrap {
+  border-radius: 16px !important;
+  height: 280px !important;
+  background: #f4f4f4 !important;
+  margin: 0 0 6px 0 !important;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.06) !important;
+}
+
+.ghost-ar-btn {
+  border-radius: 10px !important;
+  font-size: 14px !important;
+  padding: 15px 22px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18) !important;
+}
+
+.ghost-360-label {
+  font-size: 10px !important;
+  letter-spacing: 0.18em !important;
+  color: rgba(0,0,0,0.28) !important;
+  text-align: center !important;
+  margin: 0 0 14px 0 !important;
+}
+
+.ghost-powered {
+  font-size: 10px !important;
+  color: rgba(0,0,0,0.25) !important;
+  text-align: center !important;
+  margin: 6px 0 0 0 !important;
+  letter-spacing: 0.06em !important;
+}
+
+/* ── AR Home Banner ── */
+.cw-ar-banner {
+  background: #0a0a0a;
+  color: #fff;
+  padding: 80px 0;
+  text-align: center;
+}
+
+.cw-ar-banner__inner {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.cw-ar-banner__eyebrow {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.38);
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 6px 18px;
+  border-radius: 100px;
+  margin-bottom: 28px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.cw-ar-banner__title {
+  font-size: clamp(26px, 5vw, 50px);
+  font-weight: 300;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  margin: 0 0 20px;
+  color: #fff;
+}
+
+.cw-ar-banner__title strong {
+  font-weight: 700;
+}
+
+.cw-ar-banner__subtitle {
+  font-size: clamp(14px, 2vw, 16px);
+  line-height: 1.65;
+  color: rgba(255,255,255,0.45);
+  max-width: 520px;
+  margin: 0 auto 44px;
+}
+
+.cw-ar-banner__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 44px;
+}
+
+.cw-ar-banner__pill {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.60);
+  border: 1px solid rgba(255,255,255,0.14);
+  padding: 7px 16px;
+  border-radius: 100px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.cw-ar-banner__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  color: #0a0a0a;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  padding: 15px 32px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.2s;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.cw-ar-banner__cta:hover {
+  opacity: 0.88;
+  transform: translateY(-2px);
+}
+
+.cw-ar-banner__steps {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin-top: 64px;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 48px;
+}
+
+.cw-ar-banner__step {
+  flex: 0 1 220px;
+  padding: 0 28px;
+  text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+
+.cw-ar-banner__step:last-child { border-right: none; }
+
+.cw-ar-banner__step-num {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: rgba(255,255,255,0.20);
+  margin-bottom: 12px;
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.cw-ar-banner__step-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.78);
+  margin: 0 0 8px;
+}
+
+.cw-ar-banner__step-desc {
+  font-size: 12px;
+  color: rgba(255,255,255,0.30);
+  line-height: 1.55;
+  margin: 0;
+}
+
+@media screen and (max-width: 749px) {
+  .cw-ar-banner { padding: 60px 0; }
+
+  .cw-ar-banner__steps {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    border-top: none;
+    padding-top: 36px;
+  }
+
+  .cw-ar-banner__step {
+    border-right: none;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 0 0 28px;
+    flex-basis: 100%;
+    max-width: 320px;
+    margin-bottom: 28px;
+  }
+
+  .cw-ar-banner__step:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+}
+
+/* ── 360° badge — interactive ── */
+.cw-360-hint {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+.cw-360-hint:hover .cw-360-svg {
+  filter: drop-shadow(0 0 8px rgba(245,158,11,0.50)) drop-shadow(0 0 16px rgba(236,72,153,0.30)) !important;
+  transform: scale(1.08);
+  transition: filter 0.2s, transform 0.2s;
+}
+
+/* ============================================================
+   360° Modal — M049 — Premium Experience
+   ============================================================ */
+
+/* Overlay */
+#cw-360-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Backdrop — fundo de vitrine de luxo */
+#cw-360-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10,10,10,0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0;
+  transition: opacity 0.24s ease;
+}
+
+#cw-360-modal.cw-360-open #cw-360-backdrop {
+  opacity: 1;
+}
+
+/* Panel — expositor premium */
+#cw-360-panel {
+  position: relative;
+  z-index: 1;
+  background: rgba(14,14,16,0.96);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+  box-shadow:
+    0 40px 100px rgba(0,0,0,0.70),
+    0 0 0 1px rgba(255,255,255,0.04),
+    inset 0 1px 0 rgba(255,255,255,0.07);
+  transform: scale(0.94) translateY(10px);
+  opacity: 0;
+  transition:
+    transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.20s ease;
+}
+
+#cw-360-modal.cw-360-open #cw-360-panel {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+/* Header */
+#cw-360-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 14px 16px 0;
+  flex-shrink: 0;
+}
+
+/* Botão fechar — circular elegante */
+#cw-360-close {
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.45);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+#cw-360-close:hover {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.20);
+  color: #fff;
+}
+
+/* Nome do produto + subtítulo */
+#cw-360-info {
+  padding: 10px 24px 14px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+#cw-360-product-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+  margin: 0 0 5px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#cw-360-subtitle {
+  font-size: 11px;
+  color: rgba(255,255,255,0.28);
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: 0.05em;
+}
+
+/* Viewer wrap */
+#cw-360-viewer-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 260px;
+}
+
+/* model-viewer */
+#cw-360-viewer {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 260px;
+  background: #080808;
+  --poster-color: transparent;
+}
+
+/* Loading overlay minimalista */
+#cw-360-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: #080808;
+  z-index: 2;
+  transition: opacity 0.28s ease;
+}
+
+#cw-360-loading.cw-360-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cw-360-spinner {
+  width: 26px;
+  height: 26px;
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-top-color: rgba(255,255,255,0.45);
+  border-radius: 50%;
+  animation: cw-spin 0.75s linear infinite;
+}
+
+@keyframes cw-spin {
+  to { transform: rotate(360deg); }
+}
+
+.cw-360-loading-text {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.22);
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Footer */
+#cw-360-footer {
+  padding: 10px 20px 14px;
+  text-align: center;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  flex-shrink: 0;
+}
+
+#cw-360-hint-text {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.16);
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Mobile — model-viewer ~70% da altura útil */
+@media screen and (max-width: 479px) {
+  #cw-360-modal { padding: 12px; }
+  #cw-360-panel {
+    border-radius: 18px;
+    height: 90vh;
+    height: 90dvh;
+    max-height: 90dvh;
+  }
+  #cw-360-viewer-wrap { min-height: 0; }
+  #cw-360-viewer { min-height: 0; height: 100%; }
+  #cw-360-product-name { font-size: 14px; }
+}

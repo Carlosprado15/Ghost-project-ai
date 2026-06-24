@@ -551,23 +551,24 @@ body {
 
 .scan-btn {
   width: 100%;
-  background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
-  border: none;
-  color: #07090d;
+  background: #0a0a0a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
   padding: 18px 28px;
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 4px;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 3.5px;
   border-radius: 35px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-transform: uppercase;
-  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.25);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
 }
 
 .scan-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(212, 175, 55, 0.35);
+  background: #1a1a1a;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
 }
 
 .scanner {
@@ -838,20 +839,21 @@ body {
 }
 
 .action-btn.primary {
-  background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
-  color: #07090d;
-  box-shadow: 0 8px 28px rgba(212, 175, 55, 0.32);
+  background: #0a0a0a;
+  color: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.32);
 }
 
 .action-btn.primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 14px 34px rgba(212, 175, 55, 0.42);
+  background: #1a1a1a;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.45);
 }
 
 .action-btn.secondary {
-  background: rgba(0, 0, 0, 0.28);
+  background: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.88);
-  border: 1.5px solid rgba(212, 175, 55, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.20);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   font-size: 12px;
@@ -859,8 +861,8 @@ body {
 }
 
 .action-btn.secondary:hover {
-  background: rgba(212, 175, 55, 0.10);
-  border-color: rgba(212, 175, 55, 0.80);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
 @media (max-width: 480px) {

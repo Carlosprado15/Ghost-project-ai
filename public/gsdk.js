@@ -29,12 +29,30 @@
     'relogio-masculino-2023-moda-masculino-relogios-de-luxo-aco-inoxidavel-quartzo-re': 'CW015'
   };
 
+  // GLB paths served from Vercel
+  const MODEL_MAP = {
+    'CW001': '/models/CW001.glb',
+    'CW002': '/models/CW002.glb',
+    'CW003': '/models/CW003.glb',
+    'CW004': '/models/CW004.glb',
+    'CW005': '/models/CW005.glb',
+    'CW006': '/models/CW006.glb',
+    'CW007': '/models/CW007.glb',
+    'CW008': '/models/CW008.glb',
+    'CW009': '/models/CW009.glb',
+    'CW010': '/models/CW010.glb',
+    'CW011': '/models/CW011.glb',
+    'CW012': '/models/CW012.glb',
+    'CW013': '/models/CW013.glb',
+    'CW014': '/models/CW014.glb',
+    'CW015': '/models/CW015.glb',
+  };
+
   function isDesktop() {
     return !/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
 
   function getProductHandle() {
-    // Priority 1: handle injetado pelo Shopify Liquid em theme.liquid
     if (typeof window.__ghostHandle === 'string' && window.__ghostHandle !== '') {
       return window.__ghostHandle;
     }
@@ -45,71 +63,78 @@
   function getProductId() {
     const handle = getProductHandle();
     const productId = handle ? (PRODUCT_MAP[handle] || null) : null;
-    console.log('[M043][Etapa1-gsdk] handle:', handle, '| productId:', productId);
+    console.log('[M045][gsdk] handle:', handle, '| productId:', productId);
     return productId;
   }
 
+  // Carrega model-viewer web component (uma vez por página)
+  function loadModelViewer() {
+    if (document.querySelector('script[data-ghost-mv]')) return;
+    const s = document.createElement('script');
+    s.type = 'module';
+    s.setAttribute('data-ghost-mv', '1');
+    s.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js';
+    document.head.appendChild(s);
+  }
+
+  // Cria bloco de preview 360° para injetar diretamente na vitrine
+  function create360Viewer(productId) {
+    const glbPath = MODEL_MAP[productId];
+    if (!glbPath) return null;
+
+    const glbUrl = GHOST_BASE_URL + glbPath;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'ghost-360-wrap';
+
+    const mv = document.createElement('model-viewer');
+    mv.setAttribute('src', glbUrl);
+    mv.setAttribute('auto-rotate', '');
+    mv.setAttribute('auto-rotate-delay', '800');
+    mv.setAttribute('rotation-per-second', '9deg');
+    mv.setAttribute('camera-controls', '');
+    mv.setAttribute('disable-zoom', '');
+    mv.setAttribute('interaction-prompt', 'none');
+    mv.setAttribute('shadow-intensity', '0.8');
+    mv.setAttribute('shadow-softness', '1');
+    mv.setAttribute('exposure', '1.2');
+    mv.setAttribute('environment-image', 'neutral');
+    mv.setAttribute('camera-orbit', '12deg 72deg auto');
+    mv.setAttribute('field-of-view', '28deg');
+    mv.setAttribute('min-camera-orbit', 'auto 25deg auto');
+    mv.setAttribute('max-camera-orbit', 'auto 155deg auto');
+    mv.style.cssText = 'width:100%;height:100%;background:transparent;display:block;';
+
+    wrap.appendChild(mv);
+    return wrap;
+  }
+
   function injectStyles() {
+    if (document.querySelector('style[data-ghost-styles]')) return;
     const style = document.createElement('style');
+    style.setAttribute('data-ghost-styles', '1');
     style.textContent = `
-      .ghost-scanner-wrapper {
-        position: relative;
-        overflow: hidden;
-      }
-      .ghost-scanner-line {
-        position: absolute;
-        top: 0;
-        left: 0;
+      .ghost-360-wrap {
         width: 100%;
-        height: 40%;
-        background: linear-gradient(
-          180deg,
-          transparent 0%,
-          rgba(212, 175, 55, 0.08) 40%,
-          rgba(212, 175, 55, 0.18) 50%,
-          rgba(255, 255, 255, 0.12) 52%,
-          rgba(212, 175, 55, 0.08) 60%,
-          transparent 100%
-        );
-        animation: ghostScan 4s ease-in-out infinite;
-        pointer-events: none;
-        z-index: 10;
+        height: 300px;
+        background: #f8f8f8;
+        border-radius: 12px;
+        overflow: hidden;
+        margin: 16px 0 4px 0;
+        cursor: grab;
+        display: block;
       }
-      @keyframes ghostScan {
-        0% { top: 0%; }
-        100% { top: 100%; }
+      .ghost-360-wrap:active {
+        cursor: grabbing;
       }
-      .ghost-badge {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 14px;
-        margin: 16px 0 10px 0;
-        background: rgba(0,0,0,0.04);
-        border: 1px solid rgba(212,175,55,0.25);
-        border-radius: 6px;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      }
-      .ghost-badge-icon {
-        width: 18px;
-        height: 18px;
-        opacity: 0.75;
-      }
-      .ghost-badge-text {
-        display: flex;
-        flex-direction: column;
-      }
-      .ghost-badge-title {
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 0.08em;
-        color: #1a1a1a;
-        text-transform: uppercase;
-      }
-      .ghost-badge-subtitle {
+      .ghost-360-label {
+        text-align: center;
         font-size: 10px;
-        color: #888;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.18em;
+        color: rgba(0,0,0,0.30);
+        text-transform: uppercase;
+        margin: 0 0 10px 0;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       }
       .ghost-ar-btn {
         display: flex;
@@ -119,38 +144,22 @@
         width: 100%;
         padding: 14px 20px;
         margin: 8px 0;
-        background: rgba(10,10,10,0.92);
+        background: #0a0a0a;
         color: #fff;
-        border: 1px solid rgba(212,175,55,0.3);
+        border: none;
         border-radius: 8px;
         font-size: 13px;
         font-weight: 600;
         letter-spacing: 0.06em;
         text-decoration: none;
         cursor: pointer;
-        position: relative;
-        overflow: hidden;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        box-shadow:
-          0 0 0 0 rgba(212,175,55,0),
-          inset 0 0 20px rgba(212,175,55,0.03);
-        animation: ghostBreathe 4s ease-in-out infinite;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+        transition: background 0.25s ease, box-shadow 0.25s ease;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       }
-      @keyframes ghostBreathe {
-        0%, 100% {
-          box-shadow:
-            0 0 8px rgba(212,175,55,0.08),
-            inset 0 0 20px rgba(212,175,55,0.03);
-          border-color: rgba(212,175,55,0.25);
-        }
-        50% {
-          box-shadow:
-            0 0 20px rgba(212,175,55,0.18),
-            inset 0 0 30px rgba(212,175,55,0.07);
-          border-color: rgba(212,175,55,0.5);
-        }
+      .ghost-ar-btn:hover {
+        background: #1a1a1a;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.22);
       }
       .ghost-ar-btn svg {
         opacity: 0.85;
@@ -159,42 +168,13 @@
       .ghost-powered {
         text-align: center;
         font-size: 10px;
-        color: #aaa;
+        color: #bbb;
         letter-spacing: 0.04em;
         margin-top: 4px;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       }
     `;
     document.head.appendChild(style);
-  }
-
-  function injectScannerOnImage() {
-    const selectors = [
-      '.product__media-item img',
-      '.product-media-container img',
-      '.product__photo img',
-      '.featured-image img',
-      '[data-product-featured-image]',
-      '.product-image img'
-    ];
-
-    let productImg = null;
-    for (const sel of selectors) {
-      productImg = document.querySelector(sel);
-      if (productImg) break;
-    }
-
-    if (!productImg) return;
-
-    const wrapper = productImg.closest('div') || productImg.parentElement;
-    if (!wrapper) return;
-
-    wrapper.style.position = 'relative';
-    wrapper.style.overflow = 'hidden';
-
-    const scanLine = document.createElement('div');
-    scanLine.className = 'ghost-scanner-line';
-    wrapper.appendChild(scanLine);
   }
 
   function injectARButton(productId) {
@@ -208,25 +188,18 @@
       '&cartUrl=' + encodeURIComponent(cartUrl) +
       '&embedded=true';
 
-    console.log('[M043][Etapa2-gsdk] handle (pathname):', handle, '| productId:', productId, '| arUrl:', arUrl);
+    console.log('[M045][gsdk] arUrl:', arUrl);
 
-    const badge = document.createElement('div');
-    badge.className = 'ghost-badge';
-    badge.innerHTML = `
-      <svg class="ghost-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-        <path d="M2 17l10 5 10-5"/>
-        <path d="M2 12l10 5 10-5"/>
-      </svg>
-      <div class="ghost-badge-text">
-        <span class="ghost-badge-title">Ghost Spatial Preview™</span>
-        <span class="ghost-badge-subtitle">Compatível com visualização espacial em tempo real</span>
-      </div>
-    `;
+    // Viewer 360° — visível diretamente na vitrine da loja
+    const viewer360 = create360Viewer(productId);
 
+    const label360 = document.createElement('p');
+    label360.className = 'ghost-360-label';
+    label360.textContent = 'Preview 3D · Arraste para girar';
+
+    // Botão AR — abre scanner diretamente (mobile) ou QR (desktop)
     const btn = document.createElement('a');
     btn.className = 'ghost-ar-btn';
-    // Desktop: abre direto no QR screen para o usuário escanear com o celular
     btn.href = isDesktop() ? arUrl + '&desktop=1' : arUrl;
     btn.innerHTML = `
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -256,7 +229,10 @@
     }
 
     if (form) {
-      form.parentNode.insertBefore(badge, form);
+      if (viewer360) {
+        form.parentNode.insertBefore(viewer360, form);
+        form.parentNode.insertBefore(label360, form);
+      }
       form.parentNode.insertBefore(btn, form);
       form.parentNode.insertBefore(powered, form);
     }
@@ -267,16 +243,16 @@
   function init() {
     const currentHandle = getProductHandle();
     if (!currentHandle || currentHandle === lastHandle) return;
-    
+
     const productId = getProductId();
     if (!productId) return;
-    
+
     lastHandle = currentHandle;
-    
-    document.querySelectorAll('.ghost-badge, .ghost-ar-btn, .ghost-powered, .ghost-scanner-line, .ghost-ar-container, .ghost-ar-button').forEach(el => el.remove());
-    
+
+    document.querySelectorAll('.ghost-360-wrap, .ghost-360-label, .ghost-ar-btn, .ghost-powered, .ghost-badge, .ghost-scanner-line, .ghost-ar-container, .ghost-ar-button').forEach(el => el.remove());
+
+    loadModelViewer();
     injectStyles();
-    injectScannerOnImage();
     injectARButton(productId);
   }
 

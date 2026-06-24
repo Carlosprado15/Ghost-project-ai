@@ -14,6 +14,7 @@ import { LocalStorageAssetRepository } from './assets/LocalStorageAssetRepositor
 import { ProductAsset } from './assets/ProductAsset.js';
 import { AssetStatus } from './assets/AssetStatus.js';
 import GhostDiagnostics from './components/GhostDiagnostics.jsx';
+import Hero3D from './components/Hero3D.jsx';
 
 // ─── CDN loaders ──────────────────────────────────────────────────────────────
 function loadScript(src, id) {
@@ -862,7 +863,7 @@ const handleBuyNow = () => {
       <div style={{
         position: 'fixed',
         inset: 0,
-        background: '#0a0a0a',
+        background: '#f8f8f8',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -883,7 +884,7 @@ const handleBuyNow = () => {
           justifyContent: 'center',
         }}>
           <p style={{
-            color: 'rgba(255,255,255,0.32)',
+            color: 'rgba(10,10,10,0.35)',
             fontSize: '9px',
             letterSpacing: '0.32em',
             fontWeight: 400,
@@ -897,7 +898,7 @@ const handleBuyNow = () => {
         {/* Título do produto */}
         {p360?.productName && (
           <p style={{
-            color: 'rgba(255,255,255,0.70)',
+            color: 'rgba(10,10,10,0.72)',
             fontSize: '13px',
             fontWeight: 400,
             letterSpacing: '0.12em',
@@ -932,19 +933,18 @@ const handleBuyNow = () => {
               openScanner(p360?.productId || null);
             }}
             style={{
-              background: 'rgba(212,175,55,0.12)',
-              border: '1px solid rgba(212,175,55,0.55)',
+              background: '#0a0a0a',
+              border: 'none',
               borderRadius: '14px',
-              color: '#D4AF37',
+              color: '#ffffff',
               fontSize: '11px',
-              fontWeight: 600,
+              fontWeight: 500,
               letterSpacing: '0.22em',
               padding: '14px 20px',
               cursor: 'pointer',
               textTransform: 'uppercase',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
               transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.14)',
             }}
           >
             VER EM AR
@@ -955,18 +955,16 @@ const handleBuyNow = () => {
               handleBuyNow();
             }}
             style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.14)',
+              background: 'rgba(10,10,10,0.04)',
+              border: '1px solid rgba(0,0,0,0.12)',
               borderRadius: '14px',
-              color: 'rgba(255,255,255,0.72)',
+              color: 'rgba(10,10,10,0.62)',
               fontSize: '11px',
-              fontWeight: 500,
+              fontWeight: 400,
               letterSpacing: '0.18em',
               padding: '13px 20px',
               cursor: 'pointer',
               textTransform: 'uppercase',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
               transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
             }}
           >
@@ -981,7 +979,7 @@ const handleBuyNow = () => {
           left: 0,
           right: 0,
           textAlign: 'center',
-          color: 'rgba(255,255,255,0.15)',
+          color: 'rgba(0,0,0,0.12)',
           fontSize: '9px',
           letterSpacing: '0.20em',
           fontWeight: 400,
@@ -1296,37 +1294,42 @@ const handleBuyNow = () => {
               right: '14px',
               zIndex: 20,
               background: screenshotDone
-                ? 'rgba(46,213,115,0.28)'
-                : 'rgba(0,0,0,0.62)',
+                ? 'rgba(46,213,115,0.22)'
+                : 'rgba(0,0,0,0.50)',
               border: screenshotDone
-                ? '1px solid rgba(46,213,115,0.65)'
-                : '1px solid rgba(255,255,255,0.30)',
-              borderRadius: '16px',
-              minWidth: '62px',
-              padding: '10px 10px 8px',
+                ? '1px solid rgba(46,213,115,0.55)'
+                : '1px solid rgba(255,255,255,0.18)',
+              borderRadius: '20px',
+              padding: '9px 14px',
               display: 'flex',
-              flexDirection: 'column',
+              flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '4px',
+              gap: '6px',
               cursor: isCapturing ? 'wait' : 'pointer',
               opacity: isCapturing ? 0.5 : 1,
-              transform: screenshotDone ? 'scale(1.05)' : 'scale(1)',
               transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.40)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
             }}
             title="Compartilhar experiência AR"
           >
-            <span style={{ fontSize: screenshotDone ? '17px' : '19px', lineHeight: 1 }}>
-              {isCapturing ? '⏳' : screenshotDone ? '✓' : '📸'}
-            </span>
+            {screenshotDone ? (
+              <span style={{ color: 'rgba(46,213,115,0.95)', fontSize: '13px', lineHeight: 1 }}>✓</span>
+            ) : (
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.82)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="18" cy="5" r="3"/>
+                <circle cx="6" cy="12" r="3"/>
+                <circle cx="18" cy="19" r="3"/>
+                <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/>
+              </svg>
+            )}
             <span style={{
-              color: screenshotDone ? 'rgba(46,213,115,0.9)' : 'rgba(255,255,255,0.80)',
-              fontSize: '8px',
-              fontWeight: 600,
-              letterSpacing: '0.14em',
+              color: screenshotDone ? 'rgba(46,213,115,0.92)' : 'rgba(255,255,255,0.80)',
+              fontSize: '9px',
+              fontWeight: 500,
+              letterSpacing: '0.12em',
               textTransform: 'uppercase',
               whiteSpace: 'nowrap',
             }}>
