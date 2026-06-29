@@ -113,52 +113,10 @@
   >
     {{ children }}
   </div>
-  {%- unless onboarding -%}
-    <button
-      type="button"
-      class="cw-360-hint"
-      id="cw360btn-{{ product.id }}"
-      aria-label="Ver produto em 360°"
-      data-cw-handle="{{ product.handle }}"
-      data-product-title="{{ product.title | escape }}"
-    >
-      <svg class="cw-360-svg" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="25" cy="25" r="24" fill="#0a0a0a"/>
-        <g>
-          <circle cx="25" cy="25" r="19"
-                  stroke="rgba(255,255,255,0.85)" stroke-width="1.6"
-                  stroke-dasharray="82 38" stroke-linecap="round"/>
-          <path d="M25,5 L30,9 L25,13"
-                stroke="rgba(255,255,255,0.85)" stroke-width="1.8"
-                stroke-linecap="round" stroke-linejoin="round"/>
-          <animateTransform attributeName="transform" attributeType="XML"
-                            type="rotate" from="-90 25 25" to="270 25 25"
-                            dur="6s" repeatCount="indefinite"/>
-        </g>
-      </svg>
-      <span class="cw-360-label">360°</span>
-    </button>
-  {%- endunless -%}
 </product-card>
 {%- if settings.transition_to_main_product -%}
   </product-card-link>
 {%- endif -%}
-
-<script>
-  (function() {
-    var btn = document.getElementById('cw360btn-{{ product.id }}');
-    if (!btn) return;
-    var card = btn.parentElement;
-    while (card && card.tagName && card.tagName.toLowerCase() !== 'product-card') {
-      card = card.parentElement;
-    }
-    if (!card) return;
-    var gallery = card.querySelector('.card-gallery');
-    if (gallery && !gallery.contains(btn)) {
-      gallery.appendChild(btn);
-    }
-  })();
-</script>
 
 {% stylesheet %}
   product-card-link,
