@@ -117,8 +117,10 @@
     <button
       type="button"
       class="cw-360-hint"
+      id="cw360btn-{{ product.id }}"
       aria-label="Ver produto em 360°"
       data-cw-handle="{{ product.handle }}"
+      data-product-title="{{ product.title | escape }}"
     >
       <svg class="cw-360-svg" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="25" cy="25" r="24" fill="#0a0a0a"/>
@@ -143,25 +145,19 @@
 {%- endif -%}
 
 <script>
-  if (!window.__cw360) {
-    window.__cw360 = true;
-    function _cw360place() {
-      document.querySelectorAll('.cw-360-hint:not([data-placed])').forEach(function(hint) {
-        var card = hint.closest('product-card');
-        if (!card) return;
-        var gallery = card.querySelector('.card-gallery');
-        if (gallery) {
-          hint.setAttribute('data-placed', '1');
-          gallery.appendChild(hint);
-        }
-      });
+  (function() {
+    var btn = document.getElementById('cw360btn-{{ product.id }}');
+    if (!btn) return;
+    var card = btn.parentElement;
+    while (card && card.tagName && card.tagName.toLowerCase() !== 'product-card') {
+      card = card.parentElement;
     }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', _cw360place);
-    } else {
-      _cw360place();
+    if (!card) return;
+    var gallery = card.querySelector('.card-gallery');
+    if (gallery && !gallery.contains(btn)) {
+      gallery.appendChild(btn);
     }
-  }
+  })();
 </script>
 
 {% stylesheet %}

@@ -1,3 +1,4 @@
+console.log("M051 carregado");
 (function () {
   'use strict';
 
@@ -43,14 +44,7 @@
   }
 
   function getProductTitle(btn) {
-    var scope = btn.closest('product-card') || btn.closest('[class*="card-wrapper"]') || btn.parentElement;
-    if (!scope) return '';
-    var selectors = ['.card__heading a', '[class*="heading"] a', 'h3 a', 'h2 a'];
-    for (var i = 0; i < selectors.length; i++) {
-      var el = scope.querySelector(selectors[i]);
-      if (el && el.textContent.trim()) return el.textContent.trim();
-    }
-    return '';
+    return btn.getAttribute('data-product-title') || '';
   }
 
   function showLoading() {
@@ -138,8 +132,10 @@
       if (!btn) return;
       e.preventDefault();
       e.stopPropagation();
-      var code = PRODUCT_MAP[btn.getAttribute('data-cw-handle')];
+      var handle = btn.getAttribute('data-cw-handle');
+      var code = PRODUCT_MAP[handle];
       var title = getProductTitle(btn);
+      console.log('Produto clicado:', title, '\nHandle:', handle, '\nCW:', code, '\nGLB:', code ? (BASE + code + '.glb') : 'N/A');
       if (code) openModal(code, title);
     }, true);
   }
