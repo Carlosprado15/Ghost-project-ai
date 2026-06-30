@@ -123,6 +123,7 @@ export default function App() {
   const trackerRef       = useRef(null);
   const pipelineRef      = useRef(null);
   const precisionFitRef  = useRef(null);
+  const fitFlipXRef      = useRef(false);
   const scannerDivRef    = useRef(null);
   const pfHintTimerRef   = useRef(null);
   const imagePipelineRef = useRef(null);
@@ -231,7 +232,8 @@ export default function App() {
       if (p.get('fitDebug') !== '1') return {};
       const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
       const num   = (key, def) => { const v = parseFloat(p.get(key)); return isNaN(v) ? def : v; };
-      console.log('[M057A] fitDebug=1 — calibração ativa via URL');
+      fitFlipXRef.current = p.get('flipX') === '1';
+      console.log('[M057A] fitDebug=1 — calibração ativa via URL | flipX:', fitFlipXRef.current);
       return {
         watchOffsetRatio:    clamp(num('offsetRatio',     0.18), 0.05, 0.35),
         watchSizeMultiplier: clamp(num('sizeMultiplier',  1.5),  0.8,  2.4),
@@ -364,7 +366,7 @@ const handleBuyNow = () => {
 
       const lms = results.multiHandLandmarks?.[0] ?? null;
       const videoRect = videoRef.current.getBoundingClientRect();
-      const mirrorX = camMode === 'user';
+      const mirrorX = camMode === 'user' || fitFlipXRef.current;
 
       const pose = trackerRef.current.update(lms, null, videoRect, mirrorX);
       pipelineRef.current.updatePose(pose);
