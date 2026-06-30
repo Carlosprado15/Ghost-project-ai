@@ -170,3 +170,34 @@ Um engine de wrist é considerado aprovado para integração no Ghost Core se:
 | White-label | sem branding vendor visível |
 
 Avaliação feita via avaliador objetivo do M066 (`?lab=deepar` + botão "INICIAR TESTE DE 10 SEGUNDOS").
+
+---
+
+## M068A — DeepAR Lab Isolado
+
+**Status:** concluído — aguarda teste com license key real.
+
+**O que foi criado:**
+- Lab acessível em `?lab=deepar` — rota isolada, sem alterar `App_FINAL.jsx`
+- `src/DeepARLab.jsx` — componente React com status, logs, diagnóstico, preview DeepAR
+- `createDeepARWebCdnSession()` exportada em `deepAREngine.placeholder.js`
+
+**Abordagem técnica:**
+- SDK carregado via **CDN dynamic import** (`https://cdn.jsdelivr.net/npm/deepar/js/deepar.esm.js`)
+- Nenhuma dependência npm instalada — Vite não bundla URLs absolutas
+- License key lida de `import.meta.env.VITE_DEEPAR_LICENSE_KEY`
+- Se a chave não estiver configurada: tela de instrução clara, sem quebrar o app
+
+**Efeito inicial (smoke test):**
+- `https://cdn.jsdelivr.net/npm/deepar/effects/aviators` (óculos AR genérico)
+- Objetivo: provar que SDK carrega, câmera abre e DeepAR renderiza no browser
+- NÃO é o efeito wrist/watch final
+
+**O que M068A NÃO faz:**
+- Não coloca relógio GLB real no pulso
+- Não usa modelos CW001/CASIO ainda
+- Não integra com o scanner principal
+
+**Próximos passos:**
+- **M068B** — configurar `VITE_DEEPAR_LICENSE_KEY` e testar `?lab=deepar` em localhost e celular
+- **M068C** — buscar/acessar efeito oficial DeepAR para wrist/watch (ShopAR ou AR Try-On Watch)

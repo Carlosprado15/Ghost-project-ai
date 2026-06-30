@@ -1,3 +1,215 @@
+# RELATORIO_CLAUDE — M068A
+
+## Objetivo
+
+Criar DeepAR Lab isolado em `?lab=deepar` — smoke test do SDK, câmera e compatibilidade Vite.
+
+---
+
+## Branch
+
+`m068-deepar-lab` (criada a partir de `m067-tracking-engine-layer`) ✅
+
+---
+
+## Arquivos Alterados
+
+| Arquivo | Tipo |
+|---|---|
+| `src/DeepARLab.jsx` | criado (novo) |
+| `src/main.tsx` | modificado (+2 linhas: import + rota) |
+| `src/tracking-engines/engines/deepar/deepAREngine.placeholder.js` | modificado (+createDeepARWebCdnSession) |
+| `docs/M067_TRACKING_ENGINE_UNIVERSAL.md` | modificado (+seção M068A) |
+| `RELATORIO_CLAUDE.md` | modificado (este arquivo) |
+
+---
+
+## Arquivos Sensíveis Preservados
+
+- **App_FINAL.jsx** — não alterado ✅
+- **ProductAdapter** — não alterado ✅
+- **products.json** — não alterado ✅
+- **shopify/** — não alterado ✅
+- **public/models/** — não alterado ✅
+- **public/gsdk.js** — não alterado ✅
+- **WristTracker.js** — não alterado ✅
+- **WebARRocksLab.jsx** — não alterado ✅
+
+---
+
+## Roteamento
+
+| Rota | Status |
+|---|---|
+| `?lab=deepar` | ✅ adicionado |
+| `?lab=webarrocks` | ✅ preservado |
+| `?lab=replay` | ✅ preservado |
+| app padrão (`/`) | ✅ preservado |
+
+---
+
+## Build
+
+```
+✓ built in 22.46s
+52 modules transformed (+2 vs M067C: DeepARLab.jsx + main.tsx)
+dist/assets/index-Bsuh-ijx.js  491.05 kB │ gzip: 141.90 kB
+```
+
+---
+
+## Verificação rg
+
+```
+rg "tracking-engines|DeepARLab|deepar" src/main.tsx src/App_FINAL.jsx src/ProductAdapter* ...
+
+src/main.tsx:import DeepARLab from './DeepARLab'
+src/main.tsx:     lab === 'deepar'     ? <DeepARLab />     :
+```
+
+Resultado: `deepar` aparece **somente** em `src/main.tsx`. App_FINAL.jsx, ProductAdapter, products.json, gsdk.js: limpos.
+
+---
+
+## Commit
+
+```
+hash:     (ver git log abaixo)
+mensagem: M068A: add isolated DeepAR lab
+branch:   m068-deepar-lab
+```
+
+---
+
+## Git Status Final
+
+```
+(limpo após commit)
+```
+
+---
+
+## Observações
+
+1. **VITE_DEEPAR_LICENSE_KEY precisa ser configurada** para o lab funcionar.
+   Sem a chave, o lab mostra tela de instrução clara (sem quebrar o app).
+
+2. **M068A é smoke test** — verifica carregamento do SDK, câmera e render.
+   Não coloca relógio real no pulso ainda.
+
+3. O efeito `aviators` (óculos AR) é apenas o efeito genérico de prova técnica.
+   Wrist/watch real depende do M068C (buscar efeito oficial DeepAR para watch try-on).
+
+4. SDK carregado via **CDN dynamic import** — nenhuma dependência npm instalada.
+
+---
+
+## Próximo Passo Recomendado
+
+**M068B** — Configurar `VITE_DEEPAR_LICENSE_KEY` e testar `?lab=deepar` em localhost + celular.
+
+Depois:
+
+**M068C** — Buscar/acessar efeito oficial DeepAR para wrist/watch (ShopAR ou AR Try-On Watch).
+
+---
+
+<!-- M067C abaixo -->
+
+# RELATORIO_CLAUDE — M067C
+
+## Objetivo
+
+Commit seguro da camada isolada de Tracking Engines aprovada pelo Codex.
+
+---
+
+## Branch
+
+`m067-tracking-engine-layer` ✅
+
+---
+
+## Build
+
+```
+✓ built in 18.92s
+50 modules transformed (bundle idêntico — tracking-engines não importado pelo app)
+dist/assets/index-BplmAWiI.js  485.19 kB │ gzip: 140.63 kB
+```
+
+---
+
+## Import Check
+
+```
+node -e "import('./src/tracking-engines/index.js').then(...)"
+
+tracking-engines exports: [
+  'ENGINE_MATRIX',
+  'GHOST_ENGINE_CATEGORIES',
+  'GHOST_ENGINE_RUNTIME',
+  'GHOST_ENGINE_STATUS',
+  'createEngineDescriptor',
+  'getAllEngines',
+  'getEngineById',
+  'getEnginesByCategory',
+  'getRecommendedEngineForCategory',
+  'registerEngine'
+]
+```
+
+✅ 10 exports resolvidos corretamente. Nota: imports corrigidos para incluir extensão `.js` explícita — necessário para Node ESM direto; Vite funciona com ambas as formas.
+
+---
+
+## Commit
+
+```
+hash:     4b310aa
+mensagem: M067C: add isolated tracking engine layer
+branch:   m067-tracking-engine-layer
+arquivos: 13 files changed, 996 insertions(+)
+```
+
+---
+
+## Git Status Final
+
+```
+(limpo — sem output)
+```
+
+---
+
+## Arquivos Sensíveis Preservados
+
+- **App_FINAL.jsx** — não alterado ✅
+- **ProductAdapter** — não alterado ✅
+- **products.json** — não alterado ✅
+- **shopify/** — não alterado ✅
+- **public/models/** — não alterado ✅
+- **main.tsx** — não alterado ✅
+- **public/gsdk.js** — não alterado ✅
+- **WristTracker.js** — não alterado ✅
+- **WebARRocksLab.jsx** — não alterado ✅
+
+---
+
+## Próximo Passo Recomendado
+
+**M068 — POC Isolada DeepAR Wrist Engine**
+
+- Criar `src/DeepARLab.jsx` + rota `?lab=deepar`
+- NÃO alterar `App_FINAL.jsx`
+- NÃO instalar SDK sem decisão aprovada pelo Arquiteto
+- Rodar avaliador objetivo do M066 ao final da POC
+- Critério de aprovação: mesmos thresholds do M066
+
+---
+
+<!-- M067A abaixo -->
+
 # RELATORIO_CLAUDE — M067A
 
 ## Objetivo
