@@ -1,3 +1,101 @@
+# RELATORIO_CLAUDE — M068B-ASSISTIDO
+
+## Objetivo
+
+Preparar o ambiente DeepAR sem exigir licença ainda — projeto pronto para receber `VITE_DEEPAR_LICENSE_KEY`.
+
+---
+
+## Branch
+
+`m068-deepar-lab` ✅
+
+---
+
+## Arquivos Alterados
+
+| Arquivo | Tipo |
+|---|---|
+| `.gitignore` | modificado (+`!.env.example`) |
+| `.env.example` | modificado (+entrada DeepAR) |
+| `RELATORIO_CLAUDE.md` | modificado (este arquivo) |
+
+---
+
+## .gitignore
+
+O arquivo já continha `*.local` e `.env*` — ambos protegem `.env.local`.
+`.env*` bloquearia também `.env.example`, por isso foi adicionada exceção `!.env.example`.
+
+Estado final relevante:
+```
+*.local        ← protege .env.local
+.env*          ← protege qualquer .env.*
+!.env.example  ← exceção: exemplo pode ser commitado
+```
+
+**`.env.local` está protegido** ✅
+
+---
+
+## .env.example
+
+Arquivo já existia com chaves Meshy e Tripo3D. Entrada DeepAR adicionada ao final:
+
+```
+# DeepAR — AR Try-On SDK
+# Domínios: localhost (dev) | ghost-project-ai.vercel.app (prod)
+VITE_DEEPAR_LICENSE_KEY=cole_sua_chave_deepar_aqui
+```
+
+✅ Nenhuma chave real registrada. Valor é placeholder descritivo.
+
+---
+
+## Build
+
+```
+✓ built in 18.88s — sem VITE_DEEPAR_LICENSE_KEY configurada
+52 modules, 491.05 kB
+```
+
+`?lab=deepar` compila e exibe tela de instrução quando chave ausente ✅
+
+---
+
+## Arquivos Sensíveis Preservados
+
+- **App_FINAL.jsx** — não alterado ✅
+- **ProductAdapter** — não alterado ✅
+- **products.json** — não alterado ✅
+- **shopify/** — não alterado ✅
+- **public/models/** — não alterado ✅
+- **public/gsdk.js** — não alterado ✅
+- **WristTracker.js** — não alterado ✅
+- **WebARRocksLab.jsx** — não alterado ✅
+
+---
+
+## Git Status Final
+
+```
+(ver abaixo após commit)
+```
+
+---
+
+## Próximo Passo Simples para o Usuário
+
+1. Criar conta em **developer.deepar.ai**
+2. Criar uma **Web App** no portal
+3. Cadastrar domínio **`localhost`** (para testes locais)
+4. Copiar a **Web License Key** gerada
+5. Criar `.env.local` na raiz do projeto com: `VITE_DEEPAR_LICENSE_KEY=sua_chave_aqui` e rodar `npm run dev`
+
+---
+
+<!-- M068A abaixo -->
+
 # RELATORIO_CLAUDE — M068A
 
 ## Objetivo
