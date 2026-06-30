@@ -91,6 +91,9 @@ export class WristTracker {
     // Última pose válida
     this.lastValidPose = null;
     this.currentPose = null;
+
+    // Dados de geometria bruta para o debug overlay visual (M057C)
+    this.debugData = null;
   }
 
   /**
@@ -134,6 +137,16 @@ export class WristTracker {
       middleMcp,
       pinkyMcp
     );
+
+    // Geometria bruta para visual debug (M057C) — nenhum cálculo alterado
+    this.debugData = {
+      wrist:        { x: wrist.x,    y: wrist.y },
+      indexMcp:     { x: indexMcp.x, y: indexMcp.y },
+      pinkyMcp:     { x: pinkyMcp.x, y: pinkyMcp.y },
+      palmCenter:   { x: (indexMcp.x + pinkyMcp.x) / 2, y: (indexMcp.y + pinkyMcp.y) / 2 },
+      watchAnchorX: geometry.x,
+      watchAnchorY: geometry.y,
+    };
 
     // Aplicar smoothing com One Euro Filter
     let smoothed = this._applySmoothing(geometry, timestamp);
@@ -432,6 +445,7 @@ export class WristTracker {
     this.state.isStable = false;
     this.state.stableFrames = 0;
     this.state.confidence = 0;
+    this.debugData = null;
 
     return null;
   }

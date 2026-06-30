@@ -123,7 +123,8 @@ export default function App() {
   const trackerRef       = useRef(null);
   const pipelineRef      = useRef(null);
   const precisionFitRef  = useRef(null);
-  const fitFlipXRef      = useRef(false);
+  const fitFlipXRef           = useRef(false);
+  const showTrackingDebugRef  = useRef(false);
   const scannerDivRef    = useRef(null);
   const pfHintTimerRef   = useRef(null);
   const imagePipelineRef = useRef(null);
@@ -232,8 +233,9 @@ export default function App() {
       if (p.get('fitDebug') !== '1') return {};
       const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
       const num   = (key, def) => { const v = parseFloat(p.get(key)); return isNaN(v) ? def : v; };
-      fitFlipXRef.current = p.get('flipX') === '1';
-      console.log('[M057A] fitDebug=1 — calibração ativa via URL | flipX:', fitFlipXRef.current);
+      fitFlipXRef.current          = p.get('flipX') === '1';
+      showTrackingDebugRef.current = p.get('showTrackingDebug') === '1';
+      console.log('[M057A] fitDebug=1 — calibração ativa via URL | flipX:', fitFlipXRef.current, '| showTrackingDebug:', showTrackingDebugRef.current);
       return {
         watchOffsetRatio:    clamp(num('offsetRatio',     0.18), 0.05, 0.35),
         watchSizeMultiplier: clamp(num('sizeMultiplier',  1.5),  0.8,  2.4),
@@ -1683,6 +1685,99 @@ const handleBuyNow = () => {
                 ← Voltar para a Experiência AR
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── M057C: visual tracking debug — apenas quando fitDebug=1&showTrackingDebug=1 ── */}
+      {showTrackingDebugRef.current && (
+        <div style={{ position:'fixed', inset:0, zIndex:998, pointerEvents:'none' }}>
+          {/* SVG — pontos e vetores de tracking em coordenadas absolutas de viewport */}
+          <svg
+            width={window.innerWidth}
+            height={window.innerHeight}
+            style={{ position:'absolute', left:0, top:0, overflow:'visible' }}
+          >
+            {trackerRef.current?.debugData && (
+              <>
+                {/* Amarelo: vetor antebraço wrist → palmCenter */}
+                <line
+                  x1={trackerRef.current.debugData.wrist.x}
+                  y1={trackerRef.current.debugData.wrist.y}
+                  x2={trackerRef.current.debugData.palmCenter.x}
+                  y2={trackerRef.current.debugData.palmCenter.y}
+                  stroke="#FFD700" strokeWidth={2.5} opacity={0.9}
+                />
+                {/* Laranja tracejado: wrist → watchAnchor (pré-smoothing) */}
+                <line
+                  x1={trackerRef.current.debugData.wrist.x}
+                  y1={trackerRef.current.debugData.wrist.y}
+                  x2={trackerRef.current.debugData.watchAnchorX}
+                  y2={trackerRef.current.debugData.watchAnchorY}
+                  stroke="#FF8C00" strokeWidth={1.5} strokeDasharray="5 3" opacity={0.8}
+                />
+                {/* Azul: landmark[0] wrist */}
+                <circle
+                  cx={trackerRef.current.debugData.wrist.x}
+                  cy={trackerRef.current.debugData.wrist.y}
+                  r={8} fill="rgba(30,120,255,0.85)" stroke="#fff" strokeWidth={1.5}
+                />
+                <text x={trackerRef.current.debugData.wrist.x + 11} y={trackerRef.current.debugData.wrist.y + 4}
+                  fill="#7af" fontSize={10} fontFamily="monospace">wrist</text>
+                {/* Verde: palmCenter */}
+                <circle
+                  cx={trackerRef.current.debugData.palmCenter.x}
+                  cy={trackerRef.current.debugData.palmCenter.y}
+                  r={6} fill="rgba(0,210,70,0.85)" stroke="#fff" strokeWidth={1.5}
+                />
+                <text x={trackerRef.current.debugData.palmCenter.x + 8} y={trackerRef.current.debugData.palmCenter.y + 4}
+                  fill="#4f8" fontSize={10} fontFamily="monospace">palm</text>
+                {/* Vermelho: watchAnchor pré-smoothing */}
+                <circle
+                  cx={trackerRef.current.debugData.watchAnchorX}
+                  cy={trackerRef.current.debugData.watchAnchorY}
+                  r={6} fill="rgba(255,50,50,0.85)" stroke="#fff" strokeWidth={1.5}
+                />
+                <text x={trackerRef.current.debugData.watchAnchorX + 8} y={trackerRef.current.debugData.watchAnchorY + 4}
+                  fill="#f88" fontSize={10} fontFamily="monospace">anchor</text>
+              </>
+            )}
+            {/* Branco: centro real de renderização do relógio (pós-smoothing + PrecisionFit) */}
+            {(watch?.x > 0 || watch?.y > 0) && (
+              <>
+                <circle
+                  cx={watch.x} cy={watch.y} r={11}
+                  fill="none" stroke="#fff" strokeWidth={2.5} opacity={0.9}
+                />
+                <circle cx={watch.x} cy={watch.y} r={3} fill="#fff" opacity={0.9} />
+                <text x={watch.x + 14} y={watch.y + 4} fill="#fff" fontSize={10} fontFamily="monospace">render</text>
+              </>
+            )}
+          </svg>
+
+          {/* Painel de texto — canto superior esquerdo */}
+          <div style={{
+            position:'absolute', top:14, left:14,
+            background:'rgba(0,0,0,0.72)', color:'#fff',
+            fontSize:11, fontFamily:'monospace', lineHeight:'1.75',
+            padding:'8px 14px', borderRadius:8,
+            backdropFilter:'blur(4px)',
+            border:'1px solid rgba(255,255,255,0.13)',
+          }}>
+            <div style={{ color: trackerRef.current?.state?.isTracking ? '#4f8' : '#f55', fontWeight:700 }}>
+              hand: {trackerRef.current?.state?.isTracking ? 'detected' : 'lost'} | conf: {(((trackerRef.current?.state?.confidence) || 0) * 100).toFixed(0)}%
+            </div>
+            {trackerRef.current?.debugData && (
+              <>
+                <div>wrist:  ({Math.round(trackerRef.current.debugData.wrist.x)}, {Math.round(trackerRef.current.debugData.wrist.y)})</div>
+                <div>anchor: ({Math.round(trackerRef.current.debugData.watchAnchorX)}, {Math.round(trackerRef.current.debugData.watchAnchorY)})</div>
+              </>
+            )}
+            <div>render: ({Math.round(watch?.x || 0)}, {Math.round(watch?.y || 0)})</div>
+            <div>size: {Math.round(watch?.size || 0)}px | rot: {(watch?.rotation || 0).toFixed(1)}°</div>
+            <div>mirrorX: {String(camMode === 'user' || fitFlipXRef.current)} | flipX: {String(fitFlipXRef.current)}</div>
+            <div>rotOffset: {trackerRef.current?.config?.watchRotationOffset ?? -90} | ratio: {trackerRef.current?.config?.watchOffsetRatio ?? 0.18}</div>
+            <div>sizeMult: {trackerRef.current?.config?.watchSizeMultiplier ?? 1.5} | cam: {camMode}</div>
           </div>
         </div>
       )}
