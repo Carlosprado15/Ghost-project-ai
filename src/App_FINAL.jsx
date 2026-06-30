@@ -105,6 +105,21 @@ export default function App() {
   const [generatedModelUrl, setGeneratedModelUrl]  = useState(null);
   const [show360, setShow360]                      = useState(false);
 
+  // M059 — painel de calibração ao vivo (só ativo quando fitDebug=1)
+  const fitDebugActive = new URLSearchParams(window.location.search).get('fitDebug') === '1';
+  const [liveParams, setLiveParams] = useState(() => {
+    const p = new URLSearchParams(window.location.search);
+    const num = (key, def) => { const v = parseFloat(p.get(key)); return isNaN(v) ? def : v; };
+    return {
+      offsetRatio:     num('offsetRatio',     0.18),
+      sizeMultiplier:  num('sizeMultiplier',  1.5),
+      rotationOffset:  num('rotationOffset', -90),
+      flipX:           p.get('flipX') === '1',
+      offsetDirection: p.get('offsetDirection') === 'forearm' ? 'forearm' : 'default',
+    };
+  });
+  const [panelOpen, setPanelOpen] = useState(true);
+
   // Precision Fit — offset manual sobre a pose do WristTracker
   const [pfOffset, setPfOffset] = useState({ x: 0, y: 0, scale: 1, rotation: 0 });
   const [pfEditing, setPfEditing] = useState(false);
@@ -292,7 +307,15 @@ export default function App() {
     }
   }, []);
 
-
+  // M059 — aplica liveParams ao tracker a cada mudança (sem rebuild, sem reload)
+  useEffect(() => {
+    if (!fitDebugActive || !trackerRef.current) return;
+    trackerRef.current.config.watchOffsetRatio    = liveParams.offsetRatio;
+    trackerRef.current.config.watchSizeMultiplier = liveParams.sizeMultiplier;
+    trackerRef.current.config.watchRotationOffset = liveParams.rotationOffset;
+    trackerRef.current.config.watchOffsetFlip     = liveParams.offsetDirection === 'forearm';
+    fitFlipXRef.current = liveParams.flipX;
+  }, [liveParams, fitDebugActive]);
 
 const handleBuyNow = () => {
   const { cartUrl, productUrl } = ProductAdapter.getActive();
@@ -1693,6 +1716,171 @@ const handleBuyNow = () => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── M059: painel de calibração ao vivo — apenas quando fitDebug=1 ── */}
+      {fitDebugActive && (
+        <div style={{
+          position: 'fixed',
+          bottom: 88,
+          left: 10,
+          zIndex: 999,
+          pointerEvents: 'auto',
+          fontFamily: 'monospace',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+        }}>
+          {panelOpen ? (
+            <div style={{
+              background: 'rgba(0,0,0,0.88)',
+              border: '1px solid rgba(212,175,55,0.40)',
+              borderRadius: 12,
+              padding: '10px 14px 12px',
+              color: '#fff',
+              fontSize: 11,
+              width: 218,
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.6)',
+            }}>
+              {/* Cabeçalho */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ color: '#D4AF37', fontWeight: 700, fontSize: 10, letterSpacing: '0.12em' }}>
+                  CALIBRAÇÃO AO VIVO
+                </span>
+                <button
+                  onClick={() => setPanelOpen(false)}
+                  style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', cursor: 'pointer', fontSize: 14, padding: '0 2px', lineHeight: 1 }}
+                >✕</button>
+              </div>
+
+              {/* offsetRatio */}
+              <div style={{ marginBottom: 9 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                  <span style={{ color: 'rgba(255,255,255,0.65)' }}>offsetRatio</span>
+                  <span style={{ color: '#D4AF37' }}>{liveParams.offsetRatio.toFixed(2)}</span>
+                </div>
+                <input type="range" min="0.05" max="0.35" step="0.01"
+                  value={liveParams.offsetRatio}
+                  onChange={(e) => setLiveParams(p => ({ ...p, offsetRatio: parseFloat(e.target.value) }))}
+                  style={{ width: '100%', accentColor: '#D4AF37' }}
+                />
+              </div>
+
+              {/* sizeMultiplier */}
+              <div style={{ marginBottom: 9 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                  <span style={{ color: 'rgba(255,255,255,0.65)' }}>sizeMultiplier</span>
+                  <span style={{ color: '#D4AF37' }}>{liveParams.sizeMultiplier.toFixed(2)}</span>
+                </div>
+                <input type="range" min="0.8" max="2.4" step="0.05"
+                  value={liveParams.sizeMultiplier}
+                  onChange={(e) => setLiveParams(p => ({ ...p, sizeMultiplier: parseFloat(e.target.value) }))}
+                  style={{ width: '100%', accentColor: '#D4AF37' }}
+                />
+              </div>
+
+              {/* rotationOffset */}
+              <div style={{ marginBottom: 9 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                  <span style={{ color: 'rgba(255,255,255,0.65)' }}>rotationOffset</span>
+                  <span style={{ color: '#D4AF37' }}>{liveParams.rotationOffset}°</span>
+                </div>
+                <input type="range" min="-180" max="180" step="5"
+                  value={liveParams.rotationOffset}
+                  onChange={(e) => setLiveParams(p => ({ ...p, rotationOffset: parseInt(e.target.value) }))}
+                  style={{ width: '100%', accentColor: '#D4AF37' }}
+                />
+              </div>
+
+              {/* flipX + offsetDirection */}
+              <div style={{ display: 'flex', gap: 7, marginBottom: 10 }}>
+                <button
+                  onClick={() => setLiveParams(p => ({ ...p, flipX: !p.flipX }))}
+                  style={{
+                    flex: 1,
+                    background: liveParams.flipX ? 'rgba(212,175,55,0.22)' : 'rgba(255,255,255,0.06)',
+                    border: `1px solid ${liveParams.flipX ? 'rgba(212,175,55,0.55)' : 'rgba(255,255,255,0.14)'}`,
+                    borderRadius: 8,
+                    color: liveParams.flipX ? '#D4AF37' : 'rgba(255,255,255,0.45)',
+                    padding: '5px 4px',
+                    fontSize: 10,
+                    cursor: 'pointer',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  flipX: {liveParams.flipX ? 'ON' : 'OFF'}
+                </button>
+                <button
+                  onClick={() => setLiveParams(p => ({ ...p, offsetDirection: p.offsetDirection === 'forearm' ? 'default' : 'forearm' }))}
+                  style={{
+                    flex: 1,
+                    background: liveParams.offsetDirection === 'forearm' ? 'rgba(212,175,55,0.22)' : 'rgba(255,255,255,0.06)',
+                    border: `1px solid ${liveParams.offsetDirection === 'forearm' ? 'rgba(212,175,55,0.55)' : 'rgba(255,255,255,0.14)'}`,
+                    borderRadius: 8,
+                    color: liveParams.offsetDirection === 'forearm' ? '#D4AF37' : 'rgba(255,255,255,0.45)',
+                    padding: '5px 4px',
+                    fontSize: 10,
+                    cursor: 'pointer',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  {liveParams.offsetDirection === 'forearm' ? '→ forearm' : '→ default'}
+                </button>
+              </div>
+
+              {/* Copiar URL com os valores atuais */}
+              <button
+                onClick={() => {
+                  const p = new URLSearchParams(window.location.search);
+                  p.set('fitDebug', '1');
+                  p.set('offsetRatio', liveParams.offsetRatio.toFixed(2));
+                  p.set('sizeMultiplier', liveParams.sizeMultiplier.toFixed(2));
+                  p.set('rotationOffset', String(liveParams.rotationOffset));
+                  liveParams.flipX ? p.set('flipX', '1') : p.delete('flipX');
+                  liveParams.offsetDirection === 'forearm'
+                    ? p.set('offsetDirection', 'forearm')
+                    : p.delete('offsetDirection');
+                  const url = window.location.origin + window.location.pathname + '?' + p.toString();
+                  navigator.clipboard?.writeText(url).catch(() => {});
+                }}
+                style={{
+                  width: '100%',
+                  background: 'rgba(212,175,55,0.09)',
+                  border: '1px solid rgba(212,175,55,0.28)',
+                  borderRadius: 8,
+                  color: 'rgba(212,175,55,0.80)',
+                  fontSize: 10,
+                  letterSpacing: '0.08em',
+                  padding: '6px 10px',
+                  cursor: 'pointer',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Copiar URL
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setPanelOpen(true)}
+              style={{
+                background: 'rgba(0,0,0,0.75)',
+                border: '1px solid rgba(212,175,55,0.45)',
+                borderRadius: 10,
+                color: '#D4AF37',
+                fontSize: 11,
+                fontFamily: 'monospace',
+                padding: '6px 14px',
+                cursor: 'pointer',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                letterSpacing: '0.08em',
+              }}
+            >
+              FIT ⊕
+            </button>
+          )}
         </div>
       )}
 
