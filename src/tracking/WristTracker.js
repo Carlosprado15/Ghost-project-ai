@@ -100,7 +100,7 @@ export class WristTracker {
   /**
    * Processa landmarks do MediaPipe e retorna pose do relógio
    */
-  update(landmarks, handedness, videoRect, mirrorX = false) {
+  update(landmarks, handedness, videoRect, mirrorX = false, frameSize = null) {
     this.state.totalFrames++;
     const timestamp = performance.now();
 
@@ -109,10 +109,10 @@ export class WristTracker {
     }
 
     // Extrair landmarks anatômicos corretos
-    const wrist = this._toLandmark(landmarks[0], videoRect, mirrorX);
-    const indexMcp = this._toLandmark(landmarks[5], videoRect, mirrorX);
-    const middleMcp = this._toLandmark(landmarks[9], videoRect, mirrorX);
-    const pinkyMcp = this._toLandmark(landmarks[17], videoRect, mirrorX);
+    const wrist     = this._toLandmark(landmarks[0],  videoRect, mirrorX, frameSize);
+    const indexMcp  = this._toLandmark(landmarks[5],  videoRect, mirrorX, frameSize);
+    const middleMcp = this._toLandmark(landmarks[9],  videoRect, mirrorX, frameSize);
+    const pinkyMcp  = this._toLandmark(landmarks[17], videoRect, mirrorX, frameSize);
 
     // Calcular confidence score
     const confidence = this._calculateConfidence(
@@ -136,7 +136,8 @@ export class WristTracker {
       wrist,
       indexMcp,
       middleMcp,
-      pinkyMcp
+      pinkyMcp,
+      mirrorX
     );
 
     // Geometria bruta para visual debug (M057C) — nenhum cálculo alterado
@@ -174,9 +175,11 @@ export class WristTracker {
   /**
    * Converte landmark normalizado para coordenadas de tela
    */
-  _toLandmark(norm, rect, mirrorX) {
-    const MP_W = 1280;
-    const MP_H = 720;
+  _toLandmark(norm, rect, mirrorX, frameSize = null) {
+    // Usar dimensões reais do vídeo para mapeamento correto de coordenadas.
+    // Fallback para 1280×720 apenas se não disponível.
+    const MP_W = frameSize?.width  ?? 1280;
+    const MP_H = frameSize?.height ?? 720;
     
     const scale = Math.max(rect.width / MP_W, rect.height / MP_H);
     const dW = MP_W * scale;
@@ -246,7 +249,7 @@ export class WristTracker {
   /**
    * Calcula geometria anatômica do relógio no pulso
    */
-  _calculateWristGeometry(wrist, indexMcp, middleMcp, pinkyMcp) {
+  _calculateWristGeometry(wrist, indexMcp, middleMcp, pinkyMcp, mirrorX = false) {
     // 1. Calcular centro da palma (média entre index e pinky MCP)
     const palmCenterX = (indexMcp.x + pinkyMcp.x) / 2;
     const palmCenterY = (indexMcp.y + pinkyMcp.y) / 2;
@@ -280,9 +283,11 @@ export class WristTracker {
       Math.min(this.config.maxWatchSize, rawSize)
     );
 
-    // 6. Rotação real do relógio (perpendicular ao antebraço)
-    // O relógio deve estar alinhado com o eixo do antebraço
-    const watchRotation = Math.atan2(forearmDirY, forearmDirX) * (180 / Math.PI) + this.config.watchRotationOffset;
+    // 6. Rotação real do relógio (alinhado com eixo do antebraço)
+    // Quando mirrorX=true, forearmDirX foi calculado em coordenadas espelhadas —
+    // negamos só para o atan2, mantendo forearmDirX original para o cálculo de posição.
+    const rotDirX = mirrorX ? -forearmDirX : forearmDirX;
+    const watchRotation = Math.atan2(forearmDirY, rotDirX) * (180 / Math.PI) + this.config.watchRotationOffset;
 
     return {
       x: watchX,

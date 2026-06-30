@@ -17,21 +17,33 @@ import GhostDiagnostics from './components/GhostDiagnostics.jsx';
 import Hero3D from './components/Hero3D.jsx';
 
 // ─── CDN loaders ──────────────────────────────────────────────────────────────
+// Cache de Promises por id — garante que múltiplos callers concorrentes
+// (preload no mount + abertura do scanner) compartilhem a MESMA Promise.
+const _scriptPromises = {};
+
 function loadScript(src, id) {
-  return new Promise((resolve, reject) => {
-    if (document.getElementById(id)) {
-      resolve();
+  if (id in _scriptPromises) return _scriptPromises[id];
+
+  _scriptPromises[id] = new Promise((resolve, reject) => {
+    const existing = document.getElementById(id);
+    if (existing) {
+      // Tag já existe mas pode ainda estar carregando
+      if (existing.dataset.mpDone === '1') { resolve(); return; }
+      existing.addEventListener('load',  () => { existing.dataset.mpDone = '1'; resolve(); });
+      existing.addEventListener('error', reject);
       return;
     }
 
     const s = document.createElement('script');
     s.src = src;
-    s.id = id;
+    s.id  = id;
     s.crossOrigin = 'anonymous';
-    s.onload = resolve;
-    s.onerror = reject;
+    s.onload  = () => { s.dataset.mpDone = '1'; resolve(); };
+    s.onerror = (e) => { delete _scriptPromises[id]; reject(e); };
     document.head.appendChild(s);
   });
+
+  return _scriptPromises[id];
 }
 
 async function loadMediaPipe() {
@@ -39,16 +51,30 @@ async function loadMediaPipe() {
     'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js',
     'mp-cu'
   );
-
   await loadScript(
     'https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js',
     'mp-du'
   );
-
   await loadScript(
     'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js',
     'mp-h'
   );
+
+  // Garantir que os globals estejam disponíveis após os scripts carregarem.
+  // Scripts CDN podem executar de forma assíncrona após o evento onload.
+  const globalsReady = () => window.Hands && window.Camera;
+  if (!globalsReady()) {
+    await new Promise((resolve, reject) => {
+      const deadline = Date.now() + 10000;
+      const interval = setInterval(() => {
+        if (globalsReady()) { clearInterval(interval); resolve(); }
+        else if (Date.now() > deadline) {
+          clearInterval(interval);
+          reject(new Error('[MediaPipe] globals não disponíveis após 10s'));
+        }
+      }, 40);
+    });
+  }
 }
 
 function useModelViewer() {
@@ -268,6 +294,9 @@ export default function App() {
     precisionFitRef.current = new PrecisionFitController();
     imagePipelineRef.current = createDefaultPipeline();
 
+    // Pré-aquecer MediaPipe WASM no mount — elimina delay na 1ª abertura do scanner
+    loadMediaPipe().catch(() => {});
+
     return () => {
       trackerRef.current?.reset();
       pipelineRef.current?.stop();
@@ -372,8 +401,12 @@ const handleBuyNow = () => {
       const lms = results.multiHandLandmarks?.[0] ?? null;
       const videoRect = videoRef.current.getBoundingClientRect();
       const mirrorX = camMode === 'user' || fitFlipXRef.current;
+      const frameSize = {
+        width:  videoRef.current.videoWidth  || 640,
+        height: videoRef.current.videoHeight || 480,
+      };
 
-      const pose = trackerRef.current.update(lms, null, videoRect, mirrorX);
+      const pose = trackerRef.current.update(lms, null, videoRect, mirrorX, frameSize);
       pipelineRef.current.updatePose(pose);
     },
     [camMode]
