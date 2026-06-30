@@ -20,6 +20,8 @@ function clipToPixel(cx, cy, W, H) {
   return { px: (cx + 1) / 2 * W, py: (1 - cy) / 2 * H };
 }
 
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
 export default function WebARRocksLab() {
   const glCanvasRef   = useRef(null);
   const ovCanvasRef   = useRef(null);
@@ -27,14 +29,22 @@ export default function WebARRocksLab() {
   const activeRef     = useRef(false);
   const lastUpdateRef = useRef(0);
 
-  // 'environment' = traseira (default), 'user' = frontal
-  const [facingMode, setFacingMode] = useState('environment');
+  // Calibration refs — updated instantly, used inside callbackTrack
+  const scaleRef   = useRef(1.2);
+  const offXRef    = useRef(0);
+  const offYRef    = useRef(0);
+  const rotOffRef  = useRef(0);
 
+  const [facingMode, setFacingMode] = useState('environment');
   const [status,     setStatus]     = useState('idle');
   const [detected,   setDetected]   = useState(false);
-  const [confidence, setConfidence] = useState(0);
-  const [lmCount,    setLmCount]    = useState(0);
-  const [rawProps,   setRawProps]   = useState({});
+  const [diagData,   setDiagData]   = useState({});
+
+  // Calibration state (for slider display only)
+  const [scale,   setScale]   = useState(1.2);
+  const [offX,    setOffX]    = useState(0);
+  const [offY,    setOffY]    = useState(0);
+  const [rotOff,  setRotOff]  = useState(0);
 
   const cameraLabel = facingMode === 'environment' ? 'traseira' : 'frontal';
 
@@ -59,52 +69,79 @@ export default function WebARRocksLab() {
     const ov  = ovCanvasRef.current;
     if (!ctx || !ov) return;
 
-    const W = ov.width, H = ov.height;
+    const W  = ov.width;
+    const H  = ov.height;
+    const pr = window.devicePixelRatio || 1;
     ctx.clearRect(0, 0, W, H);
 
     const isDetected = detectState.isDetected || (detectState.detected > 0.5);
     if (!isDetected) return;
 
-    const { x, y, s, rz } = detectState;
-    const { px: cx, py: cy } = clipToPixel(x, y, W, H);
+    const lms = detectState.landmarks;
+    let cx, cy, watchW;
 
-    const frameSize = s * W;
-    const watchW    = frameSize * 0.85;
-    const watchH    = watchW   * 0.55;
+    if (lms?.length >= 2) {
+      // Center: average of ALL landmark positions (more accurate than x,y for wrist)
+      let sumX = 0, sumY = 0, minX = Infinity, maxX = -Infinity;
+      lms.forEach(([lx, ly]) => {
+        sumX += lx;
+        sumY += ly;
+        if (lx < minX) minX = lx;
+        if (lx > maxX) maxX = lx;
+      });
+      const { px, py } = clipToPixel(sumX / lms.length, sumY / lms.length, W, H);
+      cx = px + offXRef.current * pr;
+      cy = py + offYRef.current * pr;
 
-    // Placeholder watch body
+      // Width from landmark bounding box horizontal span → actual wrist width in canvas pixels
+      const pxMin = clipToPixel(minX, 0, W, H).px;
+      const pxMax = clipToPixel(maxX, 0, W, H).px;
+      const rawW  = Math.abs(pxMax - pxMin);
+      watchW = clamp(rawW * scaleRef.current, 40 * pr, 160 * pr);
+    } else {
+      // Fallback: use detectState.x/y (detection frame center) with fixed base size
+      const { x, y } = detectState;
+      const { px, py } = clipToPixel(x, y, W, H);
+      cx = px + offXRef.current * pr;
+      cy = py + offYRef.current * pr;
+      watchW = clamp(90 * pr * scaleRef.current, 40 * pr, 160 * pr);
+    }
+
+    const watchH   = watchW * 0.55;
+    const rotation = (detectState.rz ?? 0) + rotOffRef.current * (Math.PI / 180);
+
+    // Watch body
     ctx.save();
     ctx.translate(cx, cy);
-    ctx.rotate(rz);
-    ctx.fillStyle   = 'rgba(59,130,246,0.38)';
+    ctx.rotate(rotation);
+    ctx.fillStyle   = 'rgba(59,130,246,0.45)';
     ctx.strokeStyle = '#60a5fa';
-    ctx.lineWidth   = 2.5;
+    ctx.lineWidth   = Math.max(1.5, 2 * pr / (window.devicePixelRatio || 1));
     ctx.fillRect  (-watchW / 2, -watchH / 2, watchW, watchH);
     ctx.strokeRect(-watchW / 2, -watchH / 2, watchW, watchH);
     // Straps
-    ctx.fillStyle = 'rgba(59,130,246,0.25)';
-    ctx.fillRect(-watchW * 0.2, -watchH / 2 - watchH * 0.3, watchW * 0.4, watchH * 0.3);
-    ctx.fillRect(-watchW * 0.2,  watchH / 2,                watchW * 0.4, watchH * 0.3);
+    ctx.fillStyle = 'rgba(59,130,246,0.28)';
+    ctx.fillRect(-watchW * 0.18, -watchH / 2 - watchH * 0.26, watchW * 0.36, watchH * 0.26);
+    ctx.fillRect(-watchW * 0.18,  watchH / 2,                  watchW * 0.36, watchH * 0.26);
     // Dial
     ctx.beginPath();
-    ctx.arc(0, 0, watchH * 0.32, 0, Math.PI * 2);
+    ctx.arc(0, 0, watchH * 0.3, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(255,255,255,0.22)';
     ctx.fill();
     ctx.restore();
 
-    // Center anchor
+    // Center anchor dot
     ctx.beginPath();
-    ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 4 * pr, 0, Math.PI * 2);
     ctx.fillStyle = '#ef4444';
     ctx.fill();
 
     // Landmark dots
-    const lms = detectState.landmarks;
     if (lms?.length) {
       lms.forEach(([lx, ly], i) => {
         const { px, py } = clipToPixel(lx, ly, W, H);
         ctx.beginPath();
-        ctx.arc(px, py, 4, 0, Math.PI * 2);
+        ctx.arc(px, py, 4 * pr, 0, Math.PI * 2);
         ctx.fillStyle = i < 4 ? '#facc15' : '#4ade80';
         ctx.fill();
       });
@@ -121,21 +158,17 @@ export default function WebARRocksLab() {
       lastUpdateRef.current = now;
       const isDetected = detectState.isDetected || (detectState.detected > 0.5);
       setDetected(!!isDetected);
-      setConfidence(+(detectState.detected ?? 0).toFixed(3));
-      setLmCount(detectState.landmarks?.length ?? 0);
       const { landmarks, ...rest } = detectState;
-      setRawProps(rest);
+      setDiagData({ ...rest, landmarks: landmarks?.length ?? 0 });
     }
   }, [drawOverlay]);
 
-  // Re-runs whenever facingMode changes → destroy old instance → init with new camera
   useEffect(() => {
     let destroyed = false;
 
     (async () => {
       setStatus('carregando…');
       setDetected(false);
-      setConfidence(0);
 
       try {
         await loadLibScript();
@@ -151,7 +184,6 @@ export default function WebARRocksLab() {
           videoSettings: { facingMode },
           callbackReady: (err) => {
             if (destroyed) return;
-            // Rear camera unavailable → auto-fallback to front
             if (err === 'WEBCAM_UNAVAILABLE' && facingMode === 'environment') {
               try { window.WEBARROCKSHAND.destroy(); } catch (_) {}
               setFacingMode('user');
@@ -183,79 +215,93 @@ export default function WebARRocksLab() {
     if (ov) ovCtxRef.current?.clearRect(0, 0, ov.width, ov.height);
     setStatus('parado');
     setDetected(false);
-    setConfidence(0);
   };
 
-  const handleSwitchCamera = () => {
-    setFacingMode(prev => prev === 'environment' ? 'user' : 'environment');
-  };
+  const handleScale  = (v) => { scaleRef.current  = v; setScale(v);  };
+  const handleOffX   = (v) => { offXRef.current   = v; setOffX(v);   };
+  const handleOffY   = (v) => { offYRef.current   = v; setOffY(v);   };
+  const handleRotOff = (v) => { rotOffRef.current = v; setRotOff(v); };
 
-  const statusColor = status.startsWith('error')
-    ? '#f87171'
-    : status === 'ready' ? '#4ade80' : '#facc15';
-
+  const statusColor   = status.startsWith('error') ? '#f87171' : status === 'ready' ? '#4ade80' : '#facc15';
   const detectedColor = detected ? '#4ade80' : '#f87171';
+
+  const SLIDERS = [
+    { label: 'scaleMultiplier', val: scale,  fn: handleScale,  min: 0.3, max: 4,    step: 0.05, fmt: v => v.toFixed(2) },
+    { label: 'offsetX (px)',    val: offX,   fn: handleOffX,   min: -80, max: 80,   step: 1,    fmt: v => v + 'px' },
+    { label: 'offsetY (px)',    val: offY,   fn: handleOffY,   min: -80, max: 80,   step: 1,    fmt: v => v + 'px' },
+    { label: 'rotationOffset',  val: rotOff, fn: handleRotOff, min: -180, max: 180, step: 1,    fmt: v => v + '°' },
+  ];
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: '#0a0a0a', overflow: 'hidden' }}>
-      {/* WebGL canvas — library draws camera feed here */}
-      <canvas
-        id="war-gl-canvas"
-        ref={glCanvasRef}
-        style={{ position: 'absolute', inset: 0 }}
-      />
+      <canvas id="war-gl-canvas" ref={glCanvasRef} style={{ position: 'absolute', inset: 0 }} />
+      <canvas ref={ovCanvasRef} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
 
-      {/* 2D overlay — watch placeholder + landmarks */}
-      <canvas
-        ref={ovCanvasRef}
-        style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
-      />
-
-      {/* Status / debug panel */}
+      {/* Status / diagnostic panel — top-left */}
       <div style={{
         position: 'absolute', top: 14, left: 14, zIndex: 10,
-        background: 'rgba(0,0,0,0.78)', backdropFilter: 'blur(6px)',
+        background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(6px)',
         color: '#e2e8f0', borderRadius: 10, padding: '10px 14px',
-        fontFamily: 'monospace', fontSize: 12, maxWidth: 310,
+        fontFamily: 'monospace', fontSize: 11, maxWidth: 240,
         border: '1px solid rgba(255,255,255,0.08)',
       }}>
-        <div style={{ fontWeight: 'bold', color: '#a78bfa', marginBottom: 6, fontSize: 13 }}>
-          WebAR.rocks.hand — Spike Lab
+        <div style={{ fontWeight: 'bold', color: '#a78bfa', marginBottom: 5, fontSize: 12 }}>
+          WebAR.rocks — Spike Lab
         </div>
-        <div>NN: <span style={{ color: '#93c5fd' }}>NN_WRISTBACK_45</span></div>
+        <div>NN: <span style={{ color: '#93c5fd' }}>WRISTBACK_45</span></div>
         <div>câmera: <span style={{ color: '#fbbf24' }}>{cameraLabel}</span></div>
         <div>status: <span style={{ color: statusColor }}>{status}</span></div>
-        <div>detected: <span style={{ color: detectedColor }}>{detected ? 'YES ✓' : 'NO'}</span>
-          {' '}conf: <span style={{ color: detectedColor }}>{confidence}</span>
+        <div style={{ marginTop: 4 }}>
+          detected: <span style={{ color: detectedColor }}>{detected ? 'YES ✓' : 'NO'}</span>
         </div>
-        <div>landmarks: {lmCount}</div>
-
-        {Object.keys(rawProps).length > 0 && (
-          <details style={{ marginTop: 8 }}>
-            <summary style={{ cursor: 'pointer', color: '#93c5fd', userSelect: 'none' }}>
-              detectState (raw)
-            </summary>
-            <pre style={{
-              fontSize: 10, marginTop: 4,
-              maxHeight: 200, overflow: 'auto',
-              color: '#d1fae5',
-            }}>
-              {JSON.stringify(rawProps, null, 2)}
-            </pre>
-          </details>
+        {Object.keys(diagData).length > 0 && (
+          <div style={{ marginTop: 4, borderTop: '1px solid rgba(255,255,255,0.10)', paddingTop: 4 }}>
+            {Object.entries(diagData).map(([k, v]) => (
+              <div key={k}>
+                <span style={{ color: '#94a3b8' }}>{k}: </span>
+                <span style={{ color: '#93c5fd' }}>
+                  {typeof v === 'number' ? v.toFixed(4) : String(v)}
+                </span>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
-      {/* Controls */}
+      {/* Calibration sliders — top-right */}
+      <div style={{
+        position: 'absolute', top: 14, right: 14, zIndex: 10,
+        background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(6px)',
+        color: '#e2e8f0', borderRadius: 10, padding: '10px 14px',
+        fontFamily: 'monospace', fontSize: 11, width: 210,
+        border: '1px solid rgba(255,255,255,0.08)',
+      }}>
+        <div style={{ fontWeight: 'bold', color: '#a78bfa', marginBottom: 8, fontSize: 12 }}>
+          Calibração
+        </div>
+        {SLIDERS.map(({ label, val, fn, min, max, step, fmt }) => (
+          <div key={label} style={{ marginBottom: 8 }}>
+            <div style={{ color: '#94a3b8', marginBottom: 2 }}>
+              {label}: <span style={{ color: '#e2e8f0' }}>{fmt(val)}</span>
+            </div>
+            <input
+              type="range" min={min} max={max} step={step} value={val}
+              onChange={e => fn(parseFloat(e.target.value))}
+              style={{ width: '100%', accentColor: '#7c3aed', cursor: 'pointer' }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Controls — bottom-center */}
       <div style={{
         position: 'absolute', bottom: 28, left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 10, display: 'flex', flexDirection: 'column',
         alignItems: 'center', gap: 12,
       }}>
-        {/* Big camera switch button */}
         <button
-          onClick={handleSwitchCamera}
+          onClick={() => setFacingMode(p => p === 'environment' ? 'user' : 'environment')}
           style={{
             padding: '14px 40px', borderRadius: 10, border: 'none',
             background: '#7c3aed', color: '#fff', cursor: 'pointer',
