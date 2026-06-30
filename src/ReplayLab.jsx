@@ -18,7 +18,14 @@ async function loadMediaPipe() {
   await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js', 'mp-h');
 }
 
-// ── Helpers (definidos fora do componente para evitar remount a cada render) ─
+// ── Presets de ROI ─────────────────────────────────────────────────────────
+// Valores em fração do vídeo: x, y = canto superior-esquerdo; w, h = largura/altura
+const PRESETS = {
+  'Vídeo normal':    { x: 0,    y: 0,    w: 1.0,  h: 1.0 },
+  'Tela celular':    { x: 0.10, y: 0.20, w: 0.80, h: 0.60 },
+};
+
+// ── Helpers (fora do componente — evita remount a cada render) ─────────────
 function SliderRow({ label, value, min, max, step, display, onChange }) {
   return (
     <div style={{ marginBottom: 10 }}>
@@ -51,26 +58,48 @@ function ToggleBtn({ label, active, onClick }) {
 
 // ── Componente principal ───────────────────────────────────────────────────
 export default function ReplayLab() {
-  const [videoSrc, setVideoSrc]     = useState(null);
-  const [status, setStatus]         = useState('idle'); // idle | loading | ready | error
-  const [debugData, setDebugData]   = useState(null);
-  const [pose, setPose]             = useState({ x: 0, y: 0, size: 0, rotation: 0 });
-  const [tracking, setTracking]     = useState({ isTracking: false, confidence: 0 });
+  // ── Estado base ───────────────────────────────────────────────────────────
+  const [videoSrc, setVideoSrc]         = useState(null);
+  const [status, setStatus]             = useState('idle'); // idle | loading | ready | error
+  const [debugData, setDebugData]       = useState(null);
+  const [pose, setPose]                 = useState({ x: 0, y: 0, size: 0, rotation: 0 });
+  const [tracking, setTracking]         = useState({ isTracking: false, confidence: 0 });
+  const [detectionRate, setDetectionRate] = useState(0);
+
+  // ── Parâmetros de tracking ao vivo ────────────────────────────────────────
   const [liveParams, setLiveParams] = useState({
     offsetRatio: 0.18, sizeMultiplier: 1.5, rotationOffset: -90,
     flipX: false, offsetDirection: 'default',
   });
 
-  const videoRef    = useRef(null);
-  const handsRef    = useRef(null);
-  const trackerRef  = useRef(null);
-  const rafRef      = useRef(null);
-  const lastCtRef   = useRef(-1);
-  const activeRef   = useRef(false);
-  const mirrorXRef  = useRef(false);
-  const videoUrlRef = useRef(null);
+  // ── ROI / Zoom ────────────────────────────────────────────────────────────
+  const [roi, setRoi]           = useState({ x: 0, y: 0, w: 1.0, h: 1.0 });
+  const [roiEnabled, setRoiEnabled] = useState(false);
 
-  // Inicializa WristTracker uma vez
+  // ── Refs ──────────────────────────────────────────────────────────────────
+  const videoRef           = useRef(null);
+  const handsRef           = useRef(null);
+  const trackerRef         = useRef(null);
+  const rafRef             = useRef(null);
+  const lastCtRef          = useRef(-1);
+  const activeRef          = useRef(false);
+  const mirrorXRef         = useRef(false);
+  const videoUrlRef        = useRef(null);
+  const cropCanvasRef      = useRef(null);   // canvas offscreen para recorte ROI
+  const roiRef             = useRef(roi);    // valor atual do ROI sem stale closure
+  const roiEnabledRef      = useRef(false);  // idem para on/off
+  const detectionWindowRef = useRef([]);     // janela deslizante de detecção (60 frames)
+  const lastRateUpdateRef  = useRef(0);      // throttle do setState de taxa
+
+  // ── Init: canvas offscreen 640×480 para recorte ROI ──────────────────────
+  useEffect(() => {
+    const c = document.createElement('canvas');
+    c.width = 640;
+    c.height = 480;
+    cropCanvasRef.current = c;
+  }, []);
+
+  // ── Init: WristTracker (uma vez) ──────────────────────────────────────────
   useEffect(() => {
     trackerRef.current = new WristTracker({
       minConfidence: 0.6, minStabilityFrames: 8, maxLostFrames: 30,
@@ -82,7 +111,11 @@ export default function ReplayLab() {
     return () => trackerRef.current?.reset?.();
   }, []);
 
-  // Sincroniza liveParams → config do tracker + mirrorXRef (sem rebuild)
+  // ── Sincroniza state → refs (evita stale closures em callbacks estáveis) ──
+  useEffect(() => { roiRef.current = roi; }, [roi]);
+  useEffect(() => { roiEnabledRef.current = roiEnabled; }, [roiEnabled]);
+
+  // ── Sincroniza liveParams → config do tracker + mirrorXRef ────────────────
   useEffect(() => {
     mirrorXRef.current = liveParams.flipX;
     if (!trackerRef.current) return;
@@ -92,21 +125,46 @@ export default function ReplayLab() {
     trackerRef.current.config.watchOffsetFlip     = liveParams.offsetDirection === 'forearm';
   }, [liveParams]);
 
-  // Callback estável — lê config atual via refs, nunca recriado
+  // ── onHandsResults — estável, lê tudo via refs ───────────────────────────
   const onHandsResults = useCallback((results) => {
+    // Taxa de detecção (janela 60 frames, atualiza estado a cada 400ms)
+    const hasHand = (results.multiHandLandmarks?.length ?? 0) > 0;
+    const win = detectionWindowRef.current;
+    win.push(hasHand);
+    if (win.length > 60) win.shift();
+    const now = Date.now();
+    if (now - lastRateUpdateRef.current > 400) {
+      lastRateUpdateRef.current = now;
+      setDetectionRate(Math.round(win.filter(Boolean).length / win.length * 100));
+    }
+
     if (!videoRef.current || !trackerRef.current) return;
-    const lms  = results.multiHandLandmarks?.[0] ?? null;
+
+    let lms = results.multiHandLandmarks?.[0] ?? null;
     const rect = videoRef.current.getBoundingClientRect();
-    const p    = trackerRef.current.update(lms, null, rect, mirrorXRef.current);
+
+    // Remapear landmarks do espaço do crop para o espaço do vídeo completo.
+    // MediaPipe recebeu o canvas recortado → coords 0-1 estão dentro do ROI.
+    // WristTracker espera coords 0-1 do vídeo inteiro → mapear de volta.
+    if (lms && roiEnabledRef.current) {
+      const { x: rx, y: ry, w: rw, h: rh } = roiRef.current;
+      lms = lms.map(lm => ({
+        ...lm,
+        x: rx + lm.x * rw,
+        y: ry + lm.y * rh,
+      }));
+    }
+
+    const p = trackerRef.current.update(lms, null, rect, mirrorXRef.current);
     setDebugData(trackerRef.current.debugData ? { ...trackerRef.current.debugData } : null);
     setPose({ x: p.x ?? 0, y: p.y ?? 0, size: p.size ?? 0, rotation: p.rotation ?? 0 });
     setTracking({
       isTracking: trackerRef.current.state.isTracking,
       confidence: trackerRef.current.state.confidence,
     });
-  }, []);
+  }, []); // sem deps — lê tudo via refs
 
-  // Loop rAF: envia frames ao MediaPipe apenas quando currentTime muda
+  // ── Loop rAF — envia frame (ou recorte) ao MediaPipe quando currentTime muda
   const startLoop = useCallback(() => {
     activeRef.current = true;
     lastCtRef.current = -1;
@@ -117,7 +175,23 @@ export default function ReplayLab() {
         const ct = v.currentTime;
         if (ct !== lastCtRef.current) {
           lastCtRef.current = ct;
-          try { await handsRef.current.send({ image: v }); } catch (_) {}
+          try {
+            let source = v;
+            // Se ROI ativo: recortar a região e ampliar para 640×480
+            if (roiEnabledRef.current && cropCanvasRef.current && v.videoWidth > 0) {
+              const c = cropCanvasRef.current;
+              const ctx = c.getContext('2d');
+              const { x, y, w, h } = roiRef.current;
+              ctx.drawImage(
+                v,
+                x * v.videoWidth,  y * v.videoHeight,  // origem no vídeo
+                w * v.videoWidth,  h * v.videoHeight,  // tamanho do recorte
+                0, 0, c.width, c.height                // destino (640×480)
+              );
+              source = c;
+            }
+            await handsRef.current.send({ image: source });
+          } catch (_) {}
         }
       }
       rafRef.current = requestAnimationFrame(loop);
@@ -130,7 +204,7 @@ export default function ReplayLab() {
     if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
   }, []);
 
-  // Vincula play/pause/ended → start/stop do loop
+  // ── Vincula play/pause/ended → start/stop do loop ─────────────────────────
   useEffect(() => {
     const v = videoRef.current;
     if (!v || !videoSrc) return;
@@ -148,13 +222,14 @@ export default function ReplayLab() {
     };
   }, [videoSrc, startLoop, stopLoop]);
 
-  // Cleanup no unmount
+  // ── Cleanup no unmount ────────────────────────────────────────────────────
   useEffect(() => () => {
     stopLoop();
     handsRef.current?.close?.();
     if (videoUrlRef.current) URL.revokeObjectURL(videoUrlRef.current);
   }, [stopLoop]);
 
+  // ── Selecionar arquivo de vídeo ───────────────────────────────────────────
   const handleFilePick = useCallback(async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -167,9 +242,11 @@ export default function ReplayLab() {
     setDebugData(null);
     setPose({ x: 0, y: 0, size: 0, rotation: 0 });
     setTracking({ isTracking: false, confidence: 0 });
+    setDetectionRate(0);
+    detectionWindowRef.current = [];
     trackerRef.current?.reset?.();
 
-    // MediaPipe + Hands inicializam somente uma vez; reaproveitados nas trocas de vídeo
+    // MediaPipe + Hands: inicializam somente uma vez; reutilizados nas trocas de vídeo
     if (!handsRef.current) {
       setStatus('loading');
       try {
@@ -193,6 +270,7 @@ export default function ReplayLab() {
     }
   }, [onHandsResults, stopLoop]);
 
+  // ── Copiar URL com parâmetros atuais ──────────────────────────────────────
   const copyUrl = useCallback(() => {
     const p = new URLSearchParams();
     p.set('lab', 'replay');
@@ -206,7 +284,7 @@ export default function ReplayLab() {
     ).catch(() => {});
   }, [liveParams]);
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div style={{
       minHeight: '100dvh', background: '#0d0d0d', color: '#fff',
@@ -265,22 +343,45 @@ export default function ReplayLab() {
         )}
       </div>
 
-      {/* Vídeo */}
+      {/* Vídeo + caixa visual do ROI */}
       {videoSrc && (
-        <video
-          ref={videoRef}
-          src={videoSrc}
-          controls
-          playsInline
-          style={{
-            display: 'block', width: '100%',
-            maxHeight: '55vh', objectFit: 'contain',
-            background: '#000',
-          }}
-        />
+        <div style={{ position: 'relative' }}>
+          <video
+            ref={videoRef}
+            src={videoSrc}
+            controls
+            playsInline
+            style={{
+              display: 'block', width: '100%',
+              maxHeight: '55vh', objectFit: 'contain',
+              background: '#000',
+            }}
+          />
+          {/* Retângulo amarelo mostrando a área analisada */}
+          {roiEnabled && (
+            <div style={{
+              position: 'absolute',
+              left:   `${roi.x * 100}%`,
+              top:    `${roi.y * 100}%`,
+              width:  `${roi.w * 100}%`,
+              height: `${roi.h * 100}%`,
+              border: '2px dashed rgba(212,175,55,0.80)',
+              background: 'rgba(212,175,55,0.05)',
+              pointerEvents: 'none',
+              boxSizing: 'border-box',
+            }}>
+              <span style={{
+                position: 'absolute', top: 3, left: 4,
+                color: 'rgba(212,175,55,0.90)', fontSize: 9, fontFamily: 'monospace',
+                letterSpacing: '0.06em', pointerEvents: 'none',
+                textShadow: '0 1px 3px rgba(0,0,0,0.9)',
+              }}>ROI</span>
+            </div>
+          )}
+        </div>
       )}
 
-      {/* Barra de status do tracking */}
+      {/* Barra de status do tracking + taxa de detecção */}
       {status === 'ready' && videoSrc && (
         <div style={{
           padding: '7px 16px',
@@ -294,6 +395,11 @@ export default function ReplayLab() {
           </span>
           <span style={{ color: 'rgba(255,255,255,0.38)' }}>
             conf: {(tracking.confidence * 100).toFixed(0)}%
+          </span>
+          <span style={{
+            color: detectionRate >= 60 ? '#4ade80' : detectionRate >= 20 ? '#facc15' : '#f87171',
+          }}>
+            detecção: {detectionRate}%
           </span>
           {debugData && <>
             <span style={{ color: 'rgba(255,255,255,0.38)' }}>
@@ -309,7 +415,87 @@ export default function ReplayLab() {
         </div>
       )}
 
-      {/* Parâmetros ao vivo */}
+      {/* ── ROI / Zoom ───────────────────────────────────────────────────── */}
+      {videoSrc && (
+        <div style={{
+          padding: '12px 16px 14px',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}>
+          {/* Cabeçalho ROI + toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <span style={{ color: '#D4AF37', fontWeight: 700, fontSize: 10, letterSpacing: '0.12em' }}>
+              ROI / ZOOM
+            </span>
+            <button
+              onClick={() => setRoiEnabled(v => !v)}
+              style={{
+                background: roiEnabled ? 'rgba(212,175,55,0.20)' : 'rgba(255,255,255,0.05)',
+                border: `1px solid ${roiEnabled ? 'rgba(212,175,55,0.50)' : 'rgba(255,255,255,0.12)'}`,
+                borderRadius: 8,
+                color: roiEnabled ? '#D4AF37' : 'rgba(255,255,255,0.40)',
+                padding: '4px 14px', fontSize: 10, fontFamily: 'monospace',
+                cursor: 'pointer', letterSpacing: '0.06em',
+              }}
+            >
+              {roiEnabled ? 'ON' : 'OFF'}
+            </button>
+          </div>
+
+          {roiEnabled && (<>
+            {/* Presets */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+              {Object.entries(PRESETS).map(([label, preset]) => (
+                <button
+                  key={label}
+                  onClick={() => setRoi(preset)}
+                  style={{
+                    flex: 1,
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: 8,
+                    color: 'rgba(255,255,255,0.50)',
+                    padding: '5px 4px', fontSize: 9, fontFamily: 'monospace',
+                    cursor: 'pointer', letterSpacing: '0.04em',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Sliders do ROI */}
+            <SliderRow label="cropX" value={roi.x} min={0} max={0.9} step={0.01}
+              display={roi.x.toFixed(2)}
+              onChange={(v) => setRoi(p => ({ ...p, x: Math.min(v, 1 - p.w) }))} />
+            <SliderRow label="cropY" value={roi.y} min={0} max={0.9} step={0.01}
+              display={roi.y.toFixed(2)}
+              onChange={(v) => setRoi(p => ({ ...p, y: Math.min(v, 1 - p.h) }))} />
+            <SliderRow label="cropW" value={roi.w} min={0.10} max={1.0} step={0.01}
+              display={roi.w.toFixed(2)}
+              onChange={(v) => setRoi(p => ({ ...p, w: v, x: Math.min(p.x, 1 - v) }))} />
+            <SliderRow label="cropH" value={roi.h} min={0.10} max={1.0} step={0.01}
+              display={roi.h.toFixed(2)}
+              onChange={(v) => setRoi(p => ({ ...p, h: v, y: Math.min(p.y, 1 - v) }))} />
+
+            {/* Reset */}
+            <button
+              onClick={() => setRoi(PRESETS['Vídeo normal'])}
+              style={{
+                width: '100%',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.10)',
+                borderRadius: 8, color: 'rgba(255,255,255,0.30)',
+                fontSize: 9, letterSpacing: '0.06em',
+                padding: '5px 10px', cursor: 'pointer', textTransform: 'uppercase',
+              }}
+            >
+              Reset ROI
+            </button>
+          </>)}
+        </div>
+      )}
+
+      {/* ── Parâmetros de tracking ao vivo ───────────────────────────────── */}
       {videoSrc && (
         <div style={{ padding: '14px 16px 36px' }}>
           <div style={{
