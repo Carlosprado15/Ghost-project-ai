@@ -1,3 +1,113 @@
+# RELATORIO_CLAUDE — M067A
+
+## Objetivo
+
+Criar base isolada da camada plugável de Tracking Engines do Ghost Project,
+sem integrar no app principal e sem alterar nenhum arquivo existente.
+
+---
+
+## Arquivos Criados
+
+```
+src/tracking-engines/
+  README.md
+  index.js
+  types.js
+  engineRegistry.js
+  engineMatrix.js
+  engines/
+    legacy-mediapipe/
+      legacyMediaPipeEngine.js
+    deepar/
+      deepAREngine.placeholder.js
+    perfectcorp/
+      perfectCorpEngine.placeholder.js
+    banuba/
+      banubaEngine.placeholder.js
+    mirrar/
+      mirrarEngine.placeholder.js
+    viewer/
+      viewerEngine.js
+
+docs/
+  M067_TRACKING_ENGINE_UNIVERSAL.md
+```
+
+Total: 12 arquivos novos. Zero arquivos existentes modificados.
+
+---
+
+## Arquivos Sensíveis Preservados
+
+- **App_FINAL.jsx** — não alterado ✅
+- **ProductAdapter** — não alterado ✅
+- **products.json** — não alterado ✅
+- **shopify/** — não alterado ✅
+- **public/models/** — não alterado ✅
+- **main.tsx** — não alterado ✅
+- **public/gsdk.js** — não alterado ✅
+- **src/tracking/WristTracker.js** — não alterado ✅
+- **src/WebARRocksLab.jsx** — não alterado ✅
+- **src/ReplayLab.jsx** — não alterado ✅
+
+Confirmação via `git status --short`: apenas `??` (untracked new files). Zero `M` (modified).
+
+---
+
+## Build
+
+```
+✓ built in 16.41s
+50 modules transformed (idêntico ao M066 — tracking-engines não importado pelo app)
+dist/assets/index-BplmAWiI.js  485.19 kB │ gzip: 140.63 kB
+```
+
+Zero impacto no bundle. Os arquivos de tracking-engines não foram importados pelo app (intencionalmente).
+
+---
+
+## Git Status
+
+```
+?? docs/M067_TRACKING_ENGINE_UNIVERSAL.md
+?? src/tracking-engines/
+```
+
+Apenas arquivos novos não-rastreados. Nenhum arquivo existente modificado.
+Branch local: `m067-tracking-engine-layer`. Nenhum commit. Nenhum push.
+
+---
+
+## Diff Stat
+
+```
+(vazio — nenhum arquivo rastreado foi alterado)
+```
+
+---
+
+## Próximo Passo Recomendado
+
+**M067B — Auditoria Codex da camada criada**
+
+Revisão dos contratos (`types.js`, `engineRegistry.js`, `engineMatrix.js`) antes de avançar.
+Verificar: cobertura das categorias, campos do descriptor, lógica de recomendação.
+
+Após aprovação:
+
+**M068 — POC Isolada DeepAR Wrist Engine**
+
+- Criar `src/DeepARLab.jsx` + rota `?lab=deepar`
+- NÃO alterar `App_FINAL.jsx`
+- NÃO instalar SDK sem decisão aprovada pelo Arquiteto
+- Rodar avaliador objetivo do M066 ao final da POC
+- Critério de aprovação: mesmos thresholds do M066
+
+---
+
+<!-- histórico anterior preservado abaixo -->
+
 # RELATORIO_CLAUDE — MISSÃO 005
 
 **Data:** 2026-06-17  
