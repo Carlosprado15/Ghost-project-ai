@@ -95,6 +95,7 @@ export default function App() {
   const [b2bEmail, setB2bEmail] = useState('');
   const [b2bStatus, setB2bStatus] = useState('idle');
   const [showQRScreen, setShowQRScreen] = useState(false);
+  const [isEmbedded, setIsEmbedded] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [screenshotDone, setScreenshotDone] = useState(false);
   const [pipelineStage, setPipelineStage]          = useState(null);
@@ -248,7 +249,9 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const embeddedProductId = params.get('productId');
-    console.log('[M043][Etapa3-App] productId recebido:', embeddedProductId, '| embedded:', params.get('embedded'), '| productUrl:', params.get('productUrl'));
+    const modeEmbedded = params.get('mode') === 'embedded';
+    console.log('[M043][Etapa3-App] productId recebido:', embeddedProductId, '| embedded:', params.get('embedded'), '| mode:', params.get('mode'), '| productUrl:', params.get('productUrl'));
+    if (modeEmbedded) setIsEmbedded(true);
     if (embeddedProductId && params.get('embedded') === 'true') {
       if (isDesktopDevice()) {
         // Desktop: sem câmera — mostra QR direto para o usuário escanear com celular
@@ -798,17 +801,19 @@ const handleBuyNow = () => {
         <div className="home-background" style={{ backgroundImage: 'url("/logo.jpeg")' }} />
         <div className="home-content">
           <div style={{ textAlign: 'center', animation: 'hero3d-enter 0.7s cubic-bezier(0.16,1,0.3,1) both' }}>
-            <p style={{
-              color: '#D4AF37',
-              fontSize: '9px',
-              letterSpacing: '0.32em',
-              fontWeight: 400,
-              marginBottom: '6px',
-              textTransform: 'uppercase',
-              opacity: 0.9,
-            }}>
-              Ghost Project AI
-            </p>
+            {!isEmbedded && (
+              <p style={{
+                color: '#D4AF37',
+                fontSize: '9px',
+                letterSpacing: '0.32em',
+                fontWeight: 400,
+                marginBottom: '6px',
+                textTransform: 'uppercase',
+                opacity: 0.9,
+              }}>
+                Ghost Project AI
+              </p>
+            )}
             <p style={{
               color: 'rgba(255,255,255,0.48)',
               fontSize: '11px',
@@ -838,16 +843,24 @@ const handleBuyNow = () => {
             }}>
               Aponte a câmera do celular
             </p>
-            <p style={{
-              color: 'rgba(212,175,55,0.52)',
-              fontSize: '10px',
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              marginBottom: '36px',
+            {!isEmbedded && (
+              <p style={{
+                color: 'rgba(212,175,55,0.52)',
+                fontSize: '10px',
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                marginBottom: '36px',
+              }}>
+                Powered by Ghost Project AI
+              </p>
+            )}
+            <button className="scan-btn" onClick={() => {
+              if (isEmbedded && window.parent !== window) {
+                window.parent.postMessage({ type: 'ghost-close' }, '*');
+              } else {
+                setShowQRScreen(false);
+              }
             }}>
-              Powered by Ghost Project AI
-            </p>
-            <button className="scan-btn" onClick={() => setShowQRScreen(false)}>
               ← Voltar
             </button>
           </div>
@@ -1533,21 +1546,23 @@ const handleBuyNow = () => {
             )}
           </div>
 
-          {/* Ghost Project AI Signature — interativo fora da loja, watermark na loja */}
-          <div className="ghost-signature">
-            {ProductAdapter.isStoreMode() ? (
-              <span className="ghost-signature-btn" style={{ cursor: 'default', pointerEvents: 'none', opacity: 0.4 }}>
-                Powered by Ghost Project AI
-              </span>
-            ) : (
-              <button
-                className="ghost-signature-btn"
-                onClick={() => setShowB2BModal(true)}
-              >
-                Powered by Ghost Project AI
-              </button>
-            )}
-          </div>
+          {/* Ghost Project AI Signature — oculta em modo embedded, watermark na loja, interativo standalone */}
+          {!isEmbedded && (
+            <div className="ghost-signature">
+              {ProductAdapter.isStoreMode() ? (
+                <span className="ghost-signature-btn" style={{ cursor: 'default', pointerEvents: 'none', opacity: 0.4 }}>
+                  Powered by Ghost Project AI
+                </span>
+              ) : (
+                <button
+                  className="ghost-signature-btn"
+                  onClick={() => setShowB2BModal(true)}
+                >
+                  Powered by Ghost Project AI
+                </button>
+              )}
+            </div>
+          )}
         </>
       )}
 

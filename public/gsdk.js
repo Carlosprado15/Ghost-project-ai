@@ -109,6 +109,80 @@
     return wrap;
   }
 
+  function injectOverlayStyles() {
+    if (document.getElementById('ghost-overlay-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'ghost-overlay-styles';
+    style.textContent = `
+      #ghost-ar-overlay {
+        position: fixed; inset: 0; z-index: 999999;
+        background: #000; display: flex; flex-direction: column;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      #ghost-ar-overlay-bar {
+        display: flex; align-items: center; padding: 10px 16px;
+        background: rgba(0,0,0,0.95); border-bottom: 1px solid rgba(255,255,255,0.08);
+        flex-shrink: 0;
+      }
+      #ghost-ar-overlay-back {
+        background: none; border: none; color: rgba(255,255,255,0.75);
+        font-size: 14px; letter-spacing: 0.02em; cursor: pointer;
+        padding: 6px 0; display: flex; align-items: center; gap: 6px;
+      }
+      #ghost-ar-overlay-back:hover { color: #fff; }
+      #ghost-ar-overlay-frame {
+        flex: 1; width: 100%; border: none; display: block;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function openGhostOverlay(url) {
+    if (document.getElementById('ghost-ar-overlay')) return;
+    injectOverlayStyles();
+
+    function onMessage(e) {
+      if (e.data && e.data.type === 'ghost-close') {
+        closeGhostOverlay();
+        window.removeEventListener('message', onMessage);
+      }
+    }
+    window.addEventListener('message', onMessage);
+
+    const overlay = document.createElement('div');
+    overlay.id = 'ghost-ar-overlay';
+
+    const bar = document.createElement('div');
+    bar.id = 'ghost-ar-overlay-bar';
+
+    const backBtn = document.createElement('button');
+    backBtn.id = 'ghost-ar-overlay-back';
+    backBtn.type = 'button';
+    backBtn.textContent = '← Voltar para Click & Wear';
+    backBtn.addEventListener('click', function () {
+      closeGhostOverlay();
+      window.removeEventListener('message', onMessage);
+    });
+
+    const iframe = document.createElement('iframe');
+    iframe.id = 'ghost-ar-overlay-frame';
+    iframe.src = url;
+    iframe.setAttribute('allow', 'camera; microphone; accelerometer; gyroscope; xr-spatial-tracking; display-capture');
+    iframe.allowFullscreen = true;
+
+    bar.appendChild(backBtn);
+    overlay.appendChild(bar);
+    overlay.appendChild(iframe);
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeGhostOverlay() {
+    const overlay = document.getElementById('ghost-ar-overlay');
+    if (overlay) overlay.remove();
+    document.body.style.overflow = '';
+  }
+
   function injectStyles() {
     if (document.querySelector('style[data-ghost-styles]')) return;
     const style = document.createElement('style');
@@ -179,16 +253,17 @@
 
   function injectARButton(productId) {
     const productUrl = window.location.href;
-    const pathParts = window.location.pathname.split('/');
-    const handle = pathParts[pathParts.indexOf('products') + 1];
     const cartUrl = window.location.origin + '/cart';
     const arUrl = GHOST_BASE_URL +
       '/?productId=' + productId +
       '&productUrl=' + encodeURIComponent(productUrl) +
       '&cartUrl=' + encodeURIComponent(cartUrl) +
-      '&embedded=true';
+      '&embedded=true' +
+      '&mode=embedded' +
+      '&host=clickwear';
 
-    console.log('[M045][gsdk] arUrl:', arUrl);
+    const embeddedUrl = isDesktop() ? arUrl + '&desktop=1' : arUrl;
+    console.log('[M056C][gsdk] embeddedUrl:', embeddedUrl);
 
     // Viewer 360° — visível diretamente na vitrine da loja
     const viewer360 = create360Viewer(productId);
@@ -197,10 +272,10 @@
     label360.className = 'ghost-360-label';
     label360.textContent = 'Preview 3D · Arraste para girar';
 
-    // Botão AR — abre scanner diretamente (mobile) ou QR (desktop)
-    const btn = document.createElement('a');
+    // Botão AR — abre overlay embedded (não navega para fora da loja)
+    const btn = document.createElement('button');
     btn.className = 'ghost-ar-btn';
-    btn.href = isDesktop() ? arUrl + '&desktop=1' : arUrl;
+    btn.type = 'button';
     btn.innerHTML = `
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <path d="M12 2L2 7l10 5 10-5-10-5z"/>
@@ -209,6 +284,7 @@
       </svg>
       Ver em Realidade Aumentada
     `;
+    btn.addEventListener('click', function () { openGhostOverlay(embeddedUrl); });
 
     const powered = document.createElement('p');
     powered.className = 'ghost-powered';
