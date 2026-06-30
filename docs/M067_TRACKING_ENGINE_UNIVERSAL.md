@@ -201,3 +201,44 @@ Avaliação feita via avaliador objetivo do M066 (`?lab=deepar` + botão "INICIA
 **Próximos passos:**
 - **M068B** — configurar `VITE_DEEPAR_LICENSE_KEY` e testar `?lab=deepar` em localhost e celular
 - **M068C** — buscar/acessar efeito oficial DeepAR para wrist/watch (ShopAR ou AR Try-On Watch)
+
+---
+
+## M068B — DeepAR Smoke Test Validado
+
+**Status:** APROVADO localmente.
+
+**O que foi confirmado:**
+- `VITE_DEEPAR_LICENSE_KEY` configurada em `.env.local` (protegido pelo `.gitignore`)
+- `?lab=deepar` carregou sem erros
+- SDK DeepAR carregado via CDN dynamic import — sem npm install
+- Câmera abriu (modo frontal / `facingMode: 'user'`)
+- Efeito `aviators` apareceu no rosto corretamente
+- Botão PARAR funcionou (`deepAR.shutdown()`)
+- App principal (`App_FINAL.jsx`, scanner, Shopify) preservado sem alteração
+
+**Conclusão técnica:**
+SDK + licença + câmera + render AR = validados. O gargalo deixou de ser infraestrutura.
+
+---
+
+## M068C — Próximo Gargalo
+
+**O gargalo agora é obter um efeito DeepAR wrist/watch real.**
+
+O efeito `aviators` prova que o SDK funciona, mas ele é um efeito de face (óculos). Para testar watch try-on, é necessário um efeito DeepAR específico para pulso/relógio.
+
+**O lab está preparado** — `?lab=deepar` agora tem dois modos:
+- **Smoke Test (Aviators)** — efeito face, câmera frontal, status: VALIDADO
+- **Wrist Investigation** — câmera traseira, campo para URL manual de efeito wrist
+
+**Opções para obter o efeito wrist/watch:**
+
+1. **DeepAR Developer Portal → Asset Store** — verificar se há efeito watch gratuito
+2. **Demo oficial wrist** — procurar em `developer.deepar.ai` demos de jewelry/watch
+3. **ShopAR / DeepAR Try-On** — produto comercial DeepAR específico para e-commerce de watches
+4. **Solicitar ao suporte DeepAR** — arquivo `.deepar` de teste para wrist/relógio
+5. **Alternativa:** se DeepAR wrist ficar fechado/pago, avaliar Perfect Corp ou Banuba para WRIST
+
+**Critério de avanço para M069:**
+Obter URL de efeito wrist válida → colar no campo manual do Wrist Investigation → rodar → se detectar pulso e posicionar objeto → rodar avaliador objetivo M066 (10s, 13 métricas) → aprovado ou reprovado.

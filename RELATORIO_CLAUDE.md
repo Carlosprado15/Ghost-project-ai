@@ -1,3 +1,149 @@
+# RELATORIO_CLAUDE — M068C
+
+## Objetivo
+
+Evoluir DeepAR Lab para modo Smoke Test + Wrist Investigation.
+
+---
+
+## Resultado M068B
+
+Efeito **aviators apareceu no rosto** — SDK, licença, câmera e render DeepAR **validados localmente**.
+
+---
+
+## Arquivos Alterados
+
+| Arquivo | Tipo |
+|---|---|
+| `src/DeepARLab.jsx` | modificado — dois modos, campo URL manual, diagnóstico expandido |
+| `docs/M067_TRACKING_ENGINE_UNIVERSAL.md` | modificado — seções M068B e M068C adicionadas |
+| `RELATORIO_CLAUDE.md` | modificado (este arquivo) |
+
+---
+
+## Arquivos Sensíveis Preservados
+
+- **App_FINAL.jsx** — não alterado ✅
+- **Shopify** — não alterado ✅
+- **ProductAdapter** — não alterado ✅
+- **products.json** — não alterado ✅
+- **public/models/** — não alterado ✅
+- **public/gsdk.js** — não alterado ✅
+- **WristTracker.js** — não alterado ✅
+- **WebARRocksLab.jsx** — não alterado ✅
+
+---
+
+## Build
+
+```
+✓ built in 20.98s
+52 modules — 497.31 kB │ gzip: 143.94 kB
+```
+
+---
+
+## Verificação rg
+
+```
+rg "deepar|DeepAR|VITE_DEEPAR_LICENSE_KEY" App_FINAL.jsx products.json gsdk.js shopify/
+→ sem matches em arquivos protegidos
+```
+
+✅ DeepAR isolado em DeepARLab.jsx / main.tsx apenas.
+
+---
+
+## Git Status
+
+```
+M RELATORIO_CLAUDE.md
+M docs/M067_TRACKING_ENGINE_UNIVERSAL.md
+M src/DeepARLab.jsx
+```
+
+---
+
+## Commit
+
+```
+hash:     (ver abaixo)
+mensagem: M068C: add DeepAR wrist investigation mode
+```
+
+---
+
+## Próximo Passo Recomendado
+
+**M068D** — obter efeito wrist/watch real para o DeepAR:
+- Procurar no Developer Portal / Asset Store
+- Testar demo oficial wrist (se disponível)
+- Solicitar ao suporte DeepAR arquivo `.deepar` de teste para relógio
+- Se fechado: avaliar Perfect Corp ou Banuba como alternativa para WRIST
+
+---
+
+<!-- M068B-TESTE abaixo -->
+
+# RELATORIO_CLAUDE — M068B-TESTE
+
+## Branch
+
+`m068-deepar-lab` ✅
+
+---
+
+## Env
+
+```
+ENV_LOCAL_EXISTS    ✅
+DEEPAR_KEY_PRESENT  ✅
+```
+
+(chave não impressa, .env.local não aparece no git status)
+
+---
+
+## Build
+
+```
+✓ built in 20.82s — com VITE_DEEPAR_LICENSE_KEY presente
+52 modules, 492.84 kB (vs 491.05 sem chave — diferença = chave injetada pelo Vite)
+```
+
+---
+
+## Git Status
+
+```
+(limpo — .env.local protegido pelo .gitignore)
+```
+
+---
+
+## URLs para Testar
+
+Servidor Vite rodando em HTTPS (necessário para câmera no browser):
+
+```
+https://localhost:5173/?lab=deepar
+https://127.0.0.1:5173/?lab=deepar
+https://192.168.0.140:5173/?lab=deepar   ← usar no celular (mesma rede Wi-Fi)
+```
+
+⚠️ O browser pode exibir aviso de certificado (self-signed). Clicar em "Avançado → Continuar assim mesmo".
+
+---
+
+## Próximo Passo Recomendado
+
+M068C — buscar/acessar efeito oficial DeepAR para wrist/watch.
+
+---
+
+<!-- M068B-ASSISTIDO abaixo -->
+
 # RELATORIO_CLAUDE — M068B-ASSISTIDO
 
 ## Objetivo
