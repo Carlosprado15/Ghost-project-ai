@@ -45,6 +45,7 @@ export class WristTracker {
       minWatchSize: config.minWatchSize ?? 80,
       maxWatchSize: config.maxWatchSize ?? 220,
       watchRotationOffset: config.watchRotationOffset ?? -90,
+      watchOffsetFlip:     config.watchOffsetFlip     ?? false,
     };
 
     // Filtros One Euro
@@ -265,10 +266,12 @@ export class WristTracker {
     const forearmDirX = forearmVectorX / forearmLength;
     const forearmDirY = forearmVectorY / forearmLength;
 
-    // 4. Posição do relógio: offset ANTES do pulso no vetor do antebraço
+    // 4. Posição do relógio: offset no vetor do antebraço
+    // dirSign=-1 → padrão (oposto à palma); dirSign=+1 → invertido (fitDebug offsetDirection=forearm)
+    const dirSign = this.config.watchOffsetFlip ? 1 : -1;
     const offset = forearmLength * this.config.watchOffsetRatio;
-    const watchX = wrist.x - forearmDirX * offset;
-    const watchY = wrist.y - forearmDirY * offset;
+    const watchX = wrist.x + forearmDirX * offset * dirSign;
+    const watchY = wrist.y + forearmDirY * offset * dirSign;
 
     // 5. Tamanho do relógio proporcional à largura da palma
     const rawSize = palmWidth * this.config.watchSizeMultiplier;

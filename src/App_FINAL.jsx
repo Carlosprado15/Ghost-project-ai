@@ -244,6 +244,7 @@ export default function App() {
         maxWatchSize:        clamp(num('maxSize',         220),  120,  320),
         deadZonePosition:    clamp(num('deadZonePosition', 3),    0,   10),
         deadZoneRotation:    clamp(num('deadZoneRotation', 2),    0,   10),
+        watchOffsetFlip:     p.get('offsetDirection') === 'forearm',
       };
     })();
 
