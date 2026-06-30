@@ -44,6 +44,7 @@ export class WristTracker {
       watchOffsetRatio: config.watchOffsetRatio ?? 0.18,
       minWatchSize: config.minWatchSize ?? 80,
       maxWatchSize: config.maxWatchSize ?? 220,
+      watchRotationOffset: config.watchRotationOffset ?? -90,
     };
 
     // Filtros One Euro
@@ -265,7 +266,7 @@ export class WristTracker {
 
     // 6. Rotação real do relógio (perpendicular ao antebraço)
     // O relógio deve estar alinhado com o eixo do antebraço
-    const watchRotation = Math.atan2(forearmDirY, forearmDirX) * (180 / Math.PI) - 90;
+    const watchRotation = Math.atan2(forearmDirY, forearmDirX) * (180 / Math.PI) + this.config.watchRotationOffset;
 
     return {
       x: watchX,

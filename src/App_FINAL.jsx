@@ -223,6 +223,26 @@ export default function App() {
   // Inicialização única da nova arquitetura de tracking (instâncias ociosas)
   useEffect(() => {
     assetRepoRef.current   = new LocalStorageAssetRepository();
+
+    // Calibração via URL — ativa SOMENTE quando fitDebug=1 está presente.
+    // Sem fitDebug=1, fitParams é {} e o WristTracker usa os defaults abaixo.
+    const fitParams = (() => {
+      const p = new URLSearchParams(window.location.search);
+      if (p.get('fitDebug') !== '1') return {};
+      const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+      const num   = (key, def) => { const v = parseFloat(p.get(key)); return isNaN(v) ? def : v; };
+      console.log('[M057A] fitDebug=1 — calibração ativa via URL');
+      return {
+        watchOffsetRatio:    clamp(num('offsetRatio',     0.18), 0.05, 0.35),
+        watchSizeMultiplier: clamp(num('sizeMultiplier',  1.5),  0.8,  2.4),
+        watchRotationOffset: clamp(num('rotationOffset', -90),  -180,  180),
+        minWatchSize:        clamp(num('minSize',         80),    40,  180),
+        maxWatchSize:        clamp(num('maxSize',         220),  120,  320),
+        deadZonePosition:    clamp(num('deadZonePosition', 3),    0,   10),
+        deadZoneRotation:    clamp(num('deadZoneRotation', 2),    0,   10),
+      };
+    })();
+
     trackerRef.current = new WristTracker({
       minConfidence: 0.6,
       minStabilityFrames: 8,
@@ -235,6 +255,7 @@ export default function App() {
       scaleBeta: 0.1,
       watchSizeMultiplier: 1.5,
       watchOffsetRatio: 0.18,
+      ...fitParams,
     });
     pipelineRef.current = new RenderPipeline();
     precisionFitRef.current = new PrecisionFitController();
