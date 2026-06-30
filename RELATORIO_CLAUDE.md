@@ -1,3 +1,109 @@
+# RELATORIO_CLAUDE — M068E-CHECKPOINT
+
+## Objetivo
+
+Salvar a branch `m068-deepar-lab` no GitHub sem tocar na main.
+
+---
+
+## Branch
+
+```
+m068-deepar-lab   (ativa)
+```
+
+---
+
+## Commits Confirmados
+
+```
+8e0572c M068D: document DeepAR wrist demo access path
+92bd258 M068C: add DeepAR wrist investigation mode
+f9e2281 M068B: prepare DeepAR env without requiring license yet
+4a89071 M068A: add isolated DeepAR lab
+4b310aa M067C: add isolated tracking engine layer
+4243e35 feat: M066 — add objective WebAR.rocks tracking evaluator
+```
+
+---
+
+## Build
+
+```
+✓ built in 20.38s
+52 modules — 498.15 kB │ gzip: 144.18 kB
+```
+
+---
+
+## Push
+
+```
+git push -u origin m068-deepar-lab
+→ [new branch] m068-deepar-lab -> m068-deepar-lab
+   branch 'm068-deepar-lab' set up to track 'origin/m068-deepar-lab'
+```
+
+✅ Push realizado com sucesso.
+
+---
+
+## Git Status Final
+
+```
+(limpo)
+```
+
+---
+
+## Branch Tracking
+
+```
+* m068-deepar-lab  8e0572c [origin/m068-deepar-lab] M068D: document DeepAR wrist demo access path
+  main             4243e35 [origin/main] feat: M066 — add objective WebAR.rocks tracking evaluator
+```
+
+---
+
+## Segurança
+
+| Verificação | Status |
+|---|---|
+| `main` não foi alterada | ✅ |
+| Nenhum merge foi feito | ✅ |
+| Nenhum PR foi criado | ✅ |
+| `.env.local` não foi versionado | ✅ |
+| Chave DeepAR não foi exibida | ✅ |
+| `App_FINAL.jsx` não alterado | ✅ |
+| `shopify/` não alterado | ✅ |
+| `products.json` não alterado | ✅ |
+| `ProductAdapter` não alterado | ✅ |
+| `public/models/` não alterado | ✅ |
+| `public/gsdk.js` não alterado | ✅ |
+| `WristTracker.js` não alterado | ✅ |
+| `WebARRocksLab.jsx` não alterado | ✅ |
+
+---
+
+## Próximo Passo para o Usuário (sem Claude)
+
+1. Abrir no celular: `https://try.deepar.ai/wrist/rolex`
+2. Verificar se relógio prende no pulso com estabilidade
+3. Enviar contato DeepAR/ShopAR (template: `docs/M068D_DEEPAR_WRIST_ACCESS.md`)
+4. Acionar Perfect Corp e Banuba em paralelo
+5. Só voltar ao Claude quando houver: asset, SDK, resposta de fornecedor ou decisão técnica nova
+
+---
+
+## Próximo Passo Técnico
+
+- **Se demo funcionar + DeepAR responder:** M069 — integrar efeito wrist/watch real no lab
+- **Se demo falhar ou DeepAR demorar:** M068F — iniciar trilha Perfect Corp / Banuba em paralelo
+
+---
+
+<!-- M068D abaixo -->
+
 # RELATORIO_CLAUDE — M068D
 
 ## Objetivo
