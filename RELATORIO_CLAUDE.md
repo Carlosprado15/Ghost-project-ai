@@ -1,3 +1,97 @@
+# RELATORIO_CLAUDE — M068D
+
+## Objetivo
+
+Preparar validação oficial DeepAR Wrist/Watch e pedido de acesso ao efeito real.
+
+---
+
+## Arquivos Alterados
+
+| Arquivo | Tipo |
+|---|---|
+| `src/DeepARLab.jsx` | modificado — card demo oficial + label M068D |
+| `docs/M068D_DEEPAR_WRIST_ACCESS.md` | criado — template de contato + checklist |
+| `docs/M067_TRACKING_ENGINE_UNIVERSAL.md` | modificado — seção M068D adicionada |
+| `RELATORIO_CLAUDE.md` | modificado (este arquivo) |
+
+---
+
+## Arquivos Sensíveis Preservados
+
+- **App_FINAL.jsx** — não alterado ✅
+- **ProductAdapter** — não alterado ✅
+- **products.json** — não alterado ✅
+- **shopify/** — não alterado ✅
+- **public/models/** — não alterado ✅
+- **public/gsdk.js** — não alterado ✅
+- **WristTracker.js** — não alterado ✅
+- **WebARRocksLab.jsx** — não alterado ✅
+
+---
+
+## Build
+
+```
+✓ built in 19.41s
+52 modules — 498.15 kB │ gzip: 144.18 kB
+```
+
+---
+
+## Verificações rg
+
+```
+rg "try.deepar.ai/wrist/rolex" src/DeepARLab.jsx docs/
+→ src/DeepARLab.jsx          ✅ (link no card do lab)
+→ docs/M068D_DEEPAR_WRIST_ACCESS.md ✅ (doc + template)
+→ docs/M067_TRACKING_ENGINE_UNIVERSAL.md ✅ (seção M068D)
+
+rg "deepar|DeepAR" App_FINAL.jsx products.json gsdk.js shopify/
+→ (limpo) ✅
+```
+
+---
+
+## Git Status
+
+```
+M  docs/M067_TRACKING_ENGINE_UNIVERSAL.md
+M  src/DeepARLab.jsx
+?? docs/M068D_DEEPAR_WRIST_ACCESS.md
+```
+
+---
+
+## Commit
+
+```
+hash:     (ver abaixo)
+mensagem: M068D: document DeepAR wrist demo access path
+```
+
+---
+
+## Próximo Passo para o Usuário
+
+Abrir no celular: **`https://try.deepar.ai/wrist/rolex`**
+
+Verificar se:
+- câmera abre
+- pulso é detectado
+- relógio aparece preso ao pulso com estabilidade
+- acompanha rotação
+
+## Próximo Passo Técnico
+
+**Se demo funcionar:** M068E — enviar pedido de acesso (template em `docs/M068D_DEEPAR_WRIST_ACCESS.md`).
+
+**Se demo falhar:** M068F — iniciar trilha Perfect Corp / Banuba em paralelo.
+
+---
+
+<!-- M068C abaixo -->
+
 # RELATORIO_CLAUDE — M068C
 
 ## Objetivo

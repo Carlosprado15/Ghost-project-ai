@@ -242,3 +242,31 @@ O efeito `aviators` prova que o SDK funciona, mas ele é um efeito de face (ócu
 
 **Critério de avanço para M069:**
 Obter URL de efeito wrist válida → colar no campo manual do Wrist Investigation → rodar → se detectar pulso e posicionar objeto → rodar avaliador objetivo M066 (10s, 13 métricas) → aprovado ou reprovado.
+
+---
+
+## M068D — DeepAR Wrist Demo Oficial
+
+**Status:** demo oficial encontrada — validação manual pendente.
+
+**Demo encontrada:** `https://try.deepar.ai/wrist/rolex`
+
+Confirmada pelo site oficial DeepAR como AR Watch & Wrist Jewelry Try-On:
+- watches, bangles, bracelets
+- wrist mapping
+- HTML5, iOS Safari, Android Chrome
+
+**DeepAR/ShopAR agora tem duas provas:**
+1. SDK funcionando no Ghost Project com efeito aviators (M068B — APROVADO)
+2. Demo oficial wrist/watch existente e acessível publicamente
+
+**Gargalo atual:** obter efeito wrist/watch real ou ShopAR trial para integrar no `?lab=deepar`.
+
+**Decisão:** validar a demo oficial no celular antes de tentar integrar.
+- Se funcionar bem → DeepAR continua candidato principal → M068E: pedir acesso
+- Se falhar → acionar Perfect Corp e Banuba em paralelo → M068F
+
+**Ações adicionadas ao lab `?lab=deepar`:**
+- Card "Demo oficial DeepAR Wrist/Watch" com botão "ABRIR DEMO OFICIAL WRIST ↗"
+- Link direto: `https://try.deepar.ai/wrist/rolex` (abre em nova aba, sem carregar SDK)
+- Template de contato: `docs/M068D_DEEPAR_WRIST_ACCESS.md`

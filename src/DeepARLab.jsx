@@ -311,12 +311,43 @@ export default function DeepARLab() {
               )}
             </div>
 
-            <div style={{ ...panelBase, padding: '8px 12px', fontSize: 10, lineHeight: 1.6, background: 'rgba(0,0,0,0.5)' }}>
-              <div style={{ color: '#a78bfa', fontWeight: 700, marginBottom: 4 }}>Onde obter um efeito wrist/watch:</div>
+            {/* Demo oficial card */}
+            <div style={{
+              marginTop: 14,
+              padding: '14px 16px', borderRadius: 9,
+              background: 'rgba(124,58,237,0.12)',
+              border: '1px solid rgba(124,58,237,0.35)',
+            }}>
+              <div style={{ color: '#a78bfa', fontWeight: 700, fontSize: 12, marginBottom: 6 }}>
+                Demo oficial DeepAR Wrist/Watch
+              </div>
+              <div style={{ color: '#cbd5e1', fontSize: 11, lineHeight: 1.6, marginBottom: 10 }}>
+                Antes de pedir acesso ao efeito, valide a demo oficial no celular.
+                Se o relógio prender no pulso com estabilidade, DeepAR/ShopAR
+                continua candidato principal para wrist-engine.
+              </div>
+              <a
+                href="https://try.deepar.ai/wrist/rolex"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-block',
+                  padding: '10px 20px', borderRadius: 8,
+                  background: '#7c3aed', color: '#fff',
+                  textDecoration: 'none', fontSize: 13,
+                  fontFamily: 'sans-serif', fontWeight: 700,
+                  letterSpacing: 0.3,
+                }}
+              >
+                ABRIR DEMO OFICIAL WRIST ↗
+              </a>
+            </div>
+
+            <div style={{ ...panelBase, padding: '8px 12px', fontSize: 10, lineHeight: 1.6, background: 'rgba(0,0,0,0.5)', marginTop: 10 }}>
+              <div style={{ color: '#a78bfa', fontWeight: 700, marginBottom: 4 }}>Se a demo funcionar, cole URL de efeito wrist acima:</div>
               <div>• DeepAR Developer Portal → Asset Store</div>
-              <div>• Demo oficial wrist watch (verificar em developer.deepar.ai)</div>
-              <div>• ShopAR / DeepAR ShopAR Try-On efeito watch</div>
-              <div>• Solicitar ao suporte DeepAR efeito de teste</div>
+              <div>• ShopAR / DeepAR Try-On efeito watch</div>
+              <div>• Solicitar ao suporte DeepAR efeito de teste (ver docs/M068D)</div>
             </div>
           </div>
         </div>
@@ -326,7 +357,7 @@ export default function DeepARLab() {
       {!isMissing && (
         <div style={{ ...panelBase, position: 'absolute', top: isRunning ? 14 : 64, left: 14, zIndex: 10, padding: '10px 14px', maxWidth: 240 }}>
           <div style={{ color: '#a78bfa', fontWeight: 'bold', fontSize: 12, marginBottom: 6 }}>
-            DeepAR Lab — M068C
+            DeepAR Lab — M068D
           </div>
           <div>status: <span style={{ color: STATUS_COLORS[status] }}>{STATUS_LABELS[status]}</span></div>
           {errMsg && (
