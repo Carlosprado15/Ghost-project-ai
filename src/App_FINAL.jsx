@@ -95,7 +95,9 @@ export default function App() {
   const [b2bEmail, setB2bEmail] = useState('');
   const [b2bStatus, setB2bStatus] = useState('idle');
   const [showQRScreen, setShowQRScreen] = useState(false);
-  const [isEmbedded, setIsEmbedded] = useState(false);
+  const [isEmbedded, setIsEmbedded] = useState(
+    () => new URLSearchParams(window.location.search).get('mode') === 'embedded'
+  );
   const [isCapturing, setIsCapturing] = useState(false);
   const [screenshotDone, setScreenshotDone] = useState(false);
   const [pipelineStage, setPipelineStage]          = useState(null);
@@ -278,7 +280,7 @@ export default function App() {
     const modeEmbedded = params.get('mode') === 'embedded';
     console.log('[M043][Etapa3-App] productId recebido:', embeddedProductId, '| embedded:', params.get('embedded'), '| mode:', params.get('mode'), '| productUrl:', params.get('productUrl'));
     if (modeEmbedded) setIsEmbedded(true);
-    if (embeddedProductId && params.get('embedded') === 'true') {
+    if (embeddedProductId && (params.get('embedded') === 'true' || modeEmbedded)) {
       if (isDesktopDevice()) {
         // Desktop: sem câmera — mostra QR direto para o usuário escanear com celular
         setShowQRScreen(true);
@@ -1034,6 +1036,10 @@ const handleBuyNow = () => {
 
   // ─── HOME ────────────────────────────────────────────────────────────────
   if (screen === 'home') {
+    // Em modo embedded COM productId, nunca mostrar a home — scanner abre via useEffect
+    if (isEmbedded && new URLSearchParams(window.location.search).get('productId')) {
+      return <div style={{ width: '100%', height: '100%', background: '#000' }} />;
+    }
     return (
       <div className="home">
         <UrlDiagnosticsPanel />
