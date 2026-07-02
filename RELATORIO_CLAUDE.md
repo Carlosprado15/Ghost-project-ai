@@ -1,3 +1,197 @@
+# RELATORIO_CLAUDE — M069B
+
+## Arquivos Criados
+
+| Arquivo | Descrição |
+|---|---|
+| `src/labs/tasks-wrist/filterCalibration.js` | One Euro Filter standalone para batch offline |
+| `src/labs/tasks-wrist/calibrationMetrics.js` | 5 funções de métricas + computeScoreFinal |
+| `src/labs/tasks-wrist/calibrationPresets.js` | Grade 7×7 = 49 combos + pesos DEFAULT_WEIGHTS |
+| `src/labs/tasks-wrist/calibrationRunner.js` | Orquestrador: roda 49 combos, normaliza, top5, relatório .md |
+
+## Arquivos Modificados
+
+| Arquivo | O que mudou |
+|---|---|
+| `src/labs/tasks-wrist/useTasksWristTracking.js` | + `onRawFrame` callback + `filterOpts` dinâmico (re-init sem reiniciar detecção) |
+| `src/labs/tasks-wrist/TasksWristLab.jsx` | + 4 botões de calibração + tabela top5 + aplicar preset + download .md |
+
+## Arquivos Sensíveis Preservados
+
+- **App_FINAL.jsx** — não alterado ✅
+- **products.json** — não alterado ✅
+- **shopify/** — não alterado ✅
+- **public/models/** — não alterado ✅
+- **@mediapipe/hands** (CDN) — não removido ✅
+- **oneEuroFilter.js** — não alterado ✅
+
+## Build
+
+```
+✓ built in 9.06s
+60 modules — 653.69 kB │ gzip: 191.45 kB
+```
+
+Aviso chunk size > 500KB: esperado (tasks-vision bundled). Não é erro.
+
+## Git Status
+
+```
+M  RELATORIO_CLAUDE.md
+M  package-lock.json / package.json
+M  src/main.tsx
+?? src/labs/
+```
+
+Branch: `m069-tasks-wrist-lab`
+Commit: não realizado (aguardando autorização)
+
+## Melhor combinação sugerida
+
+**Não determinável aqui.** O ranking só existe após gravar os dois logs no celular.
+
+O calibrationRunner testa 49 combos (7 minCutoff × 7 beta, dCutoff=1.0) e retorna o top5 com score ponderado:
+- jitter peso 0.4
+- lag peso 0.4
+- continuidade peso 0.2
+
+## Como Testar
+
+```bash
+npm run dev -- --host 0.0.0.0
+```
+
+Acesse no celular: `https://IP_LOCAL:5173/?lab=tasks-wrist`
+
+### Sequência de uso dos botões:
+
+1. Aponte câmera para o pulso → aguarde `● TRACKING`
+2. Clique **"⏺ Gravar teste parado (3s)"** — mantenha o pulso completamente parado por 3s
+3. Clique **"⏺ Gravar teste mov. lento (4s)"** — mova o pulso devagar, lado a lado
+4. Clique **"⚙ Rodar calibração"** → aguarda 49 combos (instantâneo em JS)
+5. Tabela Top 5 aparece no painel. Clique **"aplicar"** em qualquer linha → filtro muda em tempo real
+6. Observe overlay amarelo/verde — compare estabilidade visualmente
+7. Clique **"↓ Download"** para salvar `M069B_FILTER_CALIBRATION_REPORT.md`
+
+## Privacidade
+
+Apenas números gravados (pos x/y/z, ângulo, timestamp). Nenhum frame de vídeo ou imagem é armazenado.
+
+## Riscos
+
+| Risco | Impacto |
+|---|---|
+| WASM tasks-vision não carrega no Safari iOS | alto |
+| Lag estimado via cross-correlation pode ter ruído em poucas frames | médio |
+| 653KB bundle lento em 4G | baixo — lab isolado |
+
+---
+
+<!-- M069 abaixo -->
+
+# RELATORIO_CLAUDE — M069
+
+## Arquivos Criados
+
+| Arquivo | Descrição |
+|---|---|
+| `src/labs/tasks-wrist/oneEuroFilter.js` | One Euro Filter — `OneEuroFilterScalar` e `OneEuroFilterVector3` |
+| `src/labs/tasks-wrist/useTasksWristTracking.js` | Hook React — HandLandmarker + filtros + RAF loop |
+| `src/labs/tasks-wrist/TasksWristLab.jsx` | Componente lab — câmera, canvas overlay, HUD, botão GLB |
+
+## Arquivos Alterados
+
+| Arquivo | Alteração |
+|---|---|
+| `src/main.tsx` | +2 linhas — import e rota `lab === 'tasks-wrist'` |
+| `package.json` | `@mediapipe/tasks-vision@0.10.35` adicionado |
+| `package-lock.json` | atualizado automaticamente |
+
+## Arquivos Sensíveis Preservados
+
+- **App_FINAL.jsx** — não alterado ✅
+- **products.json** — não alterado ✅
+- **shopify/** — não alterado ✅
+- **public/models/** — não alterado ✅
+- **public/gsdk.js** — não alterado ✅
+- **WristTracker.js** (MediaPipe legacy) — não alterado ✅
+- **WebARRocksLab.jsx** — não alterado ✅
+- **@mediapipe/hands** (CDN) — não removido ✅
+
+## Dependências Adicionadas
+
+```
+@mediapipe/tasks-vision@0.10.35
+```
+
+Não foram removidas dependências.
+
+## GLB CW001/CASIO Localizado em
+
+```
+public/models/CW001.glb   ← usado pelo lab (src: '/models/CW001.glb')
+public/models/CASIO.glb   ← disponível se necessário
+```
+
+## Como Testar
+
+```bash
+npm run dev -- --host 0.0.0.0
+```
+
+Acessar no celular:
+```
+https://IP_LOCAL:5173/?lab=tasks-wrist
+```
+
+1. Câmera traseira abre por padrão
+2. Apontar para o pulso
+3. Se detectar: HUD mostra `● TRACKING`, overlay amarelo aparece no pulso
+4. Verificar se overlay acompanha rotação e escala
+5. Comparar tremor visualmente com o lab antigo
+
+Botão "Ativar GLB CW001": habilita após detecção — renderiza model-viewer posicionado pelo anchor.
+
+## Resultado do Build
+
+```
+✓ built in 16.62s
+56 modules — 642.08 kB │ gzip: 187.49 kB
+(aumento de ~144KB vs M068 — custo do @mediapipe/tasks-vision bundled)
+```
+
+Aviso de chunk size (>500KB) é esperado e não é erro.
+
+## Riscos
+
+| Risco | Probabilidade | Impacto |
+|---|---|---|
+| WASM do tasks-vision não carrega no Safari iOS | média | alto — iPhone bloqueado |
+| GPU delegate falha no Android antigo | média | baixo — fallback CPU implementado |
+| Model URL googleapis fica lenta/offline | baixa | alto — sem fallback local |
+| Tremor pior que o antigo (beta muito alto) | baixa | médio — ajustar `beta` no filtro |
+| Chunk grande (642KB) aumenta tempo de carga | certeza | baixo — é lab isolado, não produção |
+
+## Próxima Decisão
+
+**Critério objetivo a testar no celular:**
+
+| Item | Aprovado | Reprovado |
+|---|---|---|
+| Detecta pulso | sim | anchor não aparece |
+| Overlay acompanha rotação | sim | congela ou pula |
+| Escala acompanha distância | sim | tamanho fixo |
+| Tremor menor que MediaPipe antigo | sim | igualmente instável |
+| FPS aceitável (≥ 20fps Android) | sim | slideshow |
+| Safari iOS funciona | sim | tela branca/erro |
+
+Se ≥ 4/6 critérios aprovados → integrar avaliador objetivo M066 neste lab (10s, 13 métricas).
+Se < 4/6 → revisar parâmetros do filtro ou aguardar DeepAR/Perfect Corp.
+
+---
+
+<!-- M068E-CHECKPOINT abaixo -->
+
 # RELATORIO_CLAUDE — M068E-CHECKPOINT
 
 ## Objetivo
