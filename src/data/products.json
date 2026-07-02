@@ -7,7 +7,8 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/929fdf680aeaf75dc92018f9063c38c1_1000x1000x189235.jpg?v=1780609207",
     "handle": "relogio-casio-para-neutro-2023-novos-estilos-definir-marca-superior-de-luxo-a-pr",
     "status": "active",
-    "modelUrl": "/models/CW001.glb"
+    "modelUrl": "/models/CW001.glb",
+    "arScale": 1.0
   },
   {
     "id": "CW002",

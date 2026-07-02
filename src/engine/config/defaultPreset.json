@@ -1,0 +1,5 @@
+{
+  "minCutoff": 1.2,
+  "beta": 0.3,
+  "dCutoff": 1.0
+}
