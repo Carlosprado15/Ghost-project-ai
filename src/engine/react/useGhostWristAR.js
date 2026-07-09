@@ -28,41 +28,55 @@ export function useGhostWristAR({
     scale:      1,
     raw:        null,
     filtered:   null,
+    landmarks:  null,   // 21 landmarks crus quando detectado
     fps:        0,
     error:      null,
     ready:      false,
+    delegate:   null,   // 'GPU' | 'CPU' após init do HandLandmarker
+    warning:    null,   // aviso não-fatal (ex.: fallback GPU→CPU)
+    modelSource: null,  // 'local' | 'CDN' — origem do hand_landmarker.task
   });
 
   const [mvReady, setMvReady] = useState(
     () => !!window.customElements?.get('model-viewer')
   );
+  const [mvError, setMvError] = useState(null);
 
   useEffect(() => {
-    ensureModelViewer().then(() => setMvReady(true));
+    ensureModelViewer({ timeoutMs: 15000 })
+      .then(() => setMvReady(true))
+      .catch((e) => setMvError(e.message));
   }, []);
 
   const updateFilterPreset = useCallback((preset) => {
     engineRef.current?.updateFilterPreset(preset);
   }, []);
 
+  // "Máquina ligada" (2026-07-05): o engine NÃO espera mais a câmera para
+  // inicializar — detector (WASM + HandLandmarker) e câmera carregam em
+  // PARALELO, cortando ~1-1.5s de toda abertura. O loop de tracking já
+  // aguarda sozinho o vídeo ficar pronto (readyState). Trocar de câmera
+  // também não recria mais o engine (menos instabilidade em mobile).
   useEffect(() => {
-    if (!enabled) return;
     let cancelled = false;
 
     const engine = new GhostEngine({
       onPose: (frame) => {
         if (cancelled) return;
-        setState({
+        // merge funcional: preserva delegate/warning definidos no init
+        setState(s => ({
+          ...s,
           isTracking: frame.isTracking,
           position:   frame.position,
           rotationZ:  frame.rotationZ,
           scale:      frame.scale,
           raw:        frame.raw,
           filtered:   frame.filtered,
+          landmarks:  frame.landmarks ?? null,
           fps:        frame.fps,
           error:      null,
           ready:      true,
-        });
+        }));
       },
       onRawFrame: (raw) => { onRawFrameRef.current?.(raw); },
       filterPreset,
@@ -74,7 +88,7 @@ export function useGhostWristAR({
     engine.init()
       .then(() => {
         if (cancelled) { engine.stop(); return; }
-        setState(s => ({ ...s, ready: true }));
+        setState(s => ({ ...s, ready: true, delegate: engine.delegate, warning: engine.warning, modelSource: engine.modelSource }));
         engine.startLoop(() => videoRef.current);
       })
       .catch((e) => {
@@ -88,8 +102,9 @@ export function useGhostWristAR({
       setState(s => ({ ...s, ready: false, isTracking: false }));
     };
   // filterPreset intentionally excluded: use updateFilterPreset() for live updates
+  // enabled intencionalmente fora: o engine vive independente da câmera
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, videoRef, debug]);
+  }, [videoRef, debug]);
 
-  return { ...state, mvReady, updateFilterPreset };
+  return { ...state, mvReady, mvError, updateFilterPreset };
 }

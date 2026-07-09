@@ -1,0 +1,17 @@
+{
+  "CW001": { "type": "watch",    "rotationDeg": { "x": -87.2, "y": -62.1, "z": 87.5 }, "scale": 1, "offset": { "x": 0, "y": 0, "z": 0 }, "flip180Y": false, "flip180Z": false, "status": "calibrated" },
+  "CW002": { "type": "watch",    "rotationDeg": { "x": 89.9, "y": -22.5, "z": -89.7 }, "scale": 1.0, "offset": { "x": 0, "y": 0, "z": 0 }, "flip180Y": false, "flip180Z": false, "status": "calibrated" },
+  "CW003": { "type": "watch",    "rotationDeg": { "x": 89.9, "y": -22.5, "z": -89.7 }, "scale": 1.0, "offset": { "x": 0, "y": 0, "z": 0 }, "flip180Y": false, "flip180Z": false, "status": "calibrated" },
+  "CW004": { "type": "watch",    "rotationDeg": { "x": 89.7, "y": -22.5, "z": -89.2 }, "scale": 1.0, "offset": { "x": 0, "y": 0, "z": 0 }, "flip180Y": false, "flip180Z": false, "status": "calibrated" },
+  "CW005": { "type": "watch",    "rotationDeg": { "x": 87.6, "y": -52.2, "z": -87.0 }, "scale": 1.0, "offset": { "x": 0, "y": 0, "z": 0 }, "flip180Y": false, "flip180Z": false, "status": "calibrated" },
+  "CW006": { "type": "watch",    "rotationDeg": { "x": -86.5, "y": 77.7, "z": -86.4 }, "scale": 1.0, "offset": { "x": 0, "y": 0, "z": 0 }, "flip180Y": false, "flip180Z": true,  "status": "calibrated" },
+  "CW007": { "type": "watch",    "rotationDeg": { "x": 90.4, "y": -24.6, "z": -90.9 }, "scale": 1.0, "offset": { "x": 0, "y": 0, "z": 0 }, "flip180Y": false, "flip180Z": false, "status": "calibrated" },
+  "CW008": { "type": "watch",    "rotationDeg": { "x": 88.2, "y": 66.5, "z": 88.1 },   "scale": 1.0, "offset": { "x": 0, "y": 0, "z": 0 }, "flip180Y": false, "flip180Z": true,  "status": "calibrated" },
+  "CW009": { "type": "bracelet", "rotationDeg": { "x": 0.5, "y": 67.5, "z": 90.0 },    "scale": 1.0, "offset": { "x": 0, "y": 0, "z": 0 }, "flip180Y": false, "flip180Z": false, "status": "calibrated" },
+  "CW010": { "type": "watch",    "rotationDeg": { "x": 4.4, "y": 2.2, "z": 0.2 },      "scale": 1.0, "offset": { "x": 0, "y": 0, "z": 0 }, "flip180Y": false, "flip180Z": false, "status": "calibrated" },
+  "CW011": { "type": "bracelet", "rotationDeg": { "x": -173.1, "y": 23.2, "z": 2.7 },  "scale": 1.0, "offset": { "x": 0, "y": 0, "z": 0 }, "flip180Y": false, "flip180Z": false, "status": "calibrated" },
+  "CW012": { "type": "bracelet", "rotationDeg": { "x": 23.9, "y": 19.1, "z": 8.3 },    "scale": 1.0, "offset": { "x": 0, "y": 0, "z": 0 }, "flip180Y": false, "flip180Z": false, "status": "calibrated" },
+  "CW013": { "type": "bracelet", "rotationDeg": { "x": -112.5, "y": -0.2, "z": -0.5 }, "scale": 1.0, "offset": { "x": 0, "y": 0, "z": 0 }, "flip180Y": false, "flip180Z": false, "status": "calibrated" },
+  "CW014": { "type": "bracelet", "rotationDeg": { "x": 22.8, "y": 9.3, "z": 3.9 },     "scale": 1.0, "offset": { "x": 0, "y": 0, "z": 0 }, "flip180Y": false, "flip180Z": false, "status": "calibrated" },
+  "CW015": { "type": "bracelet", "rotationDeg": { "x": 91.2, "y": -2.9, "z": 68.0 },   "scale": 1.0, "offset": { "x": 0, "y": 0, "z": 0 }, "flip180Y": false, "flip180Z": false, "status": "calibrated" }
+}

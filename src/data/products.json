@@ -118,7 +118,8 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/05614b307f6a929b546a6a6e735e4fa6_800x800x181813.jpg?v=1780543572",
     "handle": "curren-relogios-masculinos-marca-superior-de-luxo-moda-amp-casual-negocios-rel",
     "status": "active",
-    "modelUrl": "/models/CW012.glb"
+    "modelUrl": "/models/CW012.glb",
+    "arScale": 1.3
   },
   {
     "id": "CW013",

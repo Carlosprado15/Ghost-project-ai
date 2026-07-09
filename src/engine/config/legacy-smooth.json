@@ -1,0 +1,7 @@
+{
+  "name": "legacy-smooth",
+  "description": "Emula smoothing alpha=0.35 da demo 25/05/2026",
+  "minCutoff": 1.5,
+  "beta": 0.0005,
+  "dCutoff": 1.0
+}

@@ -5,15 +5,19 @@ import ReplayLab from './ReplayLab'
 import WebARRocksLab from './WebARRocksLab'
 import DeepARLab from './DeepARLab'
 import TasksWristLab from './labs/tasks-wrist/TasksWristLab'
+import GLBValidationLab from './labs/GLBValidationLab'
+import ProductCalibrationLab from './labs/ProductCalibrationLab'
 
 const lab = new URLSearchParams(window.location.search).get('lab');
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {lab === 'replay'       ? <ReplayLab />       :
-     lab === 'webarrocks'   ? <WebARRocksLab />   :
-     lab === 'deepar'       ? <DeepARLab />       :
-     lab === 'tasks-wrist'  ? <TasksWristLab />   :
+    {lab === 'replay'            ? <ReplayLab />             :
+     lab === 'webarrocks'        ? <WebARRocksLab />         :
+     lab === 'deepar'            ? <DeepARLab />             :
+     lab === 'tasks-wrist'       ? <TasksWristLab />         :
+     lab === 'validate-glb'      ? <GLBValidationLab />      :
+     lab === 'calibrate-product' ? <ProductCalibrationLab /> :
      <App />}
   </StrictMode>,
 )

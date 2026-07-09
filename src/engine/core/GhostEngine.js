@@ -4,7 +4,16 @@ import { computeWristAnchor } from './anchor/wristAnchor.js';
 import { HoldLastPose } from './pose/holdLastPose.js';
 import defaultPreset from '../config/defaultPreset.json';
 
-const HOLD_POSE_MS = 500;
+// M069I: 1500ms (antes 1200) — com punho fechado a detecção falha por alguns
+// frames; o hold estendido mantém o relógio visível nas perdas transitórias
+const HOLD_POSE_MS = 1500;
+
+// M069I: estabilização de escala — com punho fechado lm5–lm17 se aproximam e
+// o relógio encolheria. Média móvel + clamp + piso mantêm o tamanho estável.
+const SCALE_AVG_WINDOW = 5;     // média móvel usada como valor de escala
+const SCALE_REF_WINDOW = 10;    // janela de referência para o clamp
+const SCALE_DROP_LIMIT = 0.8;   // nunca cair >20% abaixo da média de referência
+const SCALE_MIN        = 0.08;  // escala mínima garantida (nunca desaparece)
 
 /**
  * GhostEngine — core AR tracking engine (no React dependency).
@@ -24,9 +33,10 @@ export class GhostEngine {
     this._filterPreset  = filterPreset ?? defaultPreset;
     this._debug         = debug;
 
-    this._tracker = null;
-    this._filters = null;
-    this._hold    = new HoldLastPose(HOLD_POSE_MS);
+    this._tracker   = null;
+    this._filters   = null;
+    this._hold      = new HoldLastPose(HOLD_POSE_MS);
+    this._scaleHist = [];   // últimos SCALE_REF_WINDOW valores de escala
 
     this._frameCount = 0;
     this._lastFpsTs  = 0;
@@ -35,8 +45,32 @@ export class GhostEngine {
     this.isReady = false;
   }
 
+  // 'GPU' | 'CPU' | null — qual delegate do MediaPipe está ativo
+  get delegate() { return this._tracker?.delegate ?? null; }
+
+  // Aviso não-fatal do tracker (ex.: fallback GPU→CPU)
+  get warning() { return this._tracker?.warning ?? null; }
+
+  // 'local' | 'CDN' — de onde o hand_landmarker.task foi carregado
+  get modelSource() { return this._tracker?.modelSource ?? null; }
+
   _log(...args) {
     if (this._debug) console.log('[GhostEngine]', ...args);
+  }
+
+  // M069I: escala estável com mão fechada.
+  // 4) piso 0.08 → 2a) média móvel de 5 frames → 2b) clamp: se a média-5 cair
+  // mais de 20% abaixo da média dos últimos 10 frames, usa a média-10.
+  _stabilizeScale(rawScale) {
+    const s = Math.max(rawScale, SCALE_MIN);
+    this._scaleHist.push(s);
+    if (this._scaleHist.length > SCALE_REF_WINDOW) this._scaleHist.shift();
+
+    const last5 = this._scaleHist.slice(-SCALE_AVG_WINDOW);
+    const avg5  = last5.reduce((a, b) => a + b, 0) / last5.length;
+    const avg10 = this._scaleHist.reduce((a, b) => a + b, 0) / this._scaleHist.length;
+
+    return avg5 < avg10 * SCALE_DROP_LIMIT ? avg10 : avg5;
   }
 
   _initFilters(preset) {
@@ -85,6 +119,7 @@ export class GhostEngine {
     if (!landmarks) {
       if (this._onRawFrame) this._onRawFrame({ ts, detected: false });
       const held = this._hold.onLost(ts);
+      if (held === null) this._scaleHist = [];  // perda real: recomeça histórico de escala
       this._onPose({
         ts,
         fps:       this._fps,
@@ -95,6 +130,7 @@ export class GhostEngine {
         scale:     held?.scale     ?? 0,
         raw:       null,
         filtered:  held ? { pos: held.position, rotZ: held.rotationZ, scale: held.scale } : null,
+        landmarks: null,
       });
       return;
     }
@@ -111,10 +147,12 @@ export class GhostEngine {
       });
     }
 
+    const stableScale = this._stabilizeScale(anchor.scale);
+
     const f        = this._filters;
     const filtPos  = f.pos.filter({ x: anchor.x, y: anchor.y, z: anchor.z }, ts);
     const filtRotZ = f.rotZ.filter(anchor.rotZ, ts);
-    const filtScl  = f.scl.filter(anchor.scale, ts);
+    const filtScl  = f.scl.filter(stableScale, ts);
 
     this._hold.onDetected({ position: filtPos, rotationZ: filtRotZ, scale: filtScl }, ts);
 
@@ -128,6 +166,7 @@ export class GhostEngine {
       scale:     filtScl,
       raw:      { pos: { x: anchor.x, y: anchor.y, z: anchor.z }, rotZ: anchor.rotZ, scale: anchor.scale },
       filtered: { pos: filtPos, rotZ: filtRotZ, scale: filtScl },
+      landmarks,   // 21 landmarks crus (normalizados 0-1) — overlay de tracking
     });
   }
 

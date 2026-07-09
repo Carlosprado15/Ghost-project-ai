@@ -18,6 +18,9 @@
   },
   "devDependencies": {
     "@gltf-transform/cli": "^4.4.0",
+    "@gltf-transform/core": "^4.4.1",
+    "@gltf-transform/extensions": "^4.4.1",
+    "@gltf-transform/functions": "^4.4.1",
     "@types/node": "^25.9.1",
     "@vitejs/plugin-react": "^6.0.2",
     "vite": "^8.0.14",
