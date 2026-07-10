@@ -124,48 +124,33 @@
     width: 100%;
   }
 
-  .cw-360-hint {
-    position: absolute;
-    bottom: 6px;
-    left: 6px;
-    z-index: 10;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border: none;
-    background: transparent;
-    padding: 0;
-    -webkit-appearance: none;
-    appearance: none;
-  }
+  /* Vitrine viva: o giro (vídeo) cobre a foto do card. A foto continua por baixo
+     como fallback; o vídeo aparece com um leve fade quando termina de carregar. */
+  .card-gallery { position: relative; }
 
-  .cw-360-svg {
+  .cw-spin {
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.45));
-    transition: filter 0.2s, transform 0.2s;
+    z-index: 6;
+    pointer-events: none;
+    background: #fff;
+    opacity: 0;
+    transition: opacity 0.4s ease;
   }
 
-  .cw-360-label {
-    font-size: 8px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    line-height: 1;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    position: relative;
-    z-index: 1;
-    color: rgba(255,255,255,0.95);
+  .cw-spin.cw-spin--ready { opacity: 1; }
+
+  .cw-spin video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
   }
 
   .cw-ar-hint {
     position: absolute;
     bottom: 6px;
-    left: 52px;
+    left: 6px;
     z-index: 10;
     width: 40px;
     height: 40px;

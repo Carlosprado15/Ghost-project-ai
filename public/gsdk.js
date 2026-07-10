@@ -88,35 +88,31 @@
     document.head.appendChild(s);
   }
 
-  // Cria bloco de preview 360° para injetar diretamente na vitrine
-  function create360Viewer(productId) {
-    const glbPath = MODEL_MAP[productId];
-    if (!glbPath) return null;
+  // URL do vídeo de giro (pré-renderizado) de um produto
+  function spinUrl(productId) {
+    return GHOST_BASE_URL + '/spins/' + productId + '.mp4';
+  }
 
-    const glbUrl = GHOST_BASE_URL + glbPath;
+  // Bloco de giro automático (vídeo) para a página do produto.
+  // Substitui o antigo girador manual (model-viewer) — o produto gira sozinho.
+  function create360Viewer(productId) {
+    if (!MODEL_MAP[productId]) return null;
 
     const wrap = document.createElement('div');
     wrap.className = 'ghost-360-wrap';
 
-    const mv = document.createElement('model-viewer');
-    mv.setAttribute('src', glbUrl);
-    mv.setAttribute('camera-orbit', DISPLAY_ORBIT[productId] || DEFAULT_ORBIT);
-    mv.setAttribute('auto-rotate', '');
-    mv.setAttribute('auto-rotate-delay', '800');
-    mv.setAttribute('rotation-per-second', '9deg');
-    mv.setAttribute('camera-controls', '');
-    mv.setAttribute('disable-zoom', '');
-    mv.setAttribute('interaction-prompt', 'none');
-    mv.setAttribute('shadow-intensity', '0.8');
-    mv.setAttribute('shadow-softness', '1');
-    mv.setAttribute('exposure', '1.2');
-    mv.setAttribute('environment-image', 'neutral');
-    mv.setAttribute('field-of-view', '28deg');
-    mv.setAttribute('min-camera-orbit', 'auto 25deg auto');
-    mv.setAttribute('max-camera-orbit', 'auto 155deg auto');
-    mv.style.cssText = 'width:100%;height:100%;background:transparent;display:block;';
+    const vid = document.createElement('video');
+    vid.src = spinUrl(productId);
+    vid.autoplay = true;
+    vid.loop = true;
+    vid.muted = true;
+    vid.setAttribute('muted', '');
+    vid.setAttribute('playsinline', '');
+    vid.setAttribute('preload', 'metadata');
+    vid.style.cssText = 'width:100%;height:100%;object-fit:contain;background:#fff;display:block;';
+    vid.play && vid.play().catch(function () {});
 
-    wrap.appendChild(mv);
+    wrap.appendChild(vid);
     return wrap;
   }
 
@@ -284,7 +280,7 @@
 
     const label360 = document.createElement('p');
     label360.className = 'ghost-360-label';
-    label360.textContent = 'Preview 3D · Arraste para girar';
+    label360.textContent = 'Preview 3D · 360°';
 
     // Botão AR — abre overlay embedded (não navega para fora da loja)
     const btn = document.createElement('button');
@@ -348,6 +344,42 @@
     });
   }
 
+  // ── Vitrine viva: giro automático (vídeo) nos cards ──
+  // Marcação `.cw-spin[data-cw-handle]` vem de snippets/card-gallery.liquid.
+  // O vídeo só é baixado quando o card está perto de aparecer na tela.
+  function loadSpinInto(el, productId) {
+    if (el.__cwLoaded) return;
+    el.__cwLoaded = true;
+    var v = document.createElement('video');
+    v.src = spinUrl(productId);
+    v.autoplay = true; v.loop = true; v.muted = true;
+    v.setAttribute('muted', '');
+    v.setAttribute('playsinline', '');
+    v.setAttribute('preload', 'none');
+    v.addEventListener('loadeddata', function () { el.classList.add('cw-spin--ready'); });
+    el.appendChild(v);
+    if (v.play) v.play().catch(function () {});
+  }
+
+  var spinObserver = ('IntersectionObserver' in window) ? new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (!en.isIntersecting) return;
+      var el = en.target;
+      var code = PRODUCT_MAP[el.getAttribute('data-cw-handle')];
+      if (code) loadSpinInto(el, code);
+      spinObserver.unobserve(el);
+    });
+  }, { rootMargin: '250px' }) : null;
+
+  function initVitrineSpins() {
+    document.querySelectorAll('.cw-spin[data-cw-handle]:not([data-cw-seen])').forEach(function (el) {
+      el.setAttribute('data-cw-seen', '1');
+      var code = PRODUCT_MAP[el.getAttribute('data-cw-handle')];
+      if (!code) { el.remove(); return; } // produto sem giro: some e mostra a foto normal
+      if (spinObserver) spinObserver.observe(el); else loadSpinInto(el, code);
+    });
+  }
+
   let lastHandle = null;
 
   function init() {
@@ -363,17 +395,22 @@
 
     document.querySelectorAll('.ghost-360-wrap, .ghost-360-label, .ghost-ar-btn, .ghost-powered, .ghost-badge, .ghost-scanner-line, .ghost-ar-container, .ghost-ar-button').forEach(el => el.remove());
 
-    loadModelViewer();
     injectStyles();
     injectARButton(productId);
   }
 
-  setInterval(init, 800);
+  // Roda em toda página: cuida da vitrine (giro nos cards) e da página de produto.
+  function tick() {
+    initVitrineSpins();
+    init();
+  }
+
+  setInterval(tick, 800);
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', tick);
   } else {
-    init();
+    tick();
   }
 
 })();

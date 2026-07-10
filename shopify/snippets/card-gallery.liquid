@@ -201,29 +201,9 @@
   {%- endif -%}
   {{ children }}
   {%- unless product == blank -%}
-    <button
-      type="button"
-      class="cw-360-hint"
-      aria-label="Ver produto em 360°"
-      data-cw-handle="{{ product.handle }}"
-      data-product-title="{{ product.title | escape }}"
-    >
-      <svg class="cw-360-svg" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="25" cy="25" r="24" fill="#0a0a0a"/>
-        <g>
-          <circle cx="25" cy="25" r="19"
-                  stroke="rgba(255,255,255,0.85)" stroke-width="1.6"
-                  stroke-dasharray="82 38" stroke-linecap="round"/>
-          <path d="M25,5 L30,9 L25,13"
-                stroke="rgba(255,255,255,0.85)" stroke-width="1.8"
-                stroke-linecap="round" stroke-linejoin="round"/>
-          <animateTransform attributeName="transform" attributeType="XML"
-                            type="rotate" from="-90 25 25" to="270 25 25"
-                            dur="6s" repeatCount="indefinite"/>
-        </g>
-      </svg>
-      <span class="cw-360-label">360°</span>
-    </button>
+    {%- comment %} Vitrine viva: o giro (vídeo) é injetado aqui por gsdk.js, por
+       cima da foto. Produtos sem giro têm este bloco removido e mostram a foto. {%- endcomment -%}
+    <div class="cw-spin" data-cw-handle="{{ product.handle }}" aria-hidden="true"></div>
     <button
       type="button"
       class="cw-ar-hint"
