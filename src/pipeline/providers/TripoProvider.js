@@ -1,22 +1,27 @@
 /**
- * TripoProvider — integração real com a API Tripo3D (image-to-model).
+ * TripoProvider — integração real com a API Tripo3D v3 (image-to-model).
  *
  * Fluxo:
- *   submitImage()   →  [upload file → file_token]  →  POST /task  →  task_id
- *   getJobStatus()  →  GET /task/{id}  →  { status, progress }
- *   downloadModel() →  GET /task/{id}  →  output.model (GLB URL)
- *   cancelJob()     →  DELETE /task/{id} (falha silenciosa)
+ *   submitImage()   →  [upload file → file_token]  →  POST /generation/image-to-model  →  task_id
+ *   getJobStatus()  →  GET /tasks/{id}  →  { status, progress }
+ *   downloadModel() →  GET /tasks/{id}  →  output.model_url (GLB URL)
+ *   cancelJob()     →  DELETE /tasks/{id} (falha silenciosa)
  *   validateModel() →  herdado de BaseProvider (THREE.GLTFLoader)
  *
- * Status Tripo: queued | running | success | failed | cancelled | unknown
+ * Status Tripo: queued | running | success | failed | cancelled | banned | unknown
  *
- * Configuração: definir VITE_TRIPO_API_KEY no arquivo .env.local
- * Documentação: https://platform.tripo3d.ai/docs
+ * Configuração: passar { apiKey } no construtor a partir de código
+ * servidor/CLI (ex: scripts/normalize-glb/generate-from-tripo.mjs). NUNCA
+ * ler a chave de import.meta.env.VITE_* aqui — isso a grava em texto puro
+ * no bundle enviado ao navegador (ver incidente de segurança 2026-07-09).
+ * Documentação: https://platform.tripo3d.ai/docs (API v3, migrada em 2026-07-09 — a
+ * v2/openapi antiga usada por este provider foi descontinuada)
  */
 
 import { BaseProvider } from './BaseProvider.js';
 
-const BASE_URL = 'https://api.tripo3d.ai/v2/openapi';
+const BASE_URL = 'https://openapi.tripo3d.ai/v3';
+const DEFAULT_MODEL_VERSION = 'v3.0-20250812';
 
 // Mapeamento de status Tripo → formato interno (igual ao Meshy)
 const STATUS_MAP = {
@@ -25,6 +30,7 @@ const STATUS_MAP = {
   success:   'SUCCEEDED',
   failed:    'FAILED',
   cancelled: 'CANCELLED',
+  banned:    'FAILED',
   unknown:   'UNKNOWN',
 };
 
@@ -39,7 +45,12 @@ export class TripoProvider extends BaseProvider {
   constructor(config = {}) {
     super('tripo', config);
     this.baseUrl = config.baseUrl || BASE_URL;
-    this.apiKey  = config.apiKey  || import.meta.env.VITE_TRIPO_API_KEY || null;
+    // SEGURANÇA (2026-07-09): nunca ler a chave de import.meta.env aqui.
+    // Qualquer VITE_* referenciado em código alcançável pelo bundle do
+    // navegador é gravado em texto puro no JS final — visível a qualquer
+    // visitante da loja. A chave só deve ser passada em config.apiKey por
+    // quem chama este provider a partir de um ambiente servidor/CLI.
+    this.apiKey  = config.apiKey || null;
   }
 
   /**
@@ -55,24 +66,27 @@ export class TripoProvider extends BaseProvider {
   async submitImage(image, options = {}) {
     console.log('[TripoProvider] Upload iniciado');
 
-    let filePayload;
-
+    let input;
     if (typeof image === 'string' && image.startsWith('http')) {
-      // URL pública — passa diretamente para a task
-      const ext = this._extFromUrl(image);
-      filePayload = { type: ext, url: image };
+      // URL pública — passa diretamente como `input`
+      input = image;
     } else {
-      // File, Blob ou data URL — upload multipart primeiro
-      const blob      = await this._toBlob(image);
-      const ext       = this._extFromBlob(blob);
-      const fileToken = await this._uploadFile(blob, ext);
-      filePayload = { type: ext, file_token: fileToken };
+      // File, Blob ou data URL — upload multipart primeiro, usa o file_token retornado
+      const blob = await this._toBlob(image);
+      const ext  = this._extFromBlob(blob);
+      input = await this._uploadFile(blob, ext);
     }
 
-    const response = await this._fetchWithRetry(`${this.baseUrl}/task`, {
+    const response = await this._fetchWithRetry(`${this.baseUrl}/generation/image-to-model`, {
       method:  'POST',
       headers: this._headers(),
-      body:    JSON.stringify({ type: 'image_to_model', file: filePayload }),
+      body:    JSON.stringify({
+        input,
+        model:           options.modelVersion  ?? DEFAULT_MODEL_VERSION,
+        texture:         options.texture       ?? true,
+        pbr:             options.pbr           ?? true,
+        texture_quality: options.textureQuality ?? 'standard',
+      }),
     });
 
     const data   = await response.json();
@@ -91,7 +105,7 @@ export class TripoProvider extends BaseProvider {
    * @returns {Promise<{ status: string, progress: number }>}
    */
   async getJobStatus(taskId) {
-    const response = await this._fetchWithRetry(`${this.baseUrl}/task/${taskId}`, {
+    const response = await this._fetchWithRetry(`${this.baseUrl}/tasks/${taskId}`, {
       method:  'GET',
       headers: this._headers(),
     });
@@ -114,13 +128,13 @@ export class TripoProvider extends BaseProvider {
   async downloadModel(taskId) {
     console.log(`[TripoProvider] Download iniciado — task: ${taskId}`);
 
-    const response = await this._fetchWithRetry(`${this.baseUrl}/task/${taskId}`, {
+    const response = await this._fetchWithRetry(`${this.baseUrl}/tasks/${taskId}`, {
       method:  'GET',
       headers: this._headers(),
     });
 
     const data = await response.json();
-    const url  = data?.data?.output?.model;
+    const url  = data?.data?.output?.model_url;
 
     if (!url) {
       throw new Error(
@@ -141,7 +155,7 @@ export class TripoProvider extends BaseProvider {
   async cancelJob(taskId) {
     console.log(`[TripoProvider] Cancelamento solicitado — task: ${taskId}`);
     try {
-      await this._fetchWithRetry(`${this.baseUrl}/task/${taskId}`, {
+      await this._fetchWithRetry(`${this.baseUrl}/tasks/${taskId}`, {
         method:  'DELETE',
         headers: this._headers(),
       });
@@ -155,7 +169,7 @@ export class TripoProvider extends BaseProvider {
 
   _headers() {
     if (!this.apiKey) {
-      throw new Error('[TripoProvider] VITE_TRIPO_API_KEY não definida no .env.local');
+      throw new Error('[TripoProvider] apiKey não fornecida — chamadas ao Tripo3D só devem ser feitas por um servidor/CLI que injete config.apiKey, nunca via variável VITE_* embutida no bundle do navegador');
     }
     return {
       Authorization: `Bearer ${this.apiKey}`,

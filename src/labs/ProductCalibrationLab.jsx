@@ -73,6 +73,26 @@ function baseMatrixFor(id) {
   return M;
 }
 
+// Monta o bloco de JSON de um produto a partir da matriz acumulada (câmera +
+// ajuste fino) somada à calibração vigente — usado tanto no "copiar este
+// produto" quanto no "copiar tudo que foi ajustado" da prateleira.
+function buildJsonEntry(id, entry) {
+  const ov    = overridesData[id] ?? {};
+  const total = matMul(entry.fineM, matMul(entry.rotM, baseMatrixFor(id)));
+  const e = eulerPipeline(total);
+  const r1 = (v) => Math.round(v * 10) / 10;
+  const r2 = (v) => Math.round(v * 100) / 100;
+  return {
+    type: TYPES[id],
+    rotationDeg: { x: r1(e.x), y: r1(e.y), z: r1(e.z) },
+    scale: r2((ov.scale ?? 1.0) * entry.fineScale),
+    offset: { x: 0, y: 0, z: 0, ...(ov.offset ?? {}) },
+    flip180Y: false,
+    flip180Z: false,
+    status: entry.status,
+  };
+}
+
 const initialEntry = (id) => ({
   rotM: I3,          // captura da câmera ("Aplicar") — não é previewada
   fineM: I3,         // ajuste fino por botões — PREVIEWADO ao vivo
@@ -86,7 +106,11 @@ const btn = (bg) => ({
 });
 
 export default function ProductCalibrationLab() {
+  // Regenerar um .glb não muda o nome do arquivo — sem isso o navegador
+  // reaproveita a cópia antiga em cache e o produto parece "não corrigido".
+  const cacheBust = useState(() => Date.now())[0];
   const urlId = new URLSearchParams(window.location.search).get('productId');
+  const [mode, setMode] = useState(urlId ? 'edit' : 'grid'); // 'grid' = prateleira com os 15
   const [idx, setIdx] = useState(Math.max(0, IDS.indexOf(urlId ?? 'CW001')));
   const id   = IDS[idx];
   const type = TYPES[id];
@@ -136,6 +160,46 @@ export default function ProductCalibrationLab() {
     window.history.replaceState(null, '', u.toString());
   };
 
+  // Prateleira → editor de um produto específico
+  const openEdit = (productId) => {
+    goTo(IDS.indexOf(productId));
+    setMode('edit');
+  };
+  // Editor → volta pra prateleira (tira o productId da URL)
+  const backToGrid = () => {
+    setMode('grid');
+    const u = new URL(window.location.href);
+    u.searchParams.delete('productId');
+    window.history.replaceState(null, '', u.toString());
+  };
+
+  // Um produto conta como "ajustado nesta sessão" se algo mudou em relação
+  // ao estado inicial (rotação de câmera aplicada, ajuste fino, escala ou status).
+  const isTouched = (pid) => {
+    const e = storeRef.current[pid];
+    if (!e) return false;
+    return !isIdentity(e.rotM) || !isIdentity(e.fineM) || e.fineScale !== 1 ||
+      e.status !== (overridesData[pid]?.status ?? 'needs_calibration');
+  };
+  const touchedIds = IDS.filter(isTouched);
+
+  const [copiedAll, setCopiedAll] = useState(false);
+  const copyAllTouched = async () => {
+    if (touchedIds.length === 0) return;
+    const combined = touchedIds.reduce((acc, pid) => {
+      acc[pid] = buildJsonEntry(pid, storeRef.current[pid]);
+      return acc;
+    }, {});
+    const text = JSON.stringify(combined, null, 2);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      window.prompt('Copie o JSON abaixo:', text);
+    }
+    setCopiedAll(true);
+    setTimeout(() => setCopiedAll(false), 1500);
+  };
+
   // "Aplicar" (correção emergencial): SÓ SALVA — não remonta o viewer, não
   // reseta a câmera, nada muda visualmente. Lê a órbita atual (θ, φ), calcula
   // a rotação que leva a direção vista para +Z — Rx(90°−φ)·Ry(−θ) — e SUBSTITUI
@@ -158,24 +222,7 @@ export default function ProductCalibrationLab() {
   // JSON: rotação TOTAL ABSOLUTA (ajuste_fino ∘ ajuste_câmera ∘ calibração
   // vigente) na convenção do pipeline. Flips dobrados na rotationDeg.
   // Escala = vigente × ajuste fino; offset vigente preservado.
-  const jsonBlock = useMemo(() => {
-    const ov    = overridesData[id] ?? {};
-    const total = matMul(entry.fineM, matMul(entry.rotM, baseMatrixFor(id)));
-    const e = eulerPipeline(total);
-    const r1 = (v) => Math.round(v * 10) / 10;
-    const r2 = (v) => Math.round(v * 100) / 100;
-    return JSON.stringify({
-      [id]: {
-        type,
-        rotationDeg: { x: r1(e.x), y: r1(e.y), z: r1(e.z) },
-        scale: r2((ov.scale ?? 1.0) * entry.fineScale),
-        offset: { x: 0, y: 0, z: 0, ...(ov.offset ?? {}) },
-        flip180Y: false,
-        flip180Z: false,
-        status: entry.status,
-      },
-    }, null, 2);
-  }, [id, type, entry]);
+  const jsonBlock = useMemo(() => JSON.stringify({ [id]: buildJsonEntry(id, entry) }, null, 2), [id, entry]);
 
   // Preview ao vivo do AJUSTE FINO (a captura de câmera continua só-salvar)
   const fineOrientation = useMemo(() => {
@@ -211,6 +258,44 @@ export default function ProductCalibrationLab() {
     </div>
   );
 
+  const statusColor = (s) => s === 'pass' ? '#4ade80' : s === 'fail' ? '#f87171' : '#facc15';
+
+  // ── Prateleira: os 15 produtos lado a lado, clique abre o ajuste fino ──
+  if (mode === 'grid') {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: '#0b0f14', color: '#e2e8f0', fontFamily: 'monospace', overflowY: 'auto', padding: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#a78bfa' }}>Prateleira — clique num produto pra ajustar</div>
+          <button onClick={copyAllTouched} disabled={touchedIds.length === 0}
+            style={{ ...btn(copiedAll ? '#16a34a' : touchedIds.length ? '#7c3aed' : '#374151'), opacity: touchedIds.length ? 1 : 0.5 }}>
+            {copiedAll ? '✓ Copiado!' : `Copiar JSON de tudo que eu ajustei (${touchedIds.length})`}
+          </button>
+        </div>
+        {/* Sem modelo 3D ao vivo aqui: 15 telinhas 3D ligadas ao mesmo tempo
+            estouram o limite do navegador e embaralham os produtos. Cartão
+            simples (ícone + nome + status) — o 3D real só liga um de cada vez,
+            dentro do editor. */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 14 }}>
+          {IDS.map((pid) => {
+            const st = storeRef.current[pid]?.status ?? overridesData[pid]?.status ?? 'needs_calibration';
+            return (
+              <div key={pid} onClick={() => openEdit(pid)}
+                style={{
+                  background: '#11161d', borderRadius: 10, padding: '18px 10px', cursor: 'pointer',
+                  border: `2px solid ${isTouched(pid) ? '#7c3aed' : 'rgba(255,255,255,0.08)'}`,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                }}>
+                <div style={{ fontSize: 36 }}>{TYPES[pid] === 'watch' ? '⌚' : '📿'}</div>
+                <div style={{ fontSize: 14, fontWeight: 700 }}>{pid} <span style={{ color: '#94a3b8', fontWeight: 400 }}>· {TYPES[pid]}</span></div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: statusColor(st) }}>{st}{isTouched(pid) ? ' · ajustado' : ''}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ position: 'fixed', inset: 0, background: '#0b0f14', color: '#e2e8f0', fontFamily: 'monospace', display: 'flex' }}>
 
@@ -220,10 +305,15 @@ export default function ProductCalibrationLab() {
           <model-viewer
             ref={attachMv}
             key={`${id}-${applyKey}`}
-            src={`/models/normalized/${id}.glb`}
+            src={`/models/normalized/${id}.glb?v=${cacheBust}`}
             camera-controls
             interaction-prompt="none"
             disable-tap
+            environment-image="neutral"
+            shadow-intensity="0.9"
+            shadow-softness="1"
+            exposure="1.2"
+            tone-mapping="neutral"
             orientation={fineOrientation}
             scale={fineScaleAttr}
             style={{ width: 'min(65vw, 78vh)', height: 'min(65vw, 78vh)', background: 'transparent' }}
@@ -242,6 +332,7 @@ export default function ProductCalibrationLab() {
 
       {/* Painel lateral enxuto */}
       <div style={{ flex: '0 0 280px', background: '#11161d', borderLeft: '1px solid rgba(255,255,255,0.1)', padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <button onClick={backToGrid} style={{ ...btn('#374151'), fontSize: 12 }}>&lt; Voltar pra prateleira</button>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button onClick={() => goTo(idx - 1)} style={btn('#374151')}>&lt; Anterior</button>
           <span style={{ fontWeight: 700, color: '#a78bfa' }}>{idx + 1}/15</span>

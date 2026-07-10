@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build)",
+      "Bash(npm run dev)",
+      "Bash(npm run preview)",
+      "Bash(npm run lab:m069b)",
+      "Bash(node scripts/normalize-glb/normalize.mjs*)",
+      "Bash(node scripts/normalize-glb/validate.mjs)",
+      "Bash(node scripts/normalize-glb/qa-compare.mjs*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(netstat -ano*)",
+      "Bash(npm audit*)"
+    ],
+    "ask": [
+      "Bash(node scripts/normalize-glb/generate-from-tripo.mjs*)",
+      "Bash(git push*)",
+      "Bash(npm install*)",
+      "Bash(npm uninstall*)",
+      "Bash(rm -rf*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/protect-files.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

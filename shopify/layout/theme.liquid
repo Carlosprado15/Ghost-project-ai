@@ -35,6 +35,9 @@
       {%- render 'theme-editor' -%}
     {% endif %}
 
+    {%- comment %} Ghost Project AI — estilos do badge 360°, do modal e dos blocos AR {%- endcomment -%}
+    <link rel="stylesheet" href="{{ 'ghost-premium.css' | asset_url }}">
+
     {%- comment %} Ghost Project AI — pre-load model-viewer for product pages {%- endcomment -%}
     {%- if template.name == 'product' -%}
       <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
@@ -136,7 +139,7 @@
     {%- comment %} Ghost Project AI — 360° Modal (M048) {%- endcomment -%}
     {%- render 'cw-360-modal' -%}
 
-    <script src="https://ghost-project-ai.vercel.app/gsdk.js?v=056c" defer></script>
+    <script src="https://ghost-project-ai.vercel.app/gsdk.js?v=057" defer></script>
 
   </body>
 </html>

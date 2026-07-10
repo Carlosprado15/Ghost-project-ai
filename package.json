@@ -23,6 +23,7 @@
     "@gltf-transform/functions": "^4.4.1",
     "@types/node": "^25.9.1",
     "@vitejs/plugin-react": "^6.0.2",
+    "playwright": "^1.61.1",
     "vite": "^8.0.14",
     "vite-plugin-mkcert": "^2.1.0"
   }

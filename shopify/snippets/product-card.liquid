@@ -162,6 +162,41 @@
     color: rgba(255,255,255,0.95);
   }
 
+  .cw-ar-hint {
+    position: absolute;
+    bottom: 6px;
+    left: 52px;
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    border-radius: 50%;
+    background: #0a0a0a;
+    color: rgba(255,255,255,0.9);
+    opacity: 0.82;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+    -webkit-appearance: none;
+    appearance: none;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  .cw-ar-hint:hover,
+  .cw-ar-hint:focus-visible {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+
+  .cw-ar-hint svg {
+    width: 17px;
+    height: 17px;
+    display: block;
+  }
+
   .product-card__placeholder-image svg {
     height: 100%;
   }

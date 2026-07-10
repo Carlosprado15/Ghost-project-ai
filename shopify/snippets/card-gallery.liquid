@@ -224,6 +224,20 @@
       </svg>
       <span class="cw-360-label">360°</span>
     </button>
+    <button
+      type="button"
+      class="cw-ar-hint"
+      aria-label="Provar {{ product.title | escape }} em realidade aumentada"
+      title="Provar em realidade aumentada"
+      data-cw-handle="{{ product.handle }}"
+      data-product-title="{{ product.title | escape }}"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+    </button>
   {%- endunless -%}
 </div>
 

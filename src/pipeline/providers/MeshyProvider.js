@@ -8,7 +8,10 @@
  *   cancelJob()    →  DELETE /v1/image-to-3d/{id}
  *   validateModel() →  herdado de BaseProvider (THREE.GLTFLoader)
  *
- * Configuração: definir VITE_MESHY_API_KEY no arquivo .env.local
+ * Configuração: passar { apiKey } no construtor a partir de código
+ * servidor/CLI. NUNCA ler a chave de import.meta.env.VITE_* aqui — isso a
+ * grava em texto puro no bundle enviado ao navegador (ver incidente de
+ * segurança 2026-07-09).
  * Documentação: https://docs.meshy.ai
  */
 
@@ -29,7 +32,9 @@ export class MeshyProvider extends BaseProvider {
   constructor(config = {}) {
     super('meshy', config);
     this.baseUrl   = config.baseUrl   || BASE_URL;
-    this.apiKey    = config.apiKey    || import.meta.env.VITE_MESHY_API_KEY || null;
+    // SEGURANÇA (2026-07-09): nunca ler a chave de import.meta.env aqui —
+    // ver comentário equivalente em TripoProvider.js.
+    this.apiKey    = config.apiKey || null;
     this.enablePbr = config.enablePbr ?? true;
     this.aiModel   = config.aiModel   ?? 'meshy-4';
   }
@@ -137,7 +142,7 @@ export class MeshyProvider extends BaseProvider {
 
   _headers() {
     if (!this.apiKey) {
-      throw new Error('[MeshyProvider] VITE_MESHY_API_KEY não definida no .env.local');
+      throw new Error('[MeshyProvider] apiKey não fornecida — chamadas ao Meshy só devem ser feitas por um servidor/CLI que injete config.apiKey, nunca via variável VITE_* embutida no bundle do navegador');
     }
     return {
       Authorization: `Bearer ${this.apiKey}`,

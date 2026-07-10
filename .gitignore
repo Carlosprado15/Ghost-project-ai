@@ -25,3 +25,11 @@ dist-ssr
 .vercel
 .env*
 !.env.example
+
+# Saídas locais de QA/backup do pipeline de calibração GLB — não são código
+scripts/normalize-glb/qa-output/
+public/models/_pre_swap_backup/
+public/models/_pre_tripo_regen_backup/
+
+# worktrees temporarios de subagentes
+.claude/worktrees/

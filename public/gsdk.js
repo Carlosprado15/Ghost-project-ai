@@ -251,8 +251,7 @@
     document.head.appendChild(style);
   }
 
-  function injectARButton(productId) {
-    const productUrl = window.location.href;
+  function buildArUrl(productId, productUrl) {
     const cartUrl = window.location.origin + '/cart';
     const arUrl = GHOST_BASE_URL +
       '/?productId=' + productId +
@@ -262,7 +261,11 @@
       '&mode=embedded' +
       '&host=clickwear';
 
-    const embeddedUrl = isDesktop() ? arUrl + '&desktop=1' : arUrl;
+    return isDesktop() ? arUrl + '&desktop=1' : arUrl;
+  }
+
+  function injectARButton(productId) {
+    const embeddedUrl = buildArUrl(productId, window.location.href);
     console.log('[M056C][gsdk] embeddedUrl:', embeddedUrl);
 
     // Viewer 360° — visível diretamente na vitrine da loja
@@ -314,9 +317,31 @@
     }
   }
 
+  // Botão AR nos cards da vitrine (marcação em snippets/card-gallery.liquid).
+  // Fase de captura + stopPropagation para vencer o <a> que cobre o card inteiro.
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest && e.target.closest('.cw-ar-hint[data-cw-handle]');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const handle = btn.getAttribute('data-cw-handle');
+    const productId = PRODUCT_MAP[handle];
+    if (!productId) return;
+    openGhostOverlay(buildArUrl(productId, window.location.origin + '/products/' + handle));
+  }, true);
+
+  // Produtos sem modelo 3D não devem exibir um botão que não faz nada
+  function pruneUnmappedARHints() {
+    document.querySelectorAll('.cw-ar-hint[data-cw-handle]').forEach(function (btn) {
+      if (!PRODUCT_MAP[btn.getAttribute('data-cw-handle')]) btn.remove();
+    });
+  }
+
   let lastHandle = null;
 
   function init() {
+    pruneUnmappedARHints();
+
     const currentHandle = getProductHandle();
     if (!currentHandle || currentHandle === lastHandle) return;
 

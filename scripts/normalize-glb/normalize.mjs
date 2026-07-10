@@ -26,7 +26,7 @@ import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { mkdirSync, statSync, readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { computeMeshPCA, computeAlignmentQuat, quatRotate } from './orientation.mjs';
+import { computeMeshPCA, quatRotate } from './orientation.mjs';
 
 const HERE      = dirname(fileURLToPath(import.meta.url));
 const ROOT      = resolve(HERE, '../..');
@@ -52,19 +52,24 @@ const DEFAULT_OVERRIDE = {
   status: 'needs_calibration',
 };
 
-const PRODUCT_IDS = Array.from({ length: 15 }, (_, i) => `CW${String(i + 1).padStart(3, '0')}`);
+// Sem argumentos: processa os 15. Com argumentos (ex: `node normalize.mjs
+// CW011`): processa só os IDs passados — útil para iterar rápido em 1 produto.
+const argIds = process.argv.slice(2);
+const PRODUCT_IDS = argIds.length ? argIds : Array.from({ length: 15 }, (_, i) => `CW${String(i + 1).padStart(3, '0')}`);
 
 // ── Rotações (glTF usa quaternion [x,y,z,w]) ─────────────────────────────────
 // Os modelos Tripo têm orientação arbitrária — rotação fixa nunca serve para
-// os 15. A orientação é POR PRODUTO, via base PCA (orientation.mjs).
+// os 15. A orientação é 100% manual, por produto, via overrides.json
+// (calibrado na tela ?lab=calibrate-product). M070H: removido o alinhamento
+// PCA automático que rodava por baixo do pano — a tela de calibração nunca
+// levava essa etapa em conta, então o valor salvo lá era corrompido de novo
+// aqui. Overrides são agora a ÚNICA fonte de rotação, sem etapa escondida.
 const quatMul = ([ax, ay, az, aw], [bx, by, bz, bw]) => [
   aw * bx + ax * bw + ay * bz - az * by,
   aw * by - ax * bz + ay * bw + az * bx,
   aw * bz + ax * by - ay * bx + az * bw,
   aw * bw - ax * bx - ay * by - az * bz,
 ];
-// M070C/D: orientação por ALINHAMENTO COMPLETO da base PCA (por tipo), com
-// flips e ajustes manuais vindos EXCLUSIVAMENTE do JSON de overrides.
 const QUAT_Y_180 = [0, 1, 0, 0];
 const QUAT_Z_180 = [0, 0, 1, 0];
 const quatAboutAxis = (axis, deg) => {
@@ -72,9 +77,6 @@ const quatAboutAxis = (axis, deg) => {
   const s = Math.sin(half), c = Math.cos(half);
   return axis === 'x' ? [s, 0, 0, c] : axis === 'y' ? [0, s, 0, c] : [0, 0, s, c];
 };
-
-// (M070C: a antiga rotação de base por AABB foi substituída pelo alinhamento
-// ortonormal completo da base PCA — computeAlignmentQuat em orientation.mjs.)
 
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
 
@@ -94,13 +96,17 @@ for (const id of PRODUCT_IDS) {
     const scene = doc.getRoot().getDefaultScene() ?? doc.getRoot().listScenes()[0];
 
     // ── ORDEM ────────────────────────────────────────────────────────────────
-    // a) rotação primeiro: alinhamento PCA por TIPO + ajustes do overrides.json
+    // a) rotação: SÓ o ajuste manual do overrides.json (x→y→z) + flips.
+    // Removido o alinhamento PCA automático (M070H): ele rodava por baixo do
+    // pano e não era considerado pela tela de calibração, então cada ajuste
+    // salvo lá era corrompido de novo nesta etapa — a tela virava fonte da
+    // verdade errada. Overrides agora são a ÚNICA fonte de rotação.
     const ov   = { ...DEFAULT_OVERRIDE, ...(OVERRIDES[id] ?? {}) };
     const type = ov.type === 'bracelet' ? 'bracelet' : 'watch';
 
-    const pca = computeMeshPCA(doc);
-    let rot = computeAlignmentQuat(pca, type);
-    // rotações extras do override (graus, aplicadas em eixos de MUNDO: X→Y→Z)
+    const pca = computeMeshPCA(doc); // só para o diagnóstico impresso (orient/frente)
+    let rot = [0, 0, 0, 1];
+    // rotações do override (graus, aplicadas em eixos de MUNDO: X→Y→Z)
     const rd = { ...DEFAULT_OVERRIDE.rotationDeg, ...(ov.rotationDeg ?? {}) };
     if (rd.x) rot = quatMul(quatAboutAxis('x', rd.x), rot);
     if (rd.y) rot = quatMul(quatAboutAxis('y', rd.y), rot);
