@@ -352,33 +352,39 @@
     el.__cwLoaded = true;
     var v = document.createElement('video');
     v.src = spinUrl(productId);
-    v.autoplay = true; v.loop = true; v.muted = true;
+    v.loop = true; v.muted = true;
     v.setAttribute('muted', '');
+    v.setAttribute('autoplay', '');
     v.setAttribute('playsinline', '');
-    v.setAttribute('preload', 'none');
+    v.setAttribute('preload', 'auto');
     v.addEventListener('loadeddata', function () { el.classList.add('cw-spin--ready'); });
     el.appendChild(v);
-    if (v.play) v.play().catch(function () {});
+    // Alguns navegadores não iniciam o autoplay sozinhos; chamamos play() na mão.
+    var tryPlay = function () { if (v.play) v.play().catch(function () {}); };
+    tryPlay();
+    v.addEventListener('canplay', tryPlay, { once: true });
   }
 
-  var spinObserver = ('IntersectionObserver' in window) ? new IntersectionObserver(function (entries) {
-    entries.forEach(function (en) {
-      if (!en.isIntersecting) return;
-      var el = en.target;
-      var code = PRODUCT_MAP[el.getAttribute('data-cw-handle')];
-      if (code) loadSpinInto(el, code);
-      spinObserver.unobserve(el);
-    });
-  }, { rootMargin: '250px' }) : null;
+  // Checagem direta de proximidade da viewport (o IntersectionObserver não é
+  // confiável no tema Horizon). Roda a cada ciclo do tick e ao rolar a página.
+  function nearViewport(el, margin) {
+    var r = el.getBoundingClientRect();
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    return r.width > 0 && r.bottom > -margin && r.top < vh + margin;
+  }
 
   function initVitrineSpins() {
-    document.querySelectorAll('.cw-spin[data-cw-handle]:not([data-cw-seen])').forEach(function (el) {
-      el.setAttribute('data-cw-seen', '1');
+    var list = document.querySelectorAll('.cw-spin[data-cw-handle]');
+    for (var i = 0; i < list.length; i++) {
+      var el = list[i];
+      if (el.__cwLoaded) continue;
       var code = PRODUCT_MAP[el.getAttribute('data-cw-handle')];
-      if (!code) { el.remove(); return; } // produto sem giro: some e mostra a foto normal
-      if (spinObserver) spinObserver.observe(el); else loadSpinInto(el, code);
-    });
+      if (!code) { el.remove(); continue; } // produto sem giro: some e mostra a foto
+      if (nearViewport(el, 400)) loadSpinInto(el, code);
+    }
   }
+
+  window.addEventListener('scroll', initVitrineSpins, { passive: true });
 
   let lastHandle = null;
 
