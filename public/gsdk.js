@@ -29,23 +29,34 @@
     'relogio-masculino-2023-moda-masculino-relogios-de-luxo-aco-inoxidavel-quartzo-re': 'CW015'
   };
 
-  // GLB paths served from Vercel
+  // Modelos do preview 360°. Padrão = arquivo calibrado (normalized), que é o
+  // que assenta certo no pulso e, com a câmera padrão, também mostra bem a peça.
+  // Exceções CW008/CW011: no arquivo calibrado o mostrador fica virado pro lado
+  // do pulso e não aparece em nenhum ângulo do 360° — usamos o bruto nesses dois.
   const MODEL_MAP = {
-    'CW001': '/models/CW001.glb',
-    'CW002': '/models/CW002.glb',
-    'CW003': '/models/CW003.glb',
-    'CW004': '/models/CW004.glb',
-    'CW005': '/models/CW005.glb',
-    'CW006': '/models/CW006.glb',
-    'CW007': '/models/CW007.glb',
+    'CW001': '/models/normalized/CW001.glb',
+    'CW002': '/models/normalized/CW002.glb',
+    'CW003': '/models/normalized/CW003.glb',
+    'CW004': '/models/normalized/CW004.glb',
+    'CW005': '/models/normalized/CW005.glb',
+    'CW006': '/models/normalized/CW006.glb',
+    'CW007': '/models/normalized/CW007.glb',
     'CW008': '/models/CW008.glb',
-    'CW009': '/models/CW009.glb',
-    'CW010': '/models/CW010.glb',
+    'CW009': '/models/normalized/CW009.glb',
+    'CW010': '/models/normalized/CW010.glb',
     'CW011': '/models/CW011.glb',
-    'CW012': '/models/CW012.glb',
-    'CW013': '/models/CW013.glb',
-    'CW014': '/models/CW014.glb',
-    'CW015': '/models/CW015.glb',
+    'CW012': '/models/normalized/CW012.glb',
+    'CW013': '/models/normalized/CW013.glb',
+    'CW014': '/models/normalized/CW014.glb',
+    'CW015': '/models/normalized/CW015.glb',
+  };
+
+  // Ângulo inicial da câmera do 360°. Padrão para todos; CW006/CW009 precisam de
+  // um giro pra câmera pegar o mostrador do arquivo calibrado de frente.
+  const DEFAULT_ORBIT = '12deg 72deg auto';
+  const DISPLAY_ORBIT = {
+    'CW006': '300deg 72deg auto',
+    'CW009': '190deg 72deg auto',
   };
 
   function isDesktop() {
@@ -89,6 +100,7 @@
 
     const mv = document.createElement('model-viewer');
     mv.setAttribute('src', glbUrl);
+    mv.setAttribute('camera-orbit', DISPLAY_ORBIT[productId] || DEFAULT_ORBIT);
     mv.setAttribute('auto-rotate', '');
     mv.setAttribute('auto-rotate-delay', '800');
     mv.setAttribute('rotation-per-second', '9deg');
@@ -99,7 +111,6 @@
     mv.setAttribute('shadow-softness', '1');
     mv.setAttribute('exposure', '1.2');
     mv.setAttribute('environment-image', 'neutral');
-    mv.setAttribute('camera-orbit', '12deg 72deg auto');
     mv.setAttribute('field-of-view', '28deg');
     mv.setAttribute('min-camera-orbit', 'auto 25deg auto');
     mv.setAttribute('max-camera-orbit', 'auto 155deg auto');

@@ -20,7 +20,24 @@ console.log("M051 carregado");
     'relogio-masculino-2023-moda-masculino-relogios-de-luxo-aco-inoxidavel-quartzo-re': 'CW015'
   };
 
-  var BASE = 'https://ghost-project-ai.vercel.app/models/';
+  // Caminho do modelo por produto. Padrão = arquivo calibrado (normalized).
+  // CW008/CW011 ficam no bruto: no calibrado o mostrador deles vira pro lado do
+  // pulso e não aparece em nenhum ângulo do 360°.
+  var HOST = 'https://ghost-project-ai.vercel.app';
+  var MODEL_PATH = {
+    'CW008': '/models/CW008.glb',
+    'CW011': '/models/CW011.glb'
+  };
+  function modelUrlFor(code) {
+    return HOST + (MODEL_PATH[code] || ('/models/normalized/' + code + '.glb'));
+  }
+
+  // Ângulo inicial da câmera; CW006/CW009 precisam girar pra pegar o mostrador.
+  var DEFAULT_ORBIT = '12deg 72deg auto';
+  var DISPLAY_ORBIT = {
+    'CW006': '300deg 72deg auto',
+    'CW009': '190deg 72deg auto'
+  };
   var mvReady = false;
   var mvCallbacks = [];
   var modal, backdrop, mount, closeBtn, productName, loadingEl;
@@ -62,9 +79,10 @@ console.log("M051 carregado");
     }
   }
 
-  function buildViewer(glbUrl) {
+  function buildViewer(code) {
     var mv = document.createElement('model-viewer');
-    mv.setAttribute('src', glbUrl);
+    mv.setAttribute('src', modelUrlFor(code));
+    mv.setAttribute('camera-orbit', DISPLAY_ORBIT[code] || DEFAULT_ORBIT);
     mv.setAttribute('camera-controls', '');
     mv.setAttribute('auto-rotate', '');
     mv.setAttribute('auto-rotate-delay', '3000');
@@ -84,7 +102,7 @@ console.log("M051 carregado");
       if (productName) productName.textContent = title || '';
       showLoading();
       destroyViewer();
-      mount.appendChild(buildViewer(BASE + code + '.glb'));
+      mount.appendChild(buildViewer(code));
       modal.removeAttribute('aria-hidden');
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
@@ -135,7 +153,7 @@ console.log("M051 carregado");
       var handle = btn.getAttribute('data-cw-handle');
       var code = PRODUCT_MAP[handle];
       var title = getProductTitle(btn);
-      console.log('Produto clicado:', title, '\nHandle:', handle, '\nCW:', code, '\nGLB:', code ? (BASE + code + '.glb') : 'N/A');
+      console.log('Produto clicado:', title, '\nHandle:', handle, '\nCW:', code, '\nGLB:', code ? modelUrlFor(code) : 'N/A');
       if (code) openModal(code, title);
     }, true);
   }
