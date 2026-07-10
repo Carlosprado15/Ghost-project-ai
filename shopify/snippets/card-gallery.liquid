@@ -201,9 +201,21 @@
   {%- endif -%}
   {{ children }}
   {%- unless product == blank -%}
-    {%- comment %} Vitrine viva: o giro (vídeo) é injetado aqui por gsdk.js, por
-       cima da foto. Produtos sem giro têm este bloco removido e mostram a foto. {%- endcomment -%}
-    <div class="cw-spin" data-cw-handle="{{ product.handle }}" aria-hidden="true"></div>
+    {%- comment %} Vitrine viva: as fotos reais do produto passam sozinhas (crossfade
+       tocado por gsdk.js). Usa só as imagens que o produto já tem. Se tiver 2+ fotos,
+       fica por cima da foto base; com 1 foto só, não anima. {%- endcomment -%}
+    {%- if product.images.size > 1 -%}
+      <div class="cw-live" aria-hidden="true">
+        {%- for image in product.images limit: 4 -%}
+          <img
+            class="cw-live__img{% if forloop.first %} on{% endif %}"
+            src="{{ image | image_url: width: 600 }}"
+            loading="lazy"
+            alt=""
+          >
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
     <button
       type="button"
       class="cw-ar-hint"
@@ -217,6 +229,7 @@
         <path d="M2 17l10 5 10-5"/>
         <path d="M2 12l10 5 10-5"/>
       </svg>
+      <span>Ver em AR</span>
     </button>
   {%- endunless -%}
 </div>

@@ -48,6 +48,13 @@
 
   <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}">
 {% render 'skip-to-content-link', href: '#MainContent', text: 'accessibility.skip_to_text' %}
+    {%- comment %} Ghost Project AI — faixa de destaque do provador AR {%- endcomment -%}
+    <div class="cw-annc" role="note">
+      <svg class="cw-annc__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+      </svg>
+      <span><strong>Experimente no seu pulso</strong> · prove qualquer peça pela câmera do celular · procure o <strong>Ver em AR</strong></span>
+    </div>
     <div id="header-group">
       {% sections 'header-group' %}
     </div>
@@ -152,7 +159,7 @@
     {%- comment %} Ghost Project AI — 360° Modal (M048) {%- endcomment -%}
     {%- render 'cw-360-modal' -%}
 
-    <script src="https://ghost-project-ai.vercel.app/gsdk.js?v=060" defer></script>
+    <script src="https://ghost-project-ai.vercel.app/gsdk.js?v=061" defer></script>
 
   </body>
 </html>

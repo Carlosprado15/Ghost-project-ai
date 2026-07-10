@@ -88,34 +88,6 @@
     document.head.appendChild(s);
   }
 
-  // URL do vídeo de giro (pré-renderizado) de um produto
-  function spinUrl(productId) {
-    return GHOST_BASE_URL + '/spins/' + productId + '.mp4';
-  }
-
-  // Bloco de giro automático (vídeo) para a página do produto.
-  // Substitui o antigo girador manual (model-viewer) — o produto gira sozinho.
-  function create360Viewer(productId) {
-    if (!MODEL_MAP[productId]) return null;
-
-    const wrap = document.createElement('div');
-    wrap.className = 'ghost-360-wrap';
-
-    const vid = document.createElement('video');
-    vid.src = spinUrl(productId);
-    vid.autoplay = true;
-    vid.loop = true;
-    vid.muted = true;
-    vid.setAttribute('muted', '');
-    vid.setAttribute('playsinline', '');
-    vid.setAttribute('preload', 'metadata');
-    vid.style.cssText = 'width:100%;height:100%;object-fit:contain;background:#fff;display:block;';
-    vid.play && vid.play().catch(function () {});
-
-    wrap.appendChild(vid);
-    return wrap;
-  }
-
   function injectOverlayStyles() {
     if (document.getElementById('ghost-overlay-styles')) return;
     const style = document.createElement('style');
@@ -221,30 +193,36 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 10px;
+        gap: 11px;
         width: 100%;
-        padding: 14px 20px;
-        margin: 8px 0;
-        background: #0a0a0a;
+        padding: 16px 20px;
+        margin: 26px 0 0 0;
+        background: linear-gradient(100deg,#0a0a0a,#1c1c1c);
         color: #fff;
-        border: none;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        letter-spacing: 0.06em;
+        border: 1px solid rgba(212,175,55,0.6);
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
         text-decoration: none;
         cursor: pointer;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.14);
-        transition: background 0.25s ease, box-shadow 0.25s ease;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        animation: ghostCtaGlow 2.8s ease-in-out infinite;
       }
-      .ghost-ar-btn:hover {
-        background: #1a1a1a;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+      .ghost-ar-btn:hover { background: #141414; }
+      .ghost-ar-btn svg { color: #ecc96b; flex-shrink: 0; }
+      .ghost-ar-btn__ar { color: #ecc96b; }
+      @keyframes ghostCtaGlow {
+        0%,100% { box-shadow: 0 8px 22px rgba(0,0,0,0.22), 0 0 0 0 rgba(212,175,55,0.5); }
+        50%     { box-shadow: 0 8px 22px rgba(0,0,0,0.22), 0 0 0 10px rgba(212,175,55,0); }
       }
-      .ghost-ar-btn svg {
-        opacity: 0.85;
-        flex-shrink: 0;
+      @media (prefers-reduced-motion: reduce) { .ghost-ar-btn { animation: none; } }
+      .ghost-ar-sub {
+        text-align: center;
+        font-size: 12px;
+        color: #8a8a8a;
+        margin: 9px 0 0 0;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       }
       .ghost-powered {
         text-align: center;
@@ -275,26 +253,26 @@
     const embeddedUrl = buildArUrl(productId, window.location.href);
     console.log('[M056C][gsdk] embeddedUrl:', embeddedUrl);
 
-    // Viewer 360° — visível diretamente na vitrine da loja
-    const viewer360 = create360Viewer(productId);
-
-    const label360 = document.createElement('p');
-    label360.className = 'ghost-360-label';
-    label360.textContent = 'Preview 3D · 360°';
+    // Prévia 3D removida da página do produto: o modelo ainda não tem qualidade
+    // de foto. A página mostra as fotos reais (galeria nativa) + botão de AR.
 
     // Botão AR — abre overlay embedded (não navega para fora da loja)
     const btn = document.createElement('button');
     btn.className = 'ghost-ar-btn';
     btn.type = 'button';
     btn.innerHTML = `
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
         <path d="M12 2L2 7l10 5 10-5-10-5z"/>
         <path d="M2 17l10 5 10-5"/>
         <path d="M2 12l10 5 10-5"/>
       </svg>
-      Ver em Realidade Aumentada
+      Ver no meu pulso — <span class="ghost-ar-btn__ar">AR</span>
     `;
     btn.addEventListener('click', function () { openGhostOverlay(embeddedUrl); });
+
+    const sub = document.createElement('p');
+    sub.className = 'ghost-ar-sub';
+    sub.textContent = 'Use a câmera do celular · não precisa instalar nada';
 
     const powered = document.createElement('p');
     powered.className = 'ghost-powered';
@@ -315,11 +293,8 @@
     }
 
     if (form) {
-      if (viewer360) {
-        form.parentNode.insertBefore(viewer360, form);
-        form.parentNode.insertBefore(label360, form);
-      }
       form.parentNode.insertBefore(btn, form);
+      form.parentNode.insertBefore(sub, form);
       form.parentNode.insertBefore(powered, form);
     }
   }
@@ -344,47 +319,25 @@
     });
   }
 
-  // ── Vitrine viva: giro automático (vídeo) nos cards ──
-  // Marcação `.cw-spin[data-cw-handle]` vem de snippets/card-gallery.liquid.
-  // O vídeo só é baixado quando o card está perto de aparecer na tela.
-  function loadSpinInto(el, productId) {
-    if (el.__cwLoaded) return;
-    el.__cwLoaded = true;
-    var v = document.createElement('video');
-    v.src = spinUrl(productId);
-    v.loop = true; v.muted = true;
-    v.setAttribute('muted', '');
-    v.setAttribute('autoplay', '');
-    v.setAttribute('playsinline', '');
-    v.setAttribute('preload', 'auto');
-    v.addEventListener('loadeddata', function () { el.classList.add('cw-spin--ready'); });
-    el.appendChild(v);
-    // Alguns navegadores não iniciam o autoplay sozinhos; chamamos play() na mão.
-    var tryPlay = function () { if (v.play) v.play().catch(function () {}); };
-    tryPlay();
-    v.addEventListener('canplay', tryPlay, { once: true });
-  }
-
-  // Checagem direta de proximidade da viewport (o IntersectionObserver não é
-  // confiável no tema Horizon). Roda a cada ciclo do tick e ao rolar a página.
-  function nearViewport(el, margin) {
-    var r = el.getBoundingClientRect();
-    var vh = window.innerHeight || document.documentElement.clientHeight;
-    return r.width > 0 && r.bottom > -margin && r.top < vh + margin;
-  }
-
-  function initVitrineSpins() {
-    var list = document.querySelectorAll('.cw-spin[data-cw-handle]');
-    for (var i = 0; i < list.length; i++) {
-      var el = list[i];
-      if (el.__cwLoaded) continue;
-      var code = PRODUCT_MAP[el.getAttribute('data-cw-handle')];
-      if (!code) { el.remove(); continue; } // produto sem giro: some e mostra a foto
-      if (nearViewport(el, 400)) loadSpinInto(el, code);
+  // ── Vitrine viva: as fotos reais do produto passam sozinhas no card ──
+  // Marcação `.cw-live` (com várias <img>) vem de snippets/card-gallery.liquid.
+  // Usa só as fotos que o produto já tem na loja — nada de 3D. A cada intervalo
+  // avançamos a foto "ativa" de cada card com um crossfade suave (CSS).
+  var LIVE_INTERVAL = 2800; // ms por foto
+  function driveLiveVitrine() {
+    var groups = document.querySelectorAll('.cw-live');
+    for (var i = 0; i < groups.length; i++) {
+      var g = groups[i];
+      var imgs = g.querySelectorAll('.cw-live__img');
+      if (imgs.length < 2) continue;
+      var cur = g.__cwIdx || 0;
+      var next = (cur + 1) % imgs.length;
+      imgs[cur].classList.remove('on');
+      imgs[next].classList.add('on');
+      g.__cwIdx = next;
     }
   }
-
-  window.addEventListener('scroll', initVitrineSpins, { passive: true });
+  setInterval(driveLiveVitrine, LIVE_INTERVAL);
 
   let lastHandle = null;
 
@@ -405,9 +358,9 @@
     injectARButton(productId);
   }
 
-  // Roda em toda página: cuida da vitrine (giro nos cards) e da página de produto.
+  // Roda em toda página: cuida da página de produto (botão AR).
+  // A vitrine viva (fotos passando) roda no próprio setInterval acima.
   function tick() {
-    initVitrineSpins();
     init();
   }
 

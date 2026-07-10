@@ -1,5 +1,36 @@
 /* === Click & Wear — Premium AR Theme === */
 
+/* ── Faixa de destaque do AR (topo do site) ── */
+.cw-annc {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  background: linear-gradient(90deg, #000, #141414 55%, #000);
+  color: #f4f0e6;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13.5px;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  text-align: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(212,175,55,0.32);
+}
+
+.cw-annc strong { font-weight: 700; color: #ecc96b; }
+
+.cw-annc__ico {
+  width: 16px;
+  height: 16px;
+  color: #ecc96b;
+  flex-shrink: 0;
+}
+
+@media screen and (max-width: 749px) {
+  .cw-annc { font-size: 12px; padding: 8px 12px; }
+}
+
 /* ── Botão Voltar (páginas de produto) ── */
 .cw-back-btn {
   display: inline-flex;
