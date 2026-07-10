@@ -125,6 +125,19 @@
       data-product-transition="{{ settings.transition_to_main_product }}"
       data-template="{{ template }}"
     >
+      {%- comment %} Ghost Project AI — botão Voltar nas páginas de produto {%- endcomment -%}
+      {%- if template.name == 'product' -%}
+        <a
+          href="{{ collections.all.url | default: '/collections/all' }}"
+          class="cw-back-btn"
+          onclick="if(history.length>1){history.back();return false;}"
+        >
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10 3L5 8l5 5"/>
+          </svg>
+          Voltar
+        </a>
+      {%- endif -%}
       {{ content_for_layout }}
     </main>
 

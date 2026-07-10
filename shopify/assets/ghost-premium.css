@@ -1,5 +1,35 @@
 /* === Click & Wear — Premium AR Theme === */
 
+/* ── Botão Voltar (páginas de produto) ── */
+.cw-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 0 0 clamp(16px, 5vw, 50px);
+  padding: 8px 16px 8px 12px;
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.04);
+  border: 1px solid rgba(10, 10, 10, 0.12);
+  color: rgba(10, 10, 10, 0.78);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+.cw-back-btn:hover {
+  background: rgba(10, 10, 10, 0.09);
+  color: #0a0a0a;
+  transform: translateX(-2px);
+}
+
+.cw-back-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
 /* ── AR Badge on Product Cards ── */
 product-card { position: relative; }
 
@@ -366,8 +396,16 @@ product-card { position: relative; }
   min-height: 260px;
 }
 
-/* model-viewer */
-#cw-360-viewer {
+/* Mount do model-viewer (o <model-viewer> é criado por JS dentro dele).
+   Preenche o wrap por inteiro (inset:0) pra garantir altura mesmo com o
+   encadeamento de height:100%. */
+#cw-360-viewer-mount {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+#cw-360-viewer-mount model-viewer {
   display: block;
   width: 100%;
   height: 100%;
@@ -444,6 +482,6 @@ product-card { position: relative; }
     max-height: 90dvh;
   }
   #cw-360-viewer-wrap { min-height: 0; }
-  #cw-360-viewer { min-height: 0; height: 100%; }
+  #cw-360-viewer-mount model-viewer { min-height: 0; height: 100%; }
   #cw-360-product-name { font-size: 14px; }
 }
