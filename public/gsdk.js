@@ -29,36 +29,6 @@
     'relogio-masculino-2023-moda-masculino-relogios-de-luxo-aco-inoxidavel-quartzo-re': 'CW015'
   };
 
-  // Modelos do preview 360°. Padrão = arquivo calibrado (normalized), que é o
-  // que assenta certo no pulso e, com a câmera padrão, também mostra bem a peça.
-  // Exceções CW008/CW011: no arquivo calibrado o mostrador fica virado pro lado
-  // do pulso e não aparece em nenhum ângulo do 360° — usamos o bruto nesses dois.
-  const MODEL_MAP = {
-    'CW001': '/models/normalized/CW001.glb',
-    'CW002': '/models/normalized/CW002.glb',
-    'CW003': '/models/normalized/CW003.glb',
-    'CW004': '/models/normalized/CW004.glb',
-    'CW005': '/models/normalized/CW005.glb',
-    'CW006': '/models/normalized/CW006.glb',
-    'CW007': '/models/normalized/CW007.glb',
-    'CW008': '/models/CW008.glb',
-    'CW009': '/models/normalized/CW009.glb',
-    'CW010': '/models/normalized/CW010.glb',
-    'CW011': '/models/CW011.glb',
-    'CW012': '/models/normalized/CW012.glb',
-    'CW013': '/models/normalized/CW013.glb',
-    'CW014': '/models/normalized/CW014.glb',
-    'CW015': '/models/normalized/CW015.glb',
-  };
-
-  // Ângulo inicial da câmera do 360°. Padrão para todos; CW006/CW009 precisam de
-  // um giro pra câmera pegar o mostrador do arquivo calibrado de frente.
-  const DEFAULT_ORBIT = '12deg 72deg auto';
-  const DISPLAY_ORBIT = {
-    'CW006': '300deg 72deg auto',
-    'CW009': '190deg 72deg auto',
-  };
-
   function isDesktop() {
     return !/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
@@ -167,28 +137,6 @@
     const style = document.createElement('style');
     style.setAttribute('data-ghost-styles', '1');
     style.textContent = `
-      .ghost-360-wrap {
-        width: 100%;
-        height: 300px;
-        background: #f8f8f8;
-        border-radius: 12px;
-        overflow: hidden;
-        margin: 16px 0 4px 0;
-        cursor: grab;
-        display: block;
-      }
-      .ghost-360-wrap:active {
-        cursor: grabbing;
-      }
-      .ghost-360-label {
-        text-align: center;
-        font-size: 10px;
-        letter-spacing: 0.18em;
-        color: rgba(0,0,0,0.30);
-        text-transform: uppercase;
-        margin: 0 0 10px 0;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      }
       .ghost-ar-btn {
         display: flex;
         align-items: center;
@@ -352,7 +300,7 @@
 
     lastHandle = currentHandle;
 
-    document.querySelectorAll('.ghost-360-wrap, .ghost-360-label, .ghost-ar-btn, .ghost-powered, .ghost-badge, .ghost-scanner-line, .ghost-ar-container, .ghost-ar-button').forEach(el => el.remove());
+    document.querySelectorAll('.ghost-ar-btn, .ghost-ar-sub, .ghost-powered, .ghost-badge, .ghost-scanner-line, .ghost-ar-container, .ghost-ar-button').forEach(el => el.remove());
 
     injectStyles();
     injectARButton(productId);
