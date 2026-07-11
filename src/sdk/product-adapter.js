@@ -1,7 +1,7 @@
 import productsData from '../data/products.json';
 
 // Incrementar esta versão força browsers e CDN a baixar novamente os GLBs
-const MODEL_CACHE_VERSION = 'v030';
+const MODEL_CACHE_VERSION = 'v031';
 
 let _activeProduct = null;
 const _generatedModels = {};
