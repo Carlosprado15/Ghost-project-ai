@@ -48,7 +48,7 @@ export default function UrlDiagnosticsPanel() {
   const [open, setOpen] = useState(true);
 
   const isDebug = new URLSearchParams(window.location.search).get('debug') === '1';
-  if (!isDebug && !import.meta.env.DEV) return null;
+  if (!isDebug) return null;
 
   const d = analyzeUrl();
   const ok = !!d.productId;

@@ -1,21 +1,21 @@
 # VALIDATION_REPORT — GLBs Normalizados
-Gerado por `node scripts/normalize-glb/validate.mjs` em 2026-07-10
+Gerado por `node scripts/normalize-glb/validate.mjs` em 2026-07-11
 
 Critérios por tipo — **watch**: Y maior ou 2ª maior (em pé), alvo 0.08 · **bracelet**: Y é a MENOR dimensão (loop ⊥ Y), alvo 0.07 · **Centralizado**: centro do bbox a < 0.01 da origem · escala ±10%
 
 | Produto | Tipo | Dim X | Dim Y | Dim Z | Orientação? | Centralizado? | Status |
 |---------|------|-------|-------|-------|-------------|---------------|--------|
-| CW001 | watch | 0.0429 | 0.0776 | 0.0800 | Sim | Sim | ✅ OK |
-| CW002 | bracelet | 0.0700 | 0.0640 | 0.0510 | Sim | Sim | ✅ OK |
-| CW003 | bracelet | 0.0381 | 0.0630 | 0.0700 | Sim | Sim | ✅ OK |
-| CW004 | bracelet | 0.0694 | 0.0700 | 0.0451 | Sim | Sim | ✅ OK |
-| CW005 | bracelet | 0.0700 | 0.0491 | 0.0626 | Sim | Sim | ✅ OK |
-| CW006 | watch | 0.0546 | 0.0800 | 0.0767 | Sim | Sim | ✅ OK |
-| CW007 | watch | 0.0800 | 0.0792 | 0.0521 | Sim | Sim | ✅ OK |
-| CW008 | watch | 0.0559 | 0.0741 | 0.0800 | Sim | Sim | ✅ OK |
-| CW009 | bracelet | 0.0700 | 0.0448 | 0.0419 | Sim | Sim | ✅ OK |
-| CW010 | watch | 0.0477 | 0.0800 | 0.0502 | Sim | Sim | ✅ OK |
-| CW011 | bracelet | 0.0700 | 0.0691 | 0.0459 | Sim | Sim | ✅ OK |
+| CW001 | watch | 0.0737 | 0.0800 | 0.0391 | Sim | Sim | ✅ OK |
+| CW002 | bracelet | 0.0514 | 0.0075 | 0.0700 | Sim | Sim | ✅ OK |
+| CW003 | bracelet | 0.0603 | 0.0084 | 0.0700 | Sim | Sim | ✅ OK |
+| CW004 | bracelet | 0.0674 | 0.0134 | 0.0700 | Sim | Sim | ✅ OK |
+| CW005 | bracelet | 0.0634 | 0.0182 | 0.0700 | Sim | Sim | ✅ OK |
+| CW006 | watch | 0.0800 | 0.0747 | 0.0508 | Sim | Sim | ✅ OK |
+| CW007 | watch | 0.0760 | 0.0800 | 0.0307 | Sim | Sim | ✅ OK |
+| CW008 | watch | 0.0429 | 0.0800 | 0.0214 | Sim | Sim | ✅ OK |
+| CW009 | watch | 0.0788 | 0.0800 | 0.0403 | Sim | Sim | ✅ OK |
+| CW010 | watch | 0.0780 | 0.0800 | 0.0481 | Sim | Sim | ✅ OK |
+| CW011 | watch | 0.0366 | 0.0800 | 0.0259 | Sim | Sim | ✅ OK |
 | CW012 | watch | 0.0790 | 0.0800 | 0.0387 | Sim | Sim | ✅ OK |
 | CW013 | watch | 0.0800 | 0.0790 | 0.0342 | Sim | Sim | ✅ OK |
 | CW014 | watch | 0.0378 | 0.0789 | 0.0800 | Sim | Sim | ✅ OK |
