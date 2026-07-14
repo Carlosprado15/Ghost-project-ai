@@ -12,14 +12,19 @@
  * pulso, com manga/fundo). Mandar isso direto pra Tripo3D faz ela reconstruir
  * a CENA INTEIRA em 3D (pulso e manga esculpidos junto com o relógio) — no
  * app real isso vira um "braço fantasma" grudado no braço de verdade do
- * cliente. Por isso, antes de gerar, a foto passa por uma limpeza automática
- * (scripts/normalize-glb/clean_bg.py, modelo u2net via rembg) que isola só o
- * produto. Isso é permanente: lojas parceiras futuras não vão mandar foto
- * pré-recortada, então essa limpeza precisa acontecer sempre, sem depender de
- * escolha manual de foto. Requer Python 3 com `pip install rembg onnxruntime`.
- * Limitação conhecida: marca d'água that fica ENCIMA do produto (não no
- * fundo) não é removida por esse método — só resolve fundo/contexto (pulso,
- * manga, mesa, etc).
+ * cliente.
+ *
+ * 2026-07-14: a limpeza local (rembg) só resolvia fundo/contexto, não
+ * orientação — produto torto continuava torto. Agora toda foto passa por
+ * scripts/normalize-glb/prepare-for-3d.mjs antes de gerar: limpa fundo,
+ * endireita o produto de frente pra câmera (Photoroom, IA) e padroniza pra
+ * 1024x1024 fundo branco centralizado — sempre, sem exceção manual. Isso é
+ * permanente: lojas parceiras futuras não vão mandar foto pré-recortada,
+ * então essa preparação precisa acontecer sempre. Requer PHOTOROOM_API_KEY
+ * em .env.local (custo pequeno por imagem, além do crédito Tripo).
+ * Limitação conhecida: marca d'água que fica ENCIMA do produto (não no
+ * fundo) não é removida por esse método — vale checar visualmente antes de
+ * aprovar (scripts/normalize-glb/prepared/<id>.png).
  *
  * Uso:
  *   node scripts/normalize-glb/generate-from-tripo.mjs CW006 CW007 ...
@@ -34,7 +39,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawnSync } from 'node:child_process';
+import { prepareForGeneration } from './prepare-for-3d.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '../..');
@@ -42,7 +47,7 @@ const MODELS_DIR = resolve(ROOT, 'public/models');
 const BACKUP_DIR = resolve(MODELS_DIR, '_pre_tripo_regen_backup');
 const CLEANED_DIR = resolve(HERE, 'qa-output', '_cleaned_input');
 const PRODUCTS_PATH = resolve(ROOT, 'src/data/products.json');
-const CLEAN_SCRIPT = resolve(HERE, 'clean_bg.py');
+const OVERRIDES_PATH = resolve(HERE, 'product-calibration-overrides.json');
 
 const TRIPO_BASE = 'https://openapi.tripo3d.ai/v3';
 const MODEL_VERSION = 'v3.1-20260211';
@@ -79,11 +84,12 @@ async function downloadImage(imageUrl, outPath) {
   writeFileSync(outPath, buf);
 }
 
-// Isola o produto (remove pulso/manga/fundo) via clean_bg.py (rembg, modelo u2net).
-function cleanImage(inPath, outPath) {
-  const result = spawnSync('python', [CLEAN_SCRIPT, inPath, outPath], { encoding: 'utf8' });
-  if (result.status !== 0) {
-    throw new Error(`Limpeza de fundo falhou: ${result.stderr || result.error?.message}`);
+function loadProductType(id) {
+  try {
+    const overrides = JSON.parse(readFileSync(OVERRIDES_PATH, 'utf8'));
+    return overrides[id]?.type ?? 'watch';
+  } catch {
+    return 'watch';
   }
 }
 
@@ -150,27 +156,23 @@ async function generateOne(apiKey, id, imageUrl, { raw = false } = {}) {
   }
 
   let fileToken;
-  const localMappedPath = resolve(HERE, 'fotos-limpas', `${id}.png`);
-  if (!raw && existsSync(localMappedPath)) {
-    // já é uma foto de fornecedor pré-limpa (2026-07-11) — só passa mais uma
-    // vez pelo clean_bg.py pra garantir (idempotente) e sobe direto.
-    mkdirSync(CLEANED_DIR, { recursive: true });
-    const cleanPath = resolve(CLEANED_DIR, `${id}_clean.png`);
-    console.log(`  usando foto de fornecedor já mapeada: fotos-limpas/${id}.png`);
-    cleanImage(localMappedPath, cleanPath);
-    fileToken = await uploadFile(apiKey, cleanPath);
-    console.log(`  conferir em: scripts/normalize-glb/qa-output/_cleaned_input/${id}_clean.png`);
-  } else if (!raw) {
-    mkdirSync(CLEANED_DIR, { recursive: true });
-    const rawPath = resolve(CLEANED_DIR, `${id}_raw.jpg`);
-    const cleanPath = resolve(CLEANED_DIR, `${id}_clean.png`);
-    console.log('  baixando foto original...');
-    await downloadImage(imageUrl, rawPath);
-    console.log('  limpando (removendo pulso/manga/fundo)...');
-    cleanImage(rawPath, cleanPath);
-    console.log('  enviando foto limpa pra Tripo3D...');
-    fileToken = await uploadFile(apiKey, cleanPath);
-    console.log(`  conferir em: scripts/normalize-glb/qa-output/_cleaned_input/${id}_clean.png`);
+  if (!raw) {
+    const type = loadProductType(id);
+    const localMappedPath = resolve(HERE, 'fotos-limpas', `${id}.png`);
+    let srcForPrep = localMappedPath;
+    if (existsSync(localMappedPath)) {
+      console.log(`  usando foto de fornecedor já mapeada: fotos-limpas/${id}.png`);
+    } else {
+      mkdirSync(CLEANED_DIR, { recursive: true });
+      srcForPrep = resolve(CLEANED_DIR, `${id}_raw.jpg`);
+      console.log('  baixando foto original...');
+      await downloadImage(imageUrl, srcForPrep);
+    }
+    console.log(`  preparando (limpar fundo, endireitar, centralizar, padronizar — tipo: ${type})...`);
+    const preparedPath = await prepareForGeneration(srcForPrep, id, type);
+    console.log(`  enviando foto preparada pra Tripo3D...`);
+    fileToken = await uploadFile(apiKey, preparedPath);
+    console.log(`  conferir em: scripts/normalize-glb/prepared/${id}.png`);
   }
 
   const taskId = await submitTask(apiKey, { imageUrl, fileToken });

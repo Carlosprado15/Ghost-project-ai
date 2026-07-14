@@ -23,7 +23,10 @@ node scripts/normalize-glb/normalize.mjs [CW001 CW002 ...]   # no args = all 15;
 node scripts/normalize-glb/validate.mjs                      # geometric sanity check (orientation/centering) of the normalized output
 node scripts/normalize-glb/qa-compare.mjs [CW006 ...] | --all # downloads each product's real photo from products.json and screenshots the current 3D render side-by-side (requires lab:m069b running on :5173)
 node scripts/normalize-glb/generate-from-tripo.mjs <ids...> | --all-pending  # (re)generates a product's GLB from its real photo via the Tripo3D API — requires TRIPO_API_KEY in .env.local
+node scripts/normalize-glb/prepare-for-3d.mjs <entrada> <id> [watch|bracelet]  # standalone entry point for the mandatory pre-3D image prep (see below); generate-from-tripo.mjs already calls this automatically
 ```
+
+**Mandatory pre-3D image prep (decided 2026-07-14).** Before any photo is sent to Tripo/Meshy for GLB generation, it must go through `scripts/normalize-glb/prepare-for-3d.mjs`, which chains two steps: `clean-photoroom.mjs` (removes background/hands/props and repositions the product to face the camera straight-on, via the Photoroom API — costs a small amount per image) then `standardize-images.mjs`'s `standardizeOne()` (pads to a centered 1024x1024 white canvas, no distortion, via `sharp`). `generate-from-tripo.mjs` always calls this now — it is not an optional/manual step. `standardize-images.mjs` can still be run standalone as a CLI batch tool (`node scripts/normalize-glb/standardize-images.mjs <pasta-entrada> [pasta-saida]`) when you just need to pad a folder of images without the Photoroom step. **Not yet wired into `src/pipeline/` (the live customer-facing "Ghost Pipeline Intelligence" upload flow)** — that runs client-side with no backend to safely call the Photoroom API key from, so this prep currently only covers the catalog/batch generation path, not customer-uploaded photos.
 
 ## Architecture
 
