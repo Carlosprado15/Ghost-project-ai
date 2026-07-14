@@ -253,5 +253,413 @@
     "flip180Y": false,
     "flip180Z": false,
     "status": "calibrated"
+  },
+  "CW016": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW017": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW018": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW019": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW020": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW021": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW022": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW023": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW024": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW025": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW026": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW027": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW028": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW029": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW030": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW031": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW032": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW033": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW034": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW035": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW036": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW037": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW038": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
+  },
+  "CW039": {
+    "type": "watch",
+    "rotationDeg": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "scale": 1,
+    "offset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "flip180Y": false,
+    "flip180Z": false,
+    "status": "needs_new_model"
   }
 }

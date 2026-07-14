@@ -26,7 +26,31 @@
     'curren-relogios-masculinos-marca-superior-de-luxo-moda-amp-casual-negocios-rel': 'CW012',
     'reloj-hombre-2023-relogio-masculino-minimalista-ultra-fino-relogios-moda-masculi': 'CW013',
     'curren-relogio-de-pulso-masculino-cronografo-a-prova-d-39-agua-militar-do-exe': 'CW014',
-    'relogio-masculino-2023-moda-masculino-relogios-de-luxo-aco-inoxidavel-quartzo-re': 'CW015'
+    'relogio-masculino-2023-moda-masculino-relogios-de-luxo-aco-inoxidavel-quartzo-re': 'CW015',
+    'hw20-smart-watch-ecg-ppg-business-stainless-steel-strap-1-46-large-screen-bluetooth-call-smart-watch': 'CW016',
+    'smart-watch-watch-adult-heart-rate-monitoring-sports-entertainment-black-technology-ai-intelligent-voice-cross-border-hot-model': 'CW017',
+    'new-pacha-dog-cartoon-electronic-watch-student-cute-children-cartoon-printed-led-sports-watch-wholesale': 'CW018',
+    'cross-border-v69-smart-watch-1-85-inch-bluetooth-call-large-screen-heart-rate-blood-oxygen-multi-sports-waterproof-smart-watch': 'CW019',
+    'foreign-trade-cross-border-new-womens-watch-student-wristwatch-wood-grain-dial-retro-striped-leather-strap-in-stock-wholesale': 'CW020',
+    'brand-megir-mens-watch-multifunctional-chronograph-sports-silicone-mens-quartz-sports-watch-2144': 'CW021',
+    'honmin-brand-watch-outdoor-casual-mens-watch-multifunctional-quartz-watch-luminous-waterproof-large-dial-watch-for-men': 'CW022',
+    'cross-border-explosive-mens-watch-quartz-mens-watch-calendar-steel-band-watch-mens-fashion-sports-luminous-pointer-wrist-watch': 'CW023',
+    'wormhole-concept-square-high-end-watch-mens-quartz-watch-sports-mens-high-end-business-mens-tritium-gas-mens-watch': 'CW024',
+    'cross-border-popular-engine-style-sports-mens-watch-brand-wristwatch-quartz-watch-wholesale-foreign-trade-fashion-personalized-mens-watch': 'CW025',
+    'cross-border-popular-blue-angel-multifunctional-chronograph-watch-with-steel-strap-mens-fashion-dial-factory-ready-stock-one-piece-dropshipping': 'CW026',
+    'curren-curren-8225-calendar-mens-casual-large-dial-waterproof-creative-belt-watch': 'CW027',
+    'cross-border-p11plus-smart-bracelet-with-ecg-body-temperature-heart-rate-blood-oxygen-sleep-monitoring-exercise-tracking-and-step-counting-sports-watch': 'CW028',
+    'louie-juelen-retro-personalized-quartz-watch-for-teenagers-and-students-mens-watch': 'CW029',
+    'lige-bangwei-multifunctional-smart-watch-bluetooth-call-step-counting-blood-pressure-and-heart-rate-detection-waterproof-watch': 'CW030',
+    '2021-amazon-sports-mens-watch-wood-suit-quartz-watch-calendar-multifunctional-fashion-watch': 'CW031',
+    'new-cross-border-c60-smart-bracelet-sports-watch-with-heart-rate-sleep-monitoring-alarm-blood-oxygen-body-temperature-waterproof-watch-face': 'CW032',
+    'direct-sales-from-the-source-manufacturer-fashionable-exquisite-high-looking-luminous-waterproof-quartz-watch-couples-watch-silicone-strap-watch': 'CW033',
+    'hot-selling-megir-mens-watch-tiktok-amazon-popular-sports-versatile-mens-quartz-watch-1010': 'CW034',
+    'millennial-vintage-original-design-watch-for-men-and-women-american-style-trendy-niche-cross-border-wristwatch-for-middle-and-high-school-students': 'CW035',
+    '2026-mens-watch-light-luxury-high-end-simple-and-fashionable-quartz-watch-black-large-dial-set-pointer-type': 'CW036',
+    'official-authentic-full-automatic-movement-watch-mens-new-non-mechanical-steel-belt-business-waterproof-luminous-calendar': 'CW037',
+    'bubble-brand-trendy-high-end-light-luxury-all-match-automatic-quartz-luminous-waterproof-roman-hollow-mens-watch': 'CW038',
+    'new-k52-bluetooth-call-smart-watch-ultra-long-standby-heart-rate-blood-oxygen-outdoor-three-proof-sports-smart-watch': 'CW039'
   };
 
   function isDesktop() {

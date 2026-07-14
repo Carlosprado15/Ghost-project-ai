@@ -1567,22 +1567,12 @@ const handleBuyNow = () => {
             </div>
           </div>
 
-          {/* HUD — botão Voltar visível apenas fora do store mode */}
-          {(!ProductAdapter.isStoreMode() || cameFromTestModels) && (
-            <div className="hud-top">
-              <button className="back-btn" onClick={() => {
-                if (cameFromTestModels) {
-                  closeScanner();
-                  setShowTestModels(true);
-                  setCameFromTestModels(false);
-                } else {
-                  closeScanner();
-                }
-              }}>
-                ← Voltar{cameFromTestModels ? ' ao Catálogo' : ''}
-              </button>
-            </div>
-          )}
+          {/* HUD — botão Voltar sempre visível, para o cliente nunca ficar sem saída */}
+          <div className="hud-top">
+            <button className="back-btn" onClick={handleContinueShopping}>
+              ← Voltar{cameFromTestModels ? ' ao Catálogo' : ''}
+            </button>
+          </div>
 
           {/* CTA */}
           <div className="action-container">
