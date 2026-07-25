@@ -34,19 +34,21 @@ function loadScript(src, id) {
   });
 }
 
+// M074 (2026-07-25): hospedado localmente (public/mediapipe/) em vez do CDN
+// externo — eliminava ~30s de espera na primeira visita do cliente.
 async function loadMediaPipe() {
   await loadScript(
-    'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js',
+    '/mediapipe/camera_utils/camera_utils.js',
     'mp-cu'
   );
 
   await loadScript(
-    'https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js',
+    '/mediapipe/drawing_utils/drawing_utils.js',
     'mp-du'
   );
 
   await loadScript(
-    'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js',
+    '/mediapipe/hands/hands.js',
     'mp-h'
   );
 }
@@ -425,8 +427,7 @@ const handleBuyNow = () => {
         if (!activeRef.current) return;
 
         const hands = new window.Hands({
-          locateFile: (f) =>
-            `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`,
+          locateFile: (f) => `/mediapipe/hands/${f}`,
         });
 
         hands.setOptions({
