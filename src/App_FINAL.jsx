@@ -356,8 +356,16 @@ const handleBuyNow = () => {
     setPfEditing(false);
 
     // MISSÃO 020: produto com modelUrl → carrega imediatamente, pipeline completamente bloqueado
+    // M071: se o link já veio com modelUrl/productUrl explícitos (ex: link de teste
+    // fora do catálogo), usa eles direto — senão cai no lookup normal pelo catálogo.
+    const _urlParams = new URLSearchParams(window.location.search);
     const _productForLoad = productId
-      ? ProductAdapter.fromParams({ productId })
+      ? ProductAdapter.fromParams({
+          productId,
+          modelUrl: _urlParams.get('modelUrl') || undefined,
+          productUrl: _urlParams.get('productUrl') || undefined,
+          cartUrl: _urlParams.get('cartUrl') || undefined,
+        })
       : ProductAdapter.getActive();
     const _staticModelUrl = _productForLoad?.modelUrl || null;
     hasGeneratedRef.current = Boolean(_staticModelUrl);
@@ -568,8 +576,14 @@ const handleBuyNow = () => {
   const captureAndGenerate = useCallback(async () => {
     if (hasGeneratedRef.current) return;
     // Guard absoluto: produto com GLB estático nunca executa pipeline
+    const _guardUrlParams = new URLSearchParams(window.location.search);
     const _guardProd = testProductId
-      ? ProductAdapter.fromParams({ productId: testProductId })
+      ? ProductAdapter.fromParams({
+          productId: testProductId,
+          modelUrl: _guardUrlParams.get('modelUrl') || undefined,
+          productUrl: _guardUrlParams.get('productUrl') || undefined,
+          cartUrl: _guardUrlParams.get('cartUrl') || undefined,
+        })
       : ProductAdapter.getActive();
 
     if (_guardProd?.modelUrl) {
@@ -677,8 +691,14 @@ const handleBuyNow = () => {
 
     if (!trackingActive || screen !== 'scanner' || hasGeneratedRef.current) return;
     // Guard extra: nunca disparar pipeline se produto tem GLB
+    const _activeUrlParams = new URLSearchParams(window.location.search);
     const _activeProd = testProductId
-      ? ProductAdapter.fromParams({ productId: testProductId })
+      ? ProductAdapter.fromParams({
+          productId: testProductId,
+          modelUrl: _activeUrlParams.get('modelUrl') || undefined,
+          productUrl: _activeUrlParams.get('productUrl') || undefined,
+          cartUrl: _activeUrlParams.get('cartUrl') || undefined,
+        })
       : ProductAdapter.getActive();
 
     if (_activeProd?.modelUrl) return;
@@ -1196,8 +1216,14 @@ const handleBuyNow = () => {
   };
 
   // ─── SCANNER ─────────────────────────────────────────────────────────────
+  const _renderUrlParams = new URLSearchParams(window.location.search);
   const _scanProduct  = testProductId
-    ? ProductAdapter.fromParams({ productId: testProductId })
+    ? ProductAdapter.fromParams({
+        productId: testProductId,
+        modelUrl: _renderUrlParams.get('modelUrl') || undefined,
+        productUrl: _renderUrlParams.get('productUrl') || undefined,
+        cartUrl: _renderUrlParams.get('cartUrl') || undefined,
+      })
     : ProductAdapter.getActive();
   const productId     = _scanProduct.productId;
   const modelUrl      = _scanProduct.modelUrl;

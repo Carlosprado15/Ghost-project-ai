@@ -44,7 +44,7 @@ export class WristTracker {
       watchOffsetRatio: config.watchOffsetRatio ?? 0.18,
       minWatchSize: config.minWatchSize ?? 80,
       maxWatchSize: config.maxWatchSize ?? 220,
-      watchRotationOffset: config.watchRotationOffset ?? -90,
+      watchRotationOffset: config.watchRotationOffset ?? 0, // M073: era -90 — suspeita de ser a causa do "deitado", em teste
       watchOffsetFlip:     config.watchOffsetFlip     ?? false,
     };
 
