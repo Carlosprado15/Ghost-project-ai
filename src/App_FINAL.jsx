@@ -1582,8 +1582,9 @@ const handleBuyNow = () => {
                 min-camera-orbit="auto auto 105%"
                 max-camera-orbit="auto auto 105%"
                 tone-mapping="neutral"
-                orientation="0deg 0deg -90deg"
-                scale="2 2 2"
+                {...((generatedModelUrl || modelUrl || '').includes('/normalized/')
+                  ? {}
+                  : { orientation: '0deg 0deg -90deg', scale: '2 2 2' })}
                 style={{
                   width: '100%',
                   height: '100%',
