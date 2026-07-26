@@ -1,4 +1,20 @@
 {
+  "redirects": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "foxbox-ar.vercel.app" }],
+      "missing": [{ "type": "query", "key": "productId" }],
+      "destination": "/?productId=TEST-FOXBOX-RAW&modelUrl=/models/normalized/TEST-FOXBOX-RAW.glb&productUrl=https://s.shopee.com.br/2Vq8MGhWTd",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "ghost-foxbox-shopee-teste.vercel.app" }],
+      "missing": [{ "type": "query", "key": "productId" }],
+      "destination": "/?productId=TEST-FOXBOX-RAW&modelUrl=/models/normalized/TEST-FOXBOX-RAW.glb&productUrl=https://s.shopee.com.br/2Vq8MGhWTd",
+      "permanent": false
+    }
+  ],
   "headers": [
     {
       "source": "/ghost-sdk.js",
