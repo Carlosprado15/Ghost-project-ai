@@ -9,18 +9,23 @@ import legacySmoothPreset from '../../engine/config/legacy-smooth.json';
 
 // ── Product resolution from URL ───────────────────────────────────────────────
 // Falls back to CW001 when no ?productId= in URL (lab default)
+const _labUrlParams = new URLSearchParams(window.location.search);
+const _urlProductId = _labUrlParams.get('productId');
 const _ACTIVE_PRODUCT = (() => {
-  const id = new URLSearchParams(window.location.search).get('productId');
-  return productsData.find(p => p.id === id) ?? productsData.find(p => p.id === 'CW001');
+  return productsData.find(p => p.id === _urlProductId) ?? productsData.find(p => p.id === 'CW001');
 })();
 // ?useNormalized=1 → usa os GLBs de public/models/normalized/ (pipeline
 // scripts/normalize-glb/) para comparação A/B sem tocar nos originais.
-const USE_NORMALIZED = new URLSearchParams(window.location.search).get('useNormalized') === '1';
-const _BASE_GLB_URL  = _ACTIVE_PRODUCT?.modelUrl ?? '/models/CW001.glb';
-const GLB_URL        = USE_NORMALIZED
+const USE_NORMALIZED = _labUrlParams.get('useNormalized') === '1';
+// ?modelUrl= → sobrescreve o GLB direto (produtos de teste fora do catálogo,
+// ex.: TEST-FOXBOX-RAW, que não está em products.json — usado pra comparar
+// o motor novo com o mesmo arquivo/material do teste no motor legado).
+const _urlModelUrl  = _labUrlParams.get('modelUrl');
+const _BASE_GLB_URL  = _urlModelUrl || _ACTIVE_PRODUCT?.modelUrl || '/models/CW001.glb';
+const GLB_URL        = (USE_NORMALIZED && !_urlModelUrl)
   ? _BASE_GLB_URL.replace('/models/', '/models/normalized/')
   : _BASE_GLB_URL;
-const ACTIVE_PRODUCT_ID = _ACTIVE_PRODUCT?.id ?? 'CW001';
+const ACTIVE_PRODUCT_ID = _urlProductId || _ACTIVE_PRODUCT?.id || 'CW001';
 
 const WATCH_W_NORM = 0.22;  // usado apenas quando DEBUG_OVERLAY=true
 const STATIC_MS    = 3000;
@@ -107,7 +112,9 @@ export default function TasksWristLab() {
   const [glbError, setGlbError] = useState(null);
 
   // HUD compacto por padrão; expande no botão "▼ HUD"
-  const [hudOpen, setHudOpen] = useState(false);
+  // Aberto por padrão — o HUD (fps/delegate/tracking) é o objetivo do
+  // diagnóstico deste lab, não deve depender de um toque extra na tela.
+  const [hudOpen, setHudOpen] = useState(true);
   const attachGlbErrorListener = useCallback((el) => {
     if (!el || el.dataset.errBound) return;
     el.dataset.errBound = '1';
@@ -841,7 +848,8 @@ export default function TasksWristLab() {
 
             {/* Comum a todos os modos */}
             <div style={{ marginTop: 5, borderTop: '1px solid rgba(255,255,255,0.10)', paddingTop: 5 }}>
-              <div><span style={{ color: '#94a3b8' }}>delegate: </span>{delegate ?? '—'} · <span style={{ color: '#94a3b8' }}>detector: </span>{modelSource ?? '—'} · <span style={{ color: '#94a3b8' }}>câmera: </span>{camLabel}</div>
+              <div><span style={{ color: '#94a3b8' }}>fps: </span><span style={{ color: '#38bdf8', fontWeight: 700 }}>{fps}</span> · <span style={{ color: '#94a3b8' }}>delegate: </span><span style={{ color: '#38bdf8', fontWeight: 700 }}>{delegate ?? '—'}</span> · <span style={{ color: '#94a3b8' }}>isTracking: </span>{String(isTracking)}</div>
+              <div><span style={{ color: '#94a3b8' }}>detector: </span>{modelSource ?? '—'} · <span style={{ color: '#94a3b8' }}>câmera: </span>{camLabel}</div>
               <div><span style={{ color: '#94a3b8' }}>jitter: </span>{jitter} · <span style={{ color: '#94a3b8' }}>preset: </span><span style={{ color: '#34d399' }}>{activePreset?.name ?? `mc=${activePreset?.minCutoff} β=${activePreset?.beta}`}</span></div>
             </div>
 

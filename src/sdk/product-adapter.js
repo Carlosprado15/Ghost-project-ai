@@ -39,6 +39,7 @@ export const ProductAdapter = {
       cartUrl: params.get('cartUrl') ?? null,
       productName: params.get('productName') ?? null,
       productImage: params.get('productImage') ?? null,
+      heroVideoUrl: params.get('heroVideoUrl') ?? null,
       storeMode: productId !== null && productId !== '',
     };
   },

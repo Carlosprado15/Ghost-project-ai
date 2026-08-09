@@ -596,8 +596,8 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 260px;
-  height: 260px;
+  width: 230px;
+  height: 340px;
   z-index: 2;
   pointer-events: none;
 }
@@ -881,8 +881,8 @@ body {
   }
 
   .scan-overlay {
-    width: 230px;
-    height: 230px;
+    width: 210px;
+    height: 310px;
   }
 
   .action-container {

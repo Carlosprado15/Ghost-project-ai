@@ -76,8 +76,8 @@
 
 .hero3d-stage {
   position: relative;
-  width: clamp(160px, 46vmin, 260px);
-  height: clamp(160px, 46vmin, 260px);
+  width: clamp(240px, 78vmin, 380px);
+  height: clamp(240px, 78vmin, 380px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -144,6 +144,14 @@
 .hero3d-model-wrap model-viewer {
   width: 100%;
   height: 100%;
+  background: transparent;
+}
+
+.hero3d-video {
+  width: 88%;
+  height: 88%;
+  object-fit: cover;
+  border-radius: 50%;
   background: transparent;
 }
 

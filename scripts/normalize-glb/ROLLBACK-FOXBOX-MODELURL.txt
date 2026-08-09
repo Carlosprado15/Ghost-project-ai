@@ -1,0 +1,12 @@
+Rollback rápido do apontamento do produto de teste Foxbox (vercel.json)
+
+ANTERIOR (bruto, era o padrão até 2026-07-27):
+  modelUrl=/models/TEST-FOXBOX-RAW.glb
+
+ATUAL (testando desde 2026-07-27):
+  modelUrl=/models/material-fixed/TEST-FOXBOX-M025.glb
+
+Pra voltar: editar as duas ocorrências em vercel.json (bloco "redirects",
+hosts foxbox-ar.vercel.app e ghost-foxbox-shopee-teste.vercel.app) trocando
+o modelUrl de volta pro valor ANTERIOR acima, rebuild e redeploy só no
+projeto ghost-foxbox-shopee-teste.

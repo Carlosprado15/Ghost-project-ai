@@ -4,14 +4,14 @@
       "source": "/",
       "has": [{ "type": "host", "value": "foxbox-ar.vercel.app" }],
       "missing": [{ "type": "query", "key": "productId" }],
-      "destination": "/?productId=TEST-FOXBOX-RAW&modelUrl=/models/normalized/TEST-FOXBOX-RAW.glb&productUrl=https://s.shopee.com.br/2Vq8MGhWTd",
+      "destination": "/?productId=TEST-FOXBOX-RAW&modelUrl=/models/material-fixed/TEST-FOXBOX-M025.glb&heroVideoUrl=/videos/foxbox-360.mp4&productUrl=https://s.shopee.com.br/2Vq8MGhWTd",
       "permanent": false
     },
     {
       "source": "/",
       "has": [{ "type": "host", "value": "ghost-foxbox-shopee-teste.vercel.app" }],
       "missing": [{ "type": "query", "key": "productId" }],
-      "destination": "/?productId=TEST-FOXBOX-RAW&modelUrl=/models/normalized/TEST-FOXBOX-RAW.glb&productUrl=https://s.shopee.com.br/2Vq8MGhWTd",
+      "destination": "/?productId=TEST-FOXBOX-RAW&modelUrl=/models/material-fixed/TEST-FOXBOX-M025.glb&heroVideoUrl=/videos/foxbox-360.mp4&productUrl=https://s.shopee.com.br/2Vq8MGhWTd",
       "permanent": false
     }
   ],

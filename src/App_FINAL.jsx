@@ -7,6 +7,7 @@ import TestModelsPage from './TestModelsPage';
 import LandingPage from './LandingPage';
 import UrlDiagnosticsPanel from './components/UrlDiagnosticsPanel';
 import { WristTracker } from './tracking/WristTracker.js';
+import { PoseWristTracker } from './tracking/PoseWristTracker.js';
 import { RenderPipeline } from './tracking/RenderPipeline.js';
 import { PrecisionFitController } from './tracking/PrecisionFitController.js';
 import { createDefaultPipeline } from './pipeline/defaultPipeline.js';
@@ -140,6 +141,8 @@ export default function App() {
   const activeRef   = useRef(false);
 
   const trackerRef       = useRef(null);
+  const poseTrackerRef   = useRef(null);
+  const poseFallbackPoseRef = useRef(null);
   const pipelineRef      = useRef(null);
   const precisionFitRef  = useRef(null);
   const fitFlipXRef           = useRef(false);
@@ -270,7 +273,14 @@ export default function App() {
     trackerRef.current = new WristTracker({
       minConfidence: 0.6,
       minStabilityFrames: 8,
-      maxLostFrames: 30,
+      // M073b: era 30 (~1s a 30fps) — a mão precisava reaparecer inteira toda
+      // vez que saía do quadro. Agora, uma vez travado, o relógio "trava" na
+      // última posição boa por bem mais tempo (~10-20s dependendo do fps do
+      // aparelho), então mostrar só o pulso/antebraço depois do primeiro
+      // travamento não derruba o relógio. Trade-off: durante essa espera a
+      // posição fica parada (não segue o pulso se ele se mexer muito) — não é
+      // rastreamento contínuo, é segurar a última pose boa por mais tempo.
+      maxLostFrames: 300,
       positionMinCutoff: 1.2,
       positionBeta: 0.3,
       rotationMinCutoff: 1.0,
@@ -281,12 +291,18 @@ export default function App() {
       watchOffsetRatio: 0.18,
       ...fitParams,
     });
+    // Reforço: só entra quando o Hands perde a mão completamente (ver
+    // PoseWristTracker.js). Carrega em paralelo, sem bloquear nada — se
+    // falhar ou demorar, o app funciona igual, só sem o reforço.
+    poseTrackerRef.current = new PoseWristTracker({ watchRotationOffset: fitParams.watchRotationOffset });
+    poseTrackerRef.current.init().catch(() => {});
     pipelineRef.current = new RenderPipeline();
     precisionFitRef.current = new PrecisionFitController();
     imagePipelineRef.current = createDefaultPipeline();
 
     return () => {
       trackerRef.current?.reset();
+      poseTrackerRef.current?.destroy();
       pipelineRef.current?.stop();
     };
   }, []);
@@ -406,7 +422,12 @@ const handleBuyNow = () => {
       const videoRect = videoRef.current.getBoundingClientRect();
       const mirrorX = camMode === 'user' || fitFlipXRef.current;
 
-      const pose = trackerRef.current.update(lms, null, videoRect, mirrorX);
+      let pose = trackerRef.current.update(lms, null, videoRect, mirrorX);
+      // Hands não achou nada (nem a última pose segurada): tenta o reforço
+      // por braço antes de deixar a tela sem relógio.
+      if (!pose && poseFallbackPoseRef.current) {
+        pose = poseFallbackPoseRef.current;
+      }
       pipelineRef.current.updatePose(pose);
     },
     [camMode]
@@ -452,6 +473,16 @@ const handleBuyNow = () => {
                 await handsRef.current.send({
                   image: vid,
                 });
+
+                // Reforço por braço: só roda quando o Hands não está
+                // mostrando o relógio, pra não gastar processamento à toa.
+                if (poseTrackerRef.current?.ready && !trackerRef.current?.shouldRender()) {
+                  const videoRect = videoRef.current.getBoundingClientRect();
+                  const mirrorX = camMode === 'user' || fitFlipXRef.current;
+                  poseFallbackPoseRef.current = poseTrackerRef.current.detect(vid, videoRect, mirrorX);
+                } else {
+                  poseFallbackPoseRef.current = null;
+                }
               }
             }
           },
@@ -732,6 +763,27 @@ const handleBuyNow = () => {
     return () => mv.removeEventListener('error', handleModelError);
   }, [screen, generatedModelUrl]);
 
+  // Reduz o brilho "metal polido/plástico" do GLB do Foxbox: o material vem
+  // com roughness=1 no fator, mas a textura ORM tem regiões bem baixas
+  // (superfície cromada), e o fator sozinho não consegue subir isso — então
+  // ajustamos o valor efetivo direto via API do model-viewer após o load.
+  useEffect(() => {
+    const mv = modelViewerRef.current;
+    if (!mv || screen !== 'scanner') return;
+    const handleLoad = () => {
+      try {
+        for (const mat of mv.model?.materials || []) {
+          mat.pbrMetallicRoughness.setRoughnessFactor(0.85);
+          mat.pbrMetallicRoughness.setMetallicFactor(0.35);
+        }
+      } catch (err) {
+        console.warn('[Foxbox] ajuste de material falhou:', err);
+      }
+    };
+    mv.addEventListener('load', handleLoad);
+    return () => mv.removeEventListener('load', handleLoad);
+  }, [screen]);
+
   const closeScanner = () => {
     GhostProject._emit('onClose', {});
     activeRef.current = false;
@@ -998,6 +1050,7 @@ const handleBuyNow = () => {
 
         {/* Visualizador 360° */}
         <Hero3D
+          videoSrc={p360?.heroVideoUrl}
           modelSrc={p360?.modelUrl}
           productName={p360?.productName}
         />
@@ -1032,28 +1085,7 @@ const handleBuyNow = () => {
               boxShadow: '0 4px 16px rgba(0,0,0,0.14)',
             }}
           >
-            VER EM AR
-          </button>
-          <button
-            onClick={() => {
-              setShow360(false);
-              handleBuyNow();
-            }}
-            style={{
-              background: 'rgba(10,10,10,0.04)',
-              border: '1px solid rgba(0,0,0,0.12)',
-              borderRadius: '14px',
-              color: 'rgba(10,10,10,0.62)',
-              fontSize: '11px',
-              fontWeight: 400,
-              letterSpacing: '0.18em',
-              padding: '13px 20px',
-              cursor: 'pointer',
-              textTransform: 'uppercase',
-              transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
-            }}
-          >
-            COMPRAR AGORA
+            VER NO PULSO
           </button>
         </div>
 
@@ -1254,52 +1286,6 @@ const handleBuyNow = () => {
         style={camMode === 'user' ? { transform: 'scaleX(-1)' } : {}}
       />
 
-      {/* Indicador de recalibração — exibido quando tracking é perdido */}
-      {hasValidProduct && !shouldRenderWatch && (
-        <div style={{
-          position: 'fixed',
-          top: 'calc(50% + 148px)',
-          left: 0,
-          right: 0,
-          display: 'flex',
-          justifyContent: 'center',
-          zIndex: 18,
-          pointerEvents: 'none',
-          animation: 'ghostFadeInY 0.5s cubic-bezier(0.4,0,0.2,1) both',
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '7px',
-            background: 'rgba(0,0,0,0.36)',
-            border: '1px solid rgba(212,175,55,0.10)',
-            borderRadius: '20px',
-            padding: '6px 15px',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-          }}>
-            <div style={{
-              width: '10px',
-              height: '10px',
-              border: '1.5px solid rgba(212,175,55,0.15)',
-              borderTopColor: 'rgba(212,175,55,0.65)',
-              borderRadius: '50%',
-              animation: 'ghostSpin 1s linear infinite',
-              flexShrink: 0,
-            }} />
-            <p style={{
-              color: 'rgba(255,255,255,0.42)',
-              fontSize: '10px',
-              letterSpacing: '0.10em',
-              fontWeight: 400,
-              whiteSpace: 'nowrap',
-              margin: 0,
-            }}>
-              Recalibrando
-            </p>
-          </div>
-        </div>
-      )}
       {!hasValidProduct ? (
         <div style={{
           position: 'fixed',
@@ -1575,7 +1561,8 @@ const handleBuyNow = () => {
                 src={generatedModelUrl || modelUrl}
                 disable-zoom
                 shadow-intensity="0.8"
-                exposure="1.0"
+                exposure="0.75"
+                environment-image="neutral"
                 interaction-prompt="none"
                 camera-orbit="0deg 78deg 105%"
                 field-of-view="26deg"

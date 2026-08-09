@@ -5,14 +5,17 @@ import './Hero3D.css';
  * Hero3D — Product Preview 360°
  *
  * Props:
+ *   videoSrc      {string}  — URL de vídeo (mp4) girando o produto; se presente,
+ *                             tem prioridade sobre modelSrc/productImage
  *   modelSrc      {string}  — URL do arquivo GLB. Padrão: '/relogio.glb'
- *   productImage  {string}  — URL de imagem fallback quando não há GLB
+ *   productImage  {string}  — URL de imagem fallback quando não há GLB nem vídeo
  *   productName   {string}  — Nome do produto (acessibilidade + futuro catálogo)
  *
  * Extensões futuras (sem alterar a interface atual):
  *   productId, catalogProvider ('meshy' | 'tripo' | 'local'), onProductChange
  */
 export default function Hero3D({
+  videoSrc,
   modelSrc = '/relogio.glb',
   productImage,
   productName,
@@ -60,7 +63,8 @@ export default function Hero3D({
     return () => mv.removeEventListener('load', onLoad);
   }, []);
 
-  const hasModel = Boolean(modelSrc);
+  const hasVideo = Boolean(videoSrc);
+  const hasModel = !hasVideo && Boolean(modelSrc);
 
   return (
     <div className="hero3d-wrapper">
@@ -126,8 +130,28 @@ export default function Hero3D({
               <div className="hero3d-loader-ring" />
             </div>
           )}
-          {hasModel ? (
-            /* GLB via model-viewer — premium product visualizer */
+          {hasVideo ? (
+            /* Vídeo real do produto girando (gerado a partir da foto) — usado
+             * como vitrine na tela inicial. Não é o motor de AR: só decora,
+             * o "experimentar no pulso" continua vindo do modelSrc na tela
+             * seguinte. */
+            <video
+              className="hero3d-video"
+              src={videoSrc}
+              autoPlay
+              loop
+              muted
+              playsInline
+              aria-label={productName ? `Vídeo do produto: ${productName}` : 'Vídeo do produto'}
+            />
+          ) : hasModel ? (
+            /* GLB via model-viewer — premium product visualizer
+             *
+             * A prop `orientation` abaixo é a mesma correção de ângulo que a tela
+             * de AR aplica: o GLB bruto do Tripo vem deitado de lado, e sem ela o
+             * produto aparece de perfil, como se já estivesse "vestido" no pulso.
+             * O GLB normalizado já nasce em pé, então não leva correção — mesma
+             * regra do App_FINAL, para as duas telas nunca discordarem. */
             <model-viewer
               ref={mvRef}
               src={modelSrc}
@@ -141,8 +165,11 @@ export default function Hero3D({
               shadow-intensity="0.9"
               shadow-softness="1"
               exposure="1.2"
-              camera-orbit="12deg 72deg auto"
+              camera-orbit="12deg 72deg 88%"
               field-of-view="28deg"
+              {...(String(modelSrc).includes('/normalized/')
+                ? {}
+                : { orientation: '0deg 0deg -90deg' })}
               min-camera-orbit="auto 25deg auto"
               max-camera-orbit="auto 155deg auto"
               style={{
