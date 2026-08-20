@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useGhostWristAR } from './useGhostWristAR.js';
+import { mapNormalizedToCoverPercent } from './coverMapping.js';
 
 const DEFAULT_ORIENTATION  = '0deg 0deg -90deg';
 const DEFAULT_SCALE_MULT   = 4.5;
@@ -104,6 +105,10 @@ export function GhostWristARView({
 
   // forceCenter ignora o tracking: posição fixa no centro, tamanho fixo
   const centerW = Math.round(window.innerWidth * 0.7);
+  // D2 (AR-004): converte a posição normalizada (0-1, relativa ao frame de
+  // vídeo cru) pra % relativa ao elemento <video> na tela, levando em conta
+  // o object-fit: cover — ver coverMapping.js.
+  const { xPct, yPct } = mapNormalizedToCoverPercent(position.x, position.y, videoRef.current);
   const glbBoxStyle = forceCenter
     ? {
         position: 'absolute', left: '50%', top: '50%',
@@ -114,8 +119,8 @@ export function GhostWristARView({
       }
     : {
         position:  'absolute',
-        left:      `${(position.x * 100).toFixed(1)}%`,
-        top:       `${(position.y * 100).toFixed(1)}%`,
+        left:      `${xPct.toFixed(1)}%`,
+        top:       `${yPct.toFixed(1)}%`,
         transform: `translate(-50%,-50%) rotate(${(rotationZ * 180 / Math.PI).toFixed(1)}deg)`,
         width:  watchW,
         height: watchH,

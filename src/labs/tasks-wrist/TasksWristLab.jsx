@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useGhostWristAR } from '../../engine/react/useGhostWristAR.js';
+import { mapNormalizedToCoverPercent } from '../../engine/react/coverMapping.js';
 import { runCalibration } from './calibrationRunner.js';
 import { computeTrackingContinuity } from './calibrationMetrics.js';
 import productsData from '../../data/products.json';
@@ -526,6 +527,11 @@ export default function TasksWristLab() {
   const watchW = Math.round(scale * window.innerWidth * WRIST_SCALE_MULTIPLIER * (_ACTIVE_PRODUCT?.arScale ?? 1.0));
   const watchH = Math.round(watchW * 0.5); // proporção ~2:1 (face do relógio)
 
+  // D2 (AR-004): converte a posição normalizada (0-1, relativa ao frame de
+  // vídeo cru) pra % relativa ao elemento <video> na tela, levando em conta
+  // o object-fit: cover — ver src/engine/react/coverMapping.js.
+  const { xPct: watchXPct, yPct: watchYPct } = mapNormalizedToCoverPercent(position.x, position.y, videoRef.current);
+
   const jitter = (() => {
     if (!raw?.pos || !filtered?.pos) return '—';
     const dx = (raw.pos.x - filtered.pos.x) * 1000;
@@ -675,8 +681,8 @@ export default function TasksWristLab() {
       {mode === 'wrist' && glbActive && mvReady && isTracking && (
         <div style={{
           position:  'absolute',
-          left:      `${(position.x * 100).toFixed(1)}%`,
-          top:       `${(position.y * 100).toFixed(1)}%`,
+          left:      `${watchXPct.toFixed(1)}%`,
+          top:       `${watchYPct.toFixed(1)}%`,
           transform: `translate(-50%,-50%) rotate(${(rotationZ * 180 / Math.PI).toFixed(1)}deg)`,
           width:     watchW,
           height:    watchH,

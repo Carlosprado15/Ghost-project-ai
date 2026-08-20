@@ -115,11 +115,23 @@ export class HandTracker {
         return;
       }
 
-      const ts     = performance.now();
-      const result = lm.detectForVideo(video, ts);
-      const hands  = result?.landmarks;
-      this._onFrame(hands?.length > 0 ? hands[0] : null, ts);
-      this._rafId = requestAnimationFrame(loop);
+      const ts = performance.now();
+      // D1 (AR-004): sem este try/catch, uma exceção em detectForVideo (ou no
+      // processamento seguinte) matava o loop de rAF pra sempre — o tracking
+      // parava sem nenhum aviso. Mesmo padrão de src/tracking/PoseWristTracker.js
+      // (método detect()): captura o erro, trata o frame como "sem mão" e
+      // sempre reagenda o próximo rAF no finally.
+      try {
+        const result = lm.detectForVideo(video, ts);
+        const hands  = result?.landmarks;
+        this._onFrame(hands?.length > 0 ? hands[0] : null, ts);
+      } catch (e) {
+        this.warning = this.warning ?? `Aviso: erro no frame de tracking — ${e.message}`;
+        console.error('[HandTracker] detectForVideo falhou neste frame:', e);
+        this._onFrame(null, ts);
+      } finally {
+        this._rafId = requestAnimationFrame(loop);
+      }
     };
     this._rafId = requestAnimationFrame(loop);
   }
