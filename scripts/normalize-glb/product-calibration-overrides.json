@@ -152,57 +152,6 @@
     "flip180Z": false,
     "status": "needs_calibration"
   },
-  "CW010": {
-    "type": "watch",
-    "rotationDeg": {
-      "x": 0.1,
-      "y": 23.9,
-      "z": 37
-    },
-    "scale": 1,
-    "offset": {
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "flip180Y": false,
-    "flip180Z": false,
-    "status": "needs_calibration"
-  },
-  "CW011": {
-    "type": "watch",
-    "rotationDeg": {
-      "x": 0,
-      "y": 1.7,
-      "z": 0.3
-    },
-    "scale": 1,
-    "offset": {
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "flip180Y": false,
-    "flip180Z": false,
-    "status": "needs_calibration"
-  },
-  "CW012": {
-    "type": "watch",
-    "rotationDeg": {
-      "x": -175.1,
-      "y": 10.7,
-      "z": -65.8
-    },
-    "scale": 1,
-    "offset": {
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "flip180Y": false,
-    "flip180Z": false,
-    "status": "calibrated"
-  },
   "CW013": {
     "type": "watch",
     "rotationDeg": {
@@ -226,23 +175,6 @@
       "x": 89.5,
       "y": 0.5,
       "z": -89.1
-    },
-    "scale": 1,
-    "offset": {
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "flip180Y": false,
-    "flip180Z": false,
-    "status": "calibrated"
-  },
-  "CW015": {
-    "type": "watch",
-    "rotationDeg": {
-      "x": 87.4,
-      "y": -45.1,
-      "z": -86.8
     },
     "scale": 1,
     "offset": {
