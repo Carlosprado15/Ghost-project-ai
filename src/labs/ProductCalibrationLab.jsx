@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ensureModelViewer } from '../engine/render/modelViewerLoader.js';
-// Overrides VIGENTES — o JSON copiado compõe o ajuste da câmera com estes
-// valores, saindo sempre ABSOLUTO (nunca mais perde calibração anterior).
+// Overrides VIGENTES — usado só pra ler type/offset/status de partida. A
+// rotação e a escala exportadas NÃO compõem com o valor antigo salvo aqui
+// (ver comentário em buildJsonEntry): a tela sempre mostra o arquivo bruto
+// do zero, então o que sai no JSON é sempre a rotação medida a partir desse
+// zero, não um incremento por cima do que já estava salvo.
 import overridesData from '../../scripts/normalize-glb/product-calibration-overrides.json';
 
 /**
@@ -65,32 +68,31 @@ const isIdentity = (M) =>
   Math.abs(M[0][0] - 1) < 1e-9 && Math.abs(M[1][1] - 1) < 1e-9 && Math.abs(M[2][2] - 1) < 1e-9 &&
   Math.abs(M[0][1]) < 1e-9 && Math.abs(M[0][2]) < 1e-9 && Math.abs(M[1][2]) < 1e-9;
 
-// Matriz da calibração JÁ EMBUTIDA no GLB normalizado atual, lida do
-// overrides vigente — mesma ordem de aplicação do normalize.mjs:
-// Rz·Ry·Rx (rotationDeg x→y→z) e depois flips Y/Z.
-function baseMatrixFor(id) {
-  const ov = overridesData[id];
-  if (!ov) return I3;
-  const rd = ov.rotationDeg ?? {};
-  let M = matMul(rotZ(rd.z ?? 0), matMul(rotY(rd.y ?? 0), rotX(rd.x ?? 0)));
-  if (ov.flip180Y) M = matMul(rotY(180), M);
-  if (ov.flip180Z) M = matMul(rotZ(180), M);
-  return M;
-}
-
 // Monta o bloco de JSON de um produto a partir da matriz acumulada (câmera +
-// ajuste fino) somada à calibração vigente — usado tanto no "copiar este
-// produto" quanto no "copiar tudo que foi ajustado" da prateleira.
+// ajuste fino) — usado tanto no "copiar este produto" quanto no "copiar tudo
+// que foi ajustado" da prateleira.
+//
+// IMPORTANTE: o <model-viewer> exibe SEMPRE o arquivo BRUTO (/models/ID.glb),
+// nunca o normalized/ já calibrado — então rotM (câmera) e fineM (ajuste fino)
+// juntos JÁ SÃO a rotação absoluta final, medida a partir do zero do arquivo
+// bruto. Bug corrigido (2026-08-22): antes disso multiplicava por cima da
+// rotationDeg ANTIGA salva em overridesData ("baseMatrixFor"), que fazia
+// sentido só quando a tela mostrava o normalized/ já pré-rotacionado — depois
+// que o visualizador passou a mostrar o bruto, essa multiplicação virou uma
+// rotação "fantasma" que não correspondia a nada visível na tela. Mesma razão
+// pela qual "scale" agora usa só o ajuste fino desta sessão, não o valor
+// antigo salvo — offset continua vindo do arquivo porque não há controle de
+// offset nesta tela (nada aqui o sobrescreve visualmente).
 function buildJsonEntry(id, entry) {
   const ov    = overridesData[id] ?? {};
-  const total = matMul(entry.fineM, matMul(entry.rotM, baseMatrixFor(id)));
+  const total = matMul(entry.fineM, entry.rotM);
   const e = eulerPipeline(total);
   const r1 = (v) => Math.round(v * 10) / 10;
   const r2 = (v) => Math.round(v * 100) / 100;
   return {
     type: typeOf(id),
     rotationDeg: { x: r1(e.x), y: r1(e.y), z: r1(e.z) },
-    scale: r2((ov.scale ?? 1.0) * entry.fineScale),
+    scale: r2(entry.fineScale),
     offset: { x: 0, y: 0, z: 0, ...(ov.offset ?? {}) },
     flip180Y: false,
     flip180Z: false,
@@ -443,17 +445,30 @@ export default function ProductCalibrationLab() {
           <div style={{ color: '#94a3b8', fontSize: 11, marginBottom: 8 }}>
             AJUSTE FINO (vê na hora)
           </div>
+          <div style={{
+            display: 'flex', gap: 6, alignItems: 'flex-start', fontSize: 10.5, lineHeight: 1.4,
+            color: '#fbbf24', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.35)',
+            borderRadius: 6, padding: '6px 8px', marginBottom: 10,
+          }}>
+            <span>⚠️</span>
+            <span>Arrastar com o mouse NÃO gira o eixo Z (ponteiro) — só aponta a
+            peça pra câmera. Depois de "Aplicar", confira sempre se o Z abaixo
+            está certo antes de copiar.</span>
+          </div>
           {[
             ['x', 'X — tombar frente/trás'],
             ['y', 'Y — girar esq./dir.'],
-            ['z', 'Z — girar como ponteiro'],
+            ['z', 'Z — girar como ponteiro (mouse NÃO ajusta isso)'],
           ].map(([axis, label]) => (
             <div key={axis} style={{ marginBottom: 6 }}>
-              <div style={{ fontSize: 10, color: '#64748b', marginBottom: 2 }}>{label}</div>
+              <div style={{ fontSize: 10, color: axis === 'z' ? '#fbbf24' : '#64748b', marginBottom: 2, fontWeight: axis === 'z' ? 700 : 400 }}>{label}</div>
               <div style={{ display: 'flex', gap: 4 }}>
                 {[-15, -1, 1, 15].map((d) => (
                   <button key={d} onClick={() => nudge(axis, d)}
-                    style={{ ...btn('#1f2937'), flex: 1, padding: '6px 0', fontSize: 12, border: '1px solid rgba(255,255,255,0.15)' }}>
+                    style={{
+                      ...btn('#1f2937'), flex: 1, padding: '6px 0', fontSize: 12,
+                      border: axis === 'z' ? '1px solid rgba(251,191,36,0.5)' : '1px solid rgba(255,255,255,0.15)',
+                    }}>
                     {d > 0 ? `+${d}°` : `${d}°`}
                   </button>
                 ))}
@@ -483,12 +498,12 @@ export default function ProductCalibrationLab() {
         </div>
 
         <div style={{ fontSize: 10, color: '#64748b', lineHeight: 1.6, marginTop: 'auto' }}>
-          Ajuste grosso: gire com o mouse → Aplicar (só salva). Ajuste fino:
-          botões de graus/tamanho — o modelo muda NA HORA e o JSON já sai
-          com tudo somado. Depois: Copiar JSON → colar no
-          product-calibration-overrides.json → regerar
-          (node scripts/normalize-glb/normalize.mjs) → recarregar esta página
-          (o ajuste fino zera sozinho, pois já ficou gravado no produto).
+          Ajuste grosso: gire com o mouse (só aponta a peça pra câmera, não
+          gira o Z) → Aplicar. Ajuste fino: confira o Z — o modelo muda NA
+          HORA e o JSON já sai com tudo somado. A tela SEMPRE mostra o
+          arquivo bruto, nunca o já calibrado — pra ver o resultado real,
+          rode node scripts/normalize-glb/normalize.mjs depois de colar o
+          JSON e olhe o arquivo em public/models/normalized/, não aqui.
         </div>
       </div>
     </div>
