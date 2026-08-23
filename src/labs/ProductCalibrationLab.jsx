@@ -55,26 +55,102 @@ function eulerPipeline(M) {
   return { x: rad2deg(a), y: rad2deg(b), z: rad2deg(c) };
 }
 
-// Euler na convenção do model-viewer/three.js 'XYZ' (M = Rx·Ry·Rz) — usada
-// SÓ para o preview ao vivo do ajuste fino (exata para a mesma matriz)
-function eulerThreeXYZ(M) {
-  const b = Math.asin(Math.max(-1, Math.min(1, M[0][2])));
-  const a = Math.atan2(-M[1][2], M[2][2]);
-  const c = Math.atan2(-M[0][1], M[0][0]);
-  return { x: rad2deg(a), y: rad2deg(b), z: rad2deg(c) };
+// Euler na convenção REAL do <model-viewer> — usada SÓ para o preview ao vivo
+// do ajuste fino.
+//
+// BUG CORRIGIDO (2026-08-23): o atributo orientation="A B C" NÃO é lido como
+// "A no X, B no Y, C no Z, na ordem XYZ" como este arquivo assumia. O
+// <model-viewer> lê "A B C" como roll(Z)=A, pitch(X)=B, yaw(Y)=C, e compõe
+// como Ry(C)·Rx(B)·Rz(A) (ordem YXZ do three.js). Medido no 3.4.0 com valores
+// independentes (orientation="40deg 25deg -35deg"): a fórmula YXZ acerta o
+// quaternion real com 0.0000° de erro, enquanto a suposição XYZ antiga errava
+// por 104.9°. Na prática isso fazia o preview do ajuste fino mostrar uma
+// rotação ~24° diferente da que o código achava que estava aplicando — os
+// botões X/Y/Z giravam a peça em eixos misturados.
+function eulerModelViewer(M) {
+  const pitch = Math.asin(Math.max(-1, Math.min(1, -M[1][2]))); // eixo X
+  const roll  = Math.atan2(M[1][0], M[1][1]);                   // eixo Z
+  const yaw   = Math.atan2(M[0][2], M[2][2]);                   // eixo Y
+  return { roll: rad2deg(roll), pitch: rad2deg(pitch), yaw: rad2deg(yaw) };
 }
+
+// Quaternion [x,y,z,w] → matriz 3x3 (mesma convenção coluna usada aqui)
+const quatToMat3 = ([x, y, z, w]) => [
+  [1 - 2 * (y * y + z * z), 2 * (x * y - z * w),     2 * (x * z + y * w)],
+  [2 * (x * y + z * w),     1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+  [2 * (x * z - y * w),     2 * (y * z + x * w),     1 - 2 * (x * x + y * y)],
+];
 
 const isIdentity = (M) =>
   Math.abs(M[0][0] - 1) < 1e-9 && Math.abs(M[1][1] - 1) < 1e-9 && Math.abs(M[2][2] - 1) < 1e-9 &&
   Math.abs(M[0][1]) < 1e-9 && Math.abs(M[0][2]) < 1e-9 && Math.abs(M[1][2]) < 1e-9;
+
+// ── LEITURA DA ROTAÇÃO REAL NA TELA ─────────────────────────────────────────
+// Fonte única de verdade da calibração. Em vez de rastrear separadamente a
+// órbita da câmera (mouse) e a matriz do ajuste fino (botões) e tentar
+// combinar as duas — o que se mostrou pouco confiável —, lê direto do
+// <model-viewer> o estado que está REALMENTE na tela:
+//
+//   R = qCâmera⁻¹ · qModelo
+//
+// ...ou seja, "como o objeto está posado em relação à câmera", convertido
+// para o referencial da câmera neutra (θ=0, φ=90 — medido: quaternion de
+// mundo exatamente [0,0,0,1], por isso não sobra nenhum termo extra).
+// Isso captura mouse e botões juntos, sem depender de qual dos dois foi usado.
+//
+// Validado (2026-08-23, model-viewer 3.4.0, CW014, comparando a projeção de
+// 500 vértices reais na tela):
+//   - só mouse   : idêntico à fórmula antiga Rx(90−φ)·Ry(−θ) com 0.0000° de erro
+//   - só botões  : erro 0.00010 (ler só a orientação do objeto erra 0.08248)
+//   - mouse+botões: erro de forma 0.000206 NDC (~0.07 px) depois de descontar
+//     o reenquadramento automático do próprio <model-viewer>
+//
+// O <model-viewer> não expõe a cena three.js por API pública — só por um
+// Symbol privado. Se uma atualização futura quebrar esse acesso, cai na
+// fórmula antiga (só câmera, ignora o ajuste fino) e GRITA no console, para
+// que uma captura quebrada nunca passe silenciosa.
+function readDisplayedRotation(el) {
+  try {
+    const symScene = Object.getOwnPropertySymbols(el).find((s) => el[s]?.isScene);
+    if (!symScene) throw new Error('cena interna do <model-viewer> não encontrada');
+    const scene = el[symScene];
+    const target = scene.children.find((c) => c.name === 'Target');
+    const container = target?.children.find((c) => c.type === 'Group');
+    if (!container) throw new Error('nó do modelo (Target > Group) não encontrado');
+    const cam = scene.camera ?? scene.getCamera?.();
+    if (!cam) throw new Error('câmera da cena não encontrada');
+    scene.updateMatrixWorld(true);
+    const Quat = container.quaternion.constructor; // o mesmo three.js do model-viewer
+    const qModel = container.getWorldQuaternion(new Quat());
+    const qCam = cam.getWorldQuaternion(new Quat());
+    const R = qCam.clone().invert().multiply(qModel);
+    return { M: quatToMat3([R.x, R.y, R.z, R.w]), source: 'live' };
+  } catch (err) {
+    console.error(
+      '[ProductCalibrationLab] FALHA ao ler a rotação real do <model-viewer> ' +
+      '(a API interna deve ter mudado numa atualização). Caindo na fórmula ' +
+      'antiga só-câmera: o AJUSTE FINO NÃO VAI ENTRAR no valor salvo. ' +
+      'Confira a calibração antes de rodar normalize.mjs.', err
+    );
+    try {
+      const o = el.getCameraOrbit();
+      return {
+        M: matMul(rotX(90 - rad2deg(o.phi)), rotY(-rad2deg(o.theta))),
+        source: 'fallback',
+      };
+    } catch {
+      return null;
+    }
+  }
+}
 
 // Monta o bloco de JSON de um produto a partir da matriz acumulada (câmera +
 // ajuste fino) — usado tanto no "copiar este produto" quanto no "copiar tudo
 // que foi ajustado" da prateleira.
 //
 // IMPORTANTE: o <model-viewer> exibe SEMPRE o arquivo BRUTO (/models/ID.glb),
-// nunca o normalized/ já calibrado — então rotM (câmera) e fineM (ajuste fino)
-// juntos JÁ SÃO a rotação absoluta final, medida a partir do zero do arquivo
+// nunca o normalized/ já calibrado — então a rotação lida da tela JÁ É a
+// rotação absoluta final, medida a partir do zero do arquivo
 // bruto. Bug corrigido (2026-08-22): antes disso multiplicava por cima da
 // rotationDeg ANTIGA salva em overridesData ("baseMatrixFor"), que fazia
 // sentido só quando a tela mostrava o normalized/ já pré-rotacionado — depois
@@ -83,9 +159,17 @@ const isIdentity = (M) =>
 // pela qual "scale" agora usa só o ajuste fino desta sessão, não o valor
 // antigo salvo — offset continua vindo do arquivo porque não há controle de
 // offset nesta tela (nada aqui o sobrescreve visualmente).
-function buildJsonEntry(id, entry) {
+//
+// ATUALIZAÇÃO (2026-08-23): não compõe mais câmera × ajuste fino. `capturedM`
+// JÁ É a rotação total lida da tela (ver readDisplayedRotation) — o ajuste
+// fino está dentro dela, porque a leitura pega o quaternion real do modelo,
+// que é onde o orientation= do ajuste fino já foi aplicado. `liveM`, quando
+// vem preenchido, é uma releitura feita NA HORA DE SALVAR (só dá pra fazer no
+// produto que está na tela); sem ele, usa o último valor confirmado no
+// "Aplicar".
+function buildJsonEntry(id, entry, liveM) {
   const ov    = overridesData[id] ?? {};
-  const total = matMul(entry.fineM, entry.rotM);
+  const total = isEngaged(entry) ? (liveM ?? entry.capturedM) : I3;
   const e = eulerPipeline(total);
   const r1 = (v) => Math.round(v * 10) / 10;
   const r2 = (v) => Math.round(v * 100) / 100;
@@ -101,11 +185,18 @@ function buildJsonEntry(id, entry) {
 }
 
 const initialEntry = (id) => ({
-  rotM: I3,          // captura da câmera ("Aplicar") — não é previewada
+  capturedM: I3,     // rotação TOTAL lida da tela no "Aplicar" (mouse + botões)
+  applied: false,    // se o usuário já confirmou a vista com "Aplicar"
   fineM: I3,         // ajuste fino por botões — PREVIEWADO ao vivo
   fineScale: 1,      // multiplicador de escala do ajuste fino
   status: overridesData[id]?.status ?? 'needs_calibration',
 });
+
+// "Mexeu de fato na rotação/escala deste produto?" — só marcar PASS/FAIL não
+// conta. Sem isso, abrir um produto e salvar sem calibrar gravaria a
+// inclinação de ~15° da câmera padrão (φ=75°, não 90°) como se fosse rotação
+// pedida pelo usuário. Mantém o comportamento antigo: não mexeu = 0,0,0.
+const isEngaged = (e) => e.applied || !isIdentity(e.fineM) || e.fineScale !== 1;
 
 const btn = (bg) => ({
   padding: '9px 14px', borderRadius: 8, border: 'none', background: bg,
@@ -194,7 +285,28 @@ export default function ProductCalibrationLab() {
     ensureModelViewer({ timeoutMs: 15000 }).then(() => setMvReady(true)).catch(e => setMvError(e.message));
   }, []);
 
+  // Lê a rotação real que está na tela AGORA. Só funciona no produto que está
+  // montado no viewer (na prateleira não há viewer → null).
+  const readLive = () => {
+    const el = mvRef.current;
+    if (!el) return null;
+    return readDisplayedRotation(el)?.M ?? null;
+  };
+
+  // Antes de sair de um produto, guarda o que está na tela naquele instante.
+  // Cobre o caso do "SALVAR TUDO" da prateleira: lá não dá pra reler ao vivo
+  // os produtos que não estão montados, então o valor guardado aqui precisa
+  // estar em dia — inclusive se o usuário mexeu no ajuste fino DEPOIS do
+  // último "Aplicar".
+  const snapshotCurrent = () => {
+    const cur = storeRef.current[id];
+    if (!cur || !isEngaged(cur)) return;
+    const M = readLive();
+    if (M) storeRef.current[id] = { ...cur, capturedM: M };
+  };
+
   const goTo = (nextIdx) => {
+    snapshotCurrent();
     const ni = (nextIdx + IDS.length) % IDS.length;
     setIdx(ni);
     setEntry(storeRef.current[IDS[ni]] ?? (storeRef.current[IDS[ni]] = initialEntry(IDS[ni])));
@@ -212,6 +324,7 @@ export default function ProductCalibrationLab() {
   };
   // Editor → volta pra prateleira (tira o productId da URL)
   const backToGrid = () => {
+    snapshotCurrent();
     setMode('grid');
     const u = new URL(window.location.href);
     u.searchParams.delete('productId');
@@ -223,15 +336,20 @@ export default function ProductCalibrationLab() {
   const isTouched = (pid) => {
     const e = storeRef.current[pid];
     if (!e) return false;
-    return !isIdentity(e.rotM) || !isIdentity(e.fineM) || e.fineScale !== 1 ||
+    return isEngaged(e) ||
       e.status !== (overridesData[pid]?.status ?? 'needs_calibration');
   };
   const touchedIds = IDS.filter(isTouched);
 
-  const buildCombinedTouched = () => touchedIds.reduce((acc, pid) => {
-    acc[pid] = buildJsonEntry(pid, storeRef.current[pid]);
-    return acc;
-  }, {});
+  // Relê ao vivo só o produto que está na tela; os demais usam o valor
+  // guardado (atualizado por snapshotCurrent ao sair de cada um).
+  const buildCombinedTouched = () => {
+    const live = readLive();
+    return touchedIds.reduce((acc, pid) => {
+      acc[pid] = buildJsonEntry(pid, storeRef.current[pid], pid === id ? live : null);
+      return acc;
+    }, {});
+  };
 
   const [copiedAll, setCopiedAll] = useState(false);
   const copyAllTouched = async () => {
@@ -270,35 +388,37 @@ export default function ProductCalibrationLab() {
     }
   };
 
-  // "Aplicar" (correção emergencial): SÓ SALVA — não remonta o viewer, não
-  // reseta a câmera, nada muda visualmente. Lê a órbita atual (θ, φ), calcula
-  // a rotação que leva a direção vista para +Z — Rx(90°−φ)·Ry(−θ) — e SUBSTITUI
-  // a rotação salva do produto (o usuário sempre orbita o GLB original, então
-  // cada Aplicar é absoluto, não acumulado). O visual correto só aparece após
-  // rodar normalize.mjs com o JSON colado.
+  // "Aplicar" = CONFIRMAR ESTA VISTA. Não remonta o viewer, não reseta a
+  // câmera, nada muda visualmente. Lê a rotação real que está na tela (mouse
+  // E botões juntos — ver readDisplayedRotation) e a marca como a rotação
+  // deste produto. É absoluto, não acumulado: a tela sempre mostra o GLB
+  // bruto, então cada Aplicar substitui o anterior.
+  //
+  // O valor guardado aqui é uma rede de segurança para o "SALVAR TUDO" da
+  // prateleira; para o produto que está na tela, a gravação relê ao vivo na
+  // hora de salvar, então mexer no ajuste fino depois do Aplicar não deixa
+  // mais o valor velho para trás.
   const [savedFlash, setSavedFlash] = useState(false);
   const handleApply = () => {
-    const el = mvRef.current;
-    if (!el?.getCameraOrbit) return;
-    try {
-      const o = el.getCameraOrbit();
-      const theta = rad2deg(o.theta), phi = rad2deg(o.phi);
-      set({ rotM: matMul(rotX(90 - phi), rotY(-theta)) });
-      setSavedFlash(true);
-      setTimeout(() => setSavedFlash(false), 1500);
-    } catch { /* modelo ainda carregando */ }
+    const M = readLive();
+    if (!M) return; // modelo ainda carregando
+    set({ capturedM: M, applied: true });
+    setSavedFlash(true);
+    setTimeout(() => setSavedFlash(false), 1500);
   };
 
-  // JSON: rotação TOTAL ABSOLUTA (ajuste_fino ∘ ajuste_câmera ∘ calibração
-  // vigente) na convenção do pipeline. Flips dobrados na rotationDeg.
-  // Escala = vigente × ajuste fino; offset vigente preservado.
-  const jsonBlock = useMemo(() => JSON.stringify({ [id]: buildJsonEntry(id, entry) }, null, 2), [id, entry]);
+  // JSON deste produto, montado NA HORA (relendo a tela), nunca memoizado —
+  // memoizar era justamente o que deixava o valor velho ser copiado/salvo.
+  const currentJsonBlock = () =>
+    JSON.stringify({ [id]: buildJsonEntry(id, entry, readLive()) }, null, 2);
 
-  // Preview ao vivo do AJUSTE FINO (a captura de câmera continua só-salvar)
+  // Preview ao vivo do AJUSTE FINO. A string vai na ordem que o
+  // <model-viewer> realmente lê: "roll(Z) pitch(X) yaw(Y)" — ver
+  // eulerModelViewer.
   const fineOrientation = useMemo(() => {
     if (isIdentity(entry.fineM)) return undefined;
-    const e = eulerThreeXYZ(entry.fineM);
-    return `${e.x.toFixed(1)}deg ${e.y.toFixed(1)}deg ${e.z.toFixed(1)}deg`;
+    const e = eulerModelViewer(entry.fineM);
+    return `${e.roll.toFixed(1)}deg ${e.pitch.toFixed(1)}deg ${e.yaw.toFixed(1)}deg`;
   }, [entry.fineM]);
   const fineScaleAttr = entry.fineScale !== 1
     ? `${entry.fineScale} ${entry.fineScale} ${entry.fineScale}` : undefined;
@@ -312,6 +432,7 @@ export default function ProductCalibrationLab() {
   };
 
   const copyJson = async () => {
+    const jsonBlock = currentJsonBlock();
     try {
       await navigator.clipboard.writeText(jsonBlock);
       setCopied(true);
@@ -334,7 +455,7 @@ export default function ProductCalibrationLab() {
       const res = await fetch('/__ghost-save-calibration', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [id]: buildJsonEntry(id, entry) }),
+        body: JSON.stringify({ [id]: buildJsonEntry(id, entry, readLive()) }),
       });
       const json = await res.json();
       if (!res.ok || !json.ok) throw new Error(json.error || `HTTP ${res.status}`);
