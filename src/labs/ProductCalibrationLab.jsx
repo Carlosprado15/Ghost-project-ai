@@ -16,15 +16,20 @@ import overridesData from '../../scripts/normalize-glb/product-calibration-overr
  * gera o bloco para o product-calibration-overrides.json.
  */
 
-const IDS = Array.from({ length: 15 }, (_, i) => `CW${String(i + 1).padStart(3, '0')}`);
+// Os 32 produtos ativos hoje (catálogo pós-limpeza de CW010/011/012/015),
+// na ordem em que devem aparecer na prateleira e no navegador Anterior/Próximo.
+const IDS = [
+  'CW001', 'CW002', 'CW003', 'CW004', 'CW005', 'CW006', 'CW007', 'CW008', 'CW009',
+  'CW013', 'CW014',
+  'CW016', 'CW017', 'CW018', 'CW019', 'CW020', 'CW021', 'CW022', 'CW023', 'CW024',
+  'CW025', 'CW026', 'CW027', 'CW028', 'CW029', 'CW030', 'CW031', 'CW032', 'CW033',
+  'CW034', 'CW035', 'CW036',
+];
 
-// Classificação confirmada por análise visual (M070D)
-const TYPES = {
-  CW001: 'watch', CW002: 'watch', CW003: 'watch', CW004: 'watch', CW005: 'watch',
-  CW006: 'watch', CW007: 'watch', CW008: 'watch', CW010: 'watch',
-  CW009: 'bracelet', CW011: 'bracelet', CW012: 'bracelet',
-  CW013: 'bracelet', CW014: 'bracelet', CW015: 'bracelet',
-};
+// Tipo (watch/bracelet) lido do overrides vigente — mesma fonte de verdade
+// usada em buildJsonEntry(). Não hardcodar aqui: uma lista fixa já ficou
+// desatualizada antes (10 dos 15 produtos originais estavam errados).
+const typeOf = (id) => (overridesData[id]?.type === 'bracelet' ? 'bracelet' : 'watch');
 
 // ── Álgebra 3x3 (convenção coluna: M·v) ─────────────────────────────────────
 const I3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
@@ -83,7 +88,7 @@ function buildJsonEntry(id, entry) {
   const r1 = (v) => Math.round(v * 10) / 10;
   const r2 = (v) => Math.round(v * 100) / 100;
   return {
-    type: TYPES[id],
+    type: typeOf(id),
     rotationDeg: { x: r1(e.x), y: r1(e.y), z: r1(e.z) },
     scale: r2((ov.scale ?? 1.0) * entry.fineScale),
     offset: { x: 0, y: 0, z: 0, ...(ov.offset ?? {}) },
@@ -106,14 +111,15 @@ const btn = (bg) => ({
 });
 
 export default function ProductCalibrationLab() {
-  // Regenerar um .glb não muda o nome do arquivo — sem isso o navegador
-  // reaproveita a cópia antiga em cache e o produto parece "não corrigido".
-  const cacheBust = useState(() => Date.now())[0];
   const urlId = new URLSearchParams(window.location.search).get('productId');
+  // ?modelUrl= — override temporário e opcional pra comparar visualmente um
+  // GLB alternativo (ex.: outra versão de compressão) sem tocar em
+  // products.json nem no arquivo em uso. Ausente = comportamento normal.
+  const modelUrlOverride = new URLSearchParams(window.location.search).get('modelUrl');
   const [mode, setMode] = useState(urlId ? 'edit' : 'grid'); // 'grid' = prateleira com os 15
   const [idx, setIdx] = useState(Math.max(0, IDS.indexOf(urlId ?? 'CW001')));
   const id   = IDS[idx];
-  const type = TYPES[id];
+  const type = typeOf(id);
 
   // estado por produto (matriz de rotação acumulada + status), preservado na navegação
   const storeRef = useRef({});
@@ -129,6 +135,43 @@ export default function ProductCalibrationLab() {
   const [mvError, setMvError]   = useState(null);
   const [applyKey, setApplyKey] = useState(0);
   const [copied, setCopied]     = useState(false);
+
+  // cacheBust força o <model-viewer> a buscar o .glb de novo quando o valor
+  // muda (o browser não refaz fetch de uma URL que já pediu antes). Dois
+  // gatilhos:
+  const [cacheBust, setCacheBust] = useState(() => Date.now());
+  // 1) trocar de produto (Próximo/Anterior, reabrir pela prateleira) —
+  //    applyKey já muda em todo goTo().
+  useEffect(() => { setCacheBust(Date.now()); }, [applyKey]);
+
+  // 2) o .glb do produto ATUAL mudar em disco sem o usuário trocar de
+  //    produto (ex.: regenerado por outra sessão/terminal enquanto esta aba
+  //    fica aberta parada no mesmo produto — era a lacuna que sobrava do
+  //    ponto 1). Verifica a cada 2s via HEAD + ETag (o servidor de dev já
+  //    devolve ETag baseado no conteúdo real do arquivo); se mudou, força
+  //    um novo fetch. Só roda na tela de edição de um produto.
+  const watchUrl = modelUrlOverride || `/models/${id}.glb`;
+  const lastEtagRef = useRef(null);
+  useEffect(() => {
+    if (mode !== 'edit') return;
+    lastEtagRef.current = null;
+    let cancelled = false;
+    const check = async () => {
+      try {
+        const res = await fetch(watchUrl, { method: 'HEAD', cache: 'no-store' });
+        const etag = res.headers.get('etag');
+        if (!etag) return;
+        if (lastEtagRef.current === null) {
+          lastEtagRef.current = etag; // primeira leitura: só estabelece a base
+        } else if (etag !== lastEtagRef.current) {
+          lastEtagRef.current = etag;
+          if (!cancelled) setCacheBust(Date.now());
+        }
+      } catch { /* servidor de dev fora do ar num instante — tenta de novo no próximo tick */ }
+    };
+    const intervalId = setInterval(check, 2000);
+    return () => { cancelled = true; clearInterval(intervalId); };
+  }, [mode, watchUrl]);
 
   // órbita da câmera AO VIVO (evento camera-change do model-viewer)
   const mvRef = useRef(null);
@@ -183,14 +226,15 @@ export default function ProductCalibrationLab() {
   };
   const touchedIds = IDS.filter(isTouched);
 
+  const buildCombinedTouched = () => touchedIds.reduce((acc, pid) => {
+    acc[pid] = buildJsonEntry(pid, storeRef.current[pid]);
+    return acc;
+  }, {});
+
   const [copiedAll, setCopiedAll] = useState(false);
   const copyAllTouched = async () => {
     if (touchedIds.length === 0) return;
-    const combined = touchedIds.reduce((acc, pid) => {
-      acc[pid] = buildJsonEntry(pid, storeRef.current[pid]);
-      return acc;
-    }, {});
-    const text = JSON.stringify(combined, null, 2);
+    const text = JSON.stringify(buildCombinedTouched(), null, 2);
     try {
       await navigator.clipboard.writeText(text);
     } catch {
@@ -198,6 +242,30 @@ export default function ProductCalibrationLab() {
     }
     setCopiedAll(true);
     setTimeout(() => setCopiedAll(false), 1500);
+  };
+
+  // TEMPORÁRIO — grava direto em disco via o endpoint de dev-server em
+  // vite.config.ts, pra não depender de copiar/colar manual. Remover junto
+  // com o plugin quando a rodada de calibração dos 32 produtos terminar.
+  const [saveState, setSaveState] = useState('idle'); // idle | saving | done | error
+  const [saveMsg, setSaveMsg] = useState('');
+  const saveAllToDisk = async () => {
+    if (touchedIds.length === 0) return;
+    setSaveState('saving');
+    try {
+      const res = await fetch('/__ghost-save-calibration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildCombinedTouched()),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) throw new Error(json.error || `HTTP ${res.status}`);
+      setSaveState('done');
+      setSaveMsg(`${json.updated.length} produto(s) salvos: ${json.updated.join(', ')}`);
+    } catch (err) {
+      setSaveState('error');
+      setSaveMsg(err.message || String(err));
+    }
   };
 
   // "Aplicar" (correção emergencial): SÓ SALVA — não remonta o viewer, não
@@ -260,17 +328,36 @@ export default function ProductCalibrationLab() {
 
   const statusColor = (s) => s === 'pass' ? '#4ade80' : s === 'fail' ? '#f87171' : '#facc15';
 
-  // ── Prateleira: os 15 produtos lado a lado, clique abre o ajuste fino ──
+  // ── Prateleira: os 32 produtos lado a lado, clique abre o ajuste fino ──
   if (mode === 'grid') {
     return (
       <div style={{ position: 'fixed', inset: 0, background: '#0b0f14', color: '#e2e8f0', fontFamily: 'monospace', overflowY: 'auto', padding: 20 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 10, flexWrap: 'wrap' }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: '#a78bfa' }}>Prateleira — clique num produto pra ajustar</div>
-          <button onClick={copyAllTouched} disabled={touchedIds.length === 0}
-            style={{ ...btn(copiedAll ? '#16a34a' : touchedIds.length ? '#7c3aed' : '#374151'), opacity: touchedIds.length ? 1 : 0.5 }}>
-            {copiedAll ? '✓ Copiado!' : `Copiar JSON de tudo que eu ajustei (${touchedIds.length})`}
-          </button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={copyAllTouched} disabled={touchedIds.length === 0}
+              style={{ ...btn(copiedAll ? '#16a34a' : touchedIds.length ? '#7c3aed' : '#374151'), opacity: touchedIds.length ? 1 : 0.5 }}>
+              {copiedAll ? '✓ Copiado!' : `Copiar JSON de tudo que eu ajustei (${touchedIds.length})`}
+            </button>
+            <button onClick={saveAllToDisk} disabled={touchedIds.length === 0 || saveState === 'saving'}
+              title="TEMPORÁRIO — grava direto em product-calibration-overrides.json no disco"
+              style={{
+                ...btn(saveState === 'done' ? '#16a34a' : saveState === 'error' ? '#dc2626' : touchedIds.length ? '#ea580c' : '#374151'),
+                opacity: touchedIds.length ? 1 : 0.5,
+              }}>
+              {saveState === 'saving' ? 'Salvando…' : saveState === 'done' ? '✓ Salvo em disco!' : saveState === 'error' ? '✗ Erro — ver abaixo' : `SALVAR TUDO AGORA (${touchedIds.length})`}
+            </button>
+          </div>
         </div>
+        {saveMsg && (
+          <div style={{
+            marginBottom: 12, fontSize: 12, padding: '8px 12px', borderRadius: 8,
+            background: saveState === 'error' ? 'rgba(220,38,38,0.15)' : 'rgba(22,163,74,0.15)',
+            color: saveState === 'error' ? '#f87171' : '#4ade80',
+          }}>
+            {saveMsg}
+          </div>
+        )}
         {/* Sem modelo 3D ao vivo aqui: 15 telinhas 3D ligadas ao mesmo tempo
             estouram o limite do navegador e embaralham os produtos. Cartão
             simples (ícone + nome + status) — o 3D real só liga um de cada vez,
@@ -285,8 +372,8 @@ export default function ProductCalibrationLab() {
                   border: `2px solid ${isTouched(pid) ? '#7c3aed' : 'rgba(255,255,255,0.08)'}`,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
                 }}>
-                <div style={{ fontSize: 36 }}>{TYPES[pid] === 'watch' ? '⌚' : '📿'}</div>
-                <div style={{ fontSize: 14, fontWeight: 700 }}>{pid} <span style={{ color: '#94a3b8', fontWeight: 400 }}>· {TYPES[pid]}</span></div>
+                <div style={{ fontSize: 36 }}>{typeOf(pid) === 'watch' ? '⌚' : '📿'}</div>
+                <div style={{ fontSize: 14, fontWeight: 700 }}>{pid} <span style={{ color: '#94a3b8', fontWeight: 400 }}>· {typeOf(pid)}</span></div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: statusColor(st) }}>{st}{isTouched(pid) ? ' · ajustado' : ''}</div>
               </div>
             );
@@ -305,7 +392,7 @@ export default function ProductCalibrationLab() {
           <model-viewer
             ref={attachMv}
             key={`${id}-${applyKey}`}
-            src={`/models/normalized/${id}.glb?v=${cacheBust}`}
+            src={modelUrlOverride || `/models/${id}.glb?v=${cacheBust}`}
             camera-controls
             interaction-prompt="none"
             disable-tap
@@ -335,7 +422,7 @@ export default function ProductCalibrationLab() {
         <button onClick={backToGrid} style={{ ...btn('#374151'), fontSize: 12 }}>&lt; Voltar pra prateleira</button>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button onClick={() => goTo(idx - 1)} style={btn('#374151')}>&lt; Anterior</button>
-          <span style={{ fontWeight: 700, color: '#a78bfa' }}>{idx + 1}/15</span>
+          <span style={{ fontWeight: 700, color: '#a78bfa' }}>{idx + 1}/{IDS.length}</span>
           <button onClick={() => goTo(idx + 1)} style={btn('#374151')}>Próximo &gt;</button>
         </div>
 

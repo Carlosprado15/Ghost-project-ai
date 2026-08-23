@@ -23,6 +23,8 @@
 
 import { NodeIO, getBounds } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
+import { draco } from '@gltf-transform/functions';
+import draco3d from 'draco3dgltf';
 import { mkdirSync, statSync, readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -52,10 +54,18 @@ const DEFAULT_OVERRIDE = {
   status: 'needs_calibration',
 };
 
-// Sem argumentos: processa os 15. Com argumentos (ex: `node normalize.mjs
-// CW011`): processa só os IDs passados — útil para iterar rápido em 1 produto.
+// Sem argumentos: processa os 32 produtos ativos. Com argumentos (ex:
+// `node normalize.mjs CW011`): processa só os IDs passados — útil para
+// iterar rápido em 1 produto.
+const ACTIVE_IDS = [
+  'CW001', 'CW002', 'CW003', 'CW004', 'CW005', 'CW006', 'CW007', 'CW008', 'CW009',
+  'CW013', 'CW014',
+  'CW016', 'CW017', 'CW018', 'CW019', 'CW020', 'CW021', 'CW022', 'CW023', 'CW024',
+  'CW025', 'CW026', 'CW027', 'CW028', 'CW029', 'CW030', 'CW031', 'CW032', 'CW033',
+  'CW034', 'CW035', 'CW036',
+];
 const argIds = process.argv.slice(2);
-const PRODUCT_IDS = argIds.length ? argIds : Array.from({ length: 15 }, (_, i) => `CW${String(i + 1).padStart(3, '0')}`);
+const PRODUCT_IDS = argIds.length ? argIds : ACTIVE_IDS;
 
 // ── Rotações (glTF usa quaternion [x,y,z,w]) ─────────────────────────────────
 // Os modelos Tripo têm orientação arbitrária — rotação fixa nunca serve para
@@ -78,7 +88,14 @@ const quatAboutAxis = (axis, deg) => {
   return axis === 'x' ? [s, 0, 0, c] : axis === 'y' ? [0, s, 0, c] : [0, 0, s, c];
 };
 
-const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
+// Os GLBs de origem agora saem comprimidos com Draco (ver missão de
+// compressão dos 32 GLBs) — sem registrar o decoder aqui, io.read() quebra
+// com "Cannot read properties of undefined (reading 'DT_FLOAT32')" ao
+// encontrar a extensão KHR_draco_mesh_compression.
+const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
+  'draco3d.decoder': await draco3d.createDecoderModule(),
+  'draco3d.encoder': await draco3d.createEncoderModule(),
+});
 
 mkdirSync(OUT_DIR, { recursive: true });
 
@@ -142,6 +159,10 @@ for (const id of PRODUCT_IDS) {
       -s * center[2] + (off.z ?? 0),
     ]);
 
+    // io.read() decodifica o Draco do arquivo de origem pra malha "crua" em
+    // memória — sem recomprimir aqui, o arquivo normalizado sairia sem Draco
+    // (~55MB de novo, desfazendo a compressão feita nos brutos).
+    await doc.transform(draco());
     await io.write(outPath, doc);
 
     const before = statSync(srcPath).size;

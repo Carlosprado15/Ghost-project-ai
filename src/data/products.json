@@ -7,7 +7,7 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/929fdf680aeaf75dc92018f9063c38c1_1000x1000x189235.jpg?v=1780609207",
     "handle": "relogio-casio-para-neutro-2023-novos-estilos-definir-marca-superior-de-luxo-a-pr",
     "status": "active",
-    "modelUrl": "/models/CW001.glb",
+    "modelUrl": "/models/normalized/CW001.glb",
     "arScale": 1
   },
   {
@@ -18,7 +18,7 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/bd65fa5ad169b8203ed317d84c6df6f8_1000x1000x241930.jpg?v=1780608470",
     "handle": "nidin-moda-banhado-a-ouro-corrente-mistura-pulseira-para-mulheres-colorido-crist",
     "status": "active",
-    "modelUrl": "/models/CW002.glb"
+    "modelUrl": "/models/normalized/CW002.glb"
   },
   {
     "id": "CW003",
@@ -28,7 +28,7 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/cbc1a7b4aaf8f4b1ccbb8d838b56e58d_1000x1000x122194.jpg?v=1780608200",
     "handle": "vinterly-pulseiras-magneticas-de-cobre-puro-para-mulheres-joias-de-terapia-vint",
     "status": "active",
-    "modelUrl": "/models/CW003.glb"
+    "modelUrl": "/models/normalized/CW003.glb"
   },
   {
     "id": "CW004",
@@ -38,7 +38,7 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/e77f84bbaaeba2a99c7ba98afe929253_1000x1000x144404.jpg?v=1780607885",
     "handle": "pulseiras-de-cobre-puro-vinterly-estilo-viking-yggdrasil-15mm-ajustaveis-joi",
     "status": "active",
-    "modelUrl": "/models/CW004.glb"
+    "modelUrl": "/models/normalized/CW004.glb"
   },
   {
     "id": "CW005",
@@ -48,7 +48,7 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/2314a4c0875cc618f72ff3a0366babee_463x463x37421.jpg?v=1780545847",
     "handle": "pulseira-magnetico-bioquantico-de-equilibrio-original",
     "status": "active",
-    "modelUrl": "/models/CW005.glb"
+    "modelUrl": "/models/normalized/CW005.glb"
   },
   {
     "id": "CW006",
@@ -58,7 +58,7 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/f65fd2d6755dfb2da91e51edbaa3af95_800x800x156967.jpg?v=1780545473",
     "handle": "bluetooth-conectado-telefone-relogio-inteligente-das-mulheres-dos-homens-musica",
     "status": "active",
-    "modelUrl": "/models/CW006.glb"
+    "modelUrl": "/models/normalized/CW006.glb"
   },
   {
     "id": "CW007",
@@ -68,7 +68,7 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/666d1f0b7a31921e97929e06fa4323ba_1500x1378x219238.jpg?v=1780545266",
     "handle": "amoled-relogio-inteligente-banda-smartwatch-feminino-masculino-frequencia-cardia",
     "status": "active",
-    "modelUrl": "/models/CW007.glb"
+    "modelUrl": "/models/normalized/CW007.glb"
   },
   {
     "id": "CW008",
@@ -78,7 +78,7 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/e9b70205a0a32bfbacd615b8c43a0dcc_1000x687x121950.jpg?v=1780545081",
     "handle": "curren-relogio-de-ouro-feminino-relogios-senhoras-criativo-aco-pulseira-relogios",
     "status": "active",
-    "modelUrl": "/models/CW008.glb"
+    "modelUrl": "/models/normalized/CW008.glb"
   },
   {
     "id": "CW009",
@@ -88,7 +88,7 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/c3ead220395c9d98bdcbf140b65d9320_800x800x346795.jpg?v=1780544894",
     "handle": "diamante-relogio-feminino-marca-de-luxo-2025-strass-elegante-senhoras-relogios-r",
     "status": "active",
-    "modelUrl": "/models/CW009.glb"
+    "modelUrl": "/models/normalized/CW009.glb"
   },
   {
     "id": "CW013",
@@ -98,7 +98,7 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/779a88a5304b0a03a303749bfb7c943a_800x800x208496.jpg?v=1780543026",
     "handle": "reloj-hombre-2023-relogio-masculino-minimalista-ultra-fino-relogios-moda-masculi",
     "status": "active",
-    "modelUrl": "/models/CW013.glb"
+    "modelUrl": "/models/normalized/CW013.glb"
   },
   {
     "id": "CW014",
@@ -108,7 +108,7 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/281067ad8ae58e9c35f8e0f147260bbb_800x800x183353.jpg?v=1780542545",
     "handle": "curren-relogio-de-pulso-masculino-cronografo-a-prova-d-39-agua-militar-do-exe",
     "status": "active",
-    "modelUrl": "/models/CW014.glb"
+    "modelUrl": "/models/normalized/CW014.glb"
   },
   {
     "id": "CW016",
@@ -117,8 +117,8 @@
     "price": 195.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN015UQkpH1ZGzVXyz071__2214539433168-0-cib.jpg",
     "handle": "hw20-smart-watch-ecg-ppg-business-stainless-steel-strap-1-46-large-screen-bluetooth-call-smart-watch",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW016.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW016.glb"
   },
   {
     "id": "CW017",
@@ -127,8 +127,8 @@
     "price": 225.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN010EhYe12Amj0XPyeLM__2218112178246-0-cib.jpg",
     "handle": "smart-watch-watch-adult-heart-rate-monitoring-sports-entertainment-black-technology-ai-intelligent-voice-cross-border-hot-model",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW017.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW017.glb"
   },
   {
     "id": "CW018",
@@ -137,8 +137,8 @@
     "price": 49.99,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01WBl5dP1reV3Gvm0Xw__2685245656-0-cib.jpg",
     "handle": "new-pacha-dog-cartoon-electronic-watch-student-cute-children-cartoon-printed-led-sports-watch-wholesale",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW018.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW018.glb"
   },
   {
     "id": "CW019",
@@ -147,8 +147,8 @@
     "price": 353.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01OM6n4S2LDQApVGFIv__2215623759658-0-cib.jpg",
     "handle": "cross-border-v69-smart-watch-1-85-inch-bluetooth-call-large-screen-heart-rate-blood-oxygen-multi-sports-waterproof-smart-watch",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW019.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW019.glb"
   },
   {
     "id": "CW020",
@@ -157,8 +157,8 @@
     "price": 49.99,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01GKop9j1Lkr34xxjQb__2200707891338-0-cib.jpg",
     "handle": "foreign-trade-cross-border-new-womens-watch-student-wristwatch-wood-grain-dial-retro-striped-leather-strap-in-stock-wholesale",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW020.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW020.glb"
   },
   {
     "id": "CW021",
@@ -167,8 +167,8 @@
     "price": 238.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/14690036308_1696831007.jpg",
     "handle": "brand-megir-mens-watch-multifunctional-chronograph-sports-silicone-mens-quartz-sports-watch-2144",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW021.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW021.glb"
   },
   {
     "id": "CW022",
@@ -177,8 +177,8 @@
     "price": 144.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01Ot99Ao1PgVeaSySUN__2208896371870-0-cib.jpg",
     "handle": "honmin-brand-watch-outdoor-casual-mens-watch-multifunctional-quartz-watch-luminous-waterproof-large-dial-watch-for-men",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW022.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW022.glb"
   },
   {
     "id": "CW023",
@@ -187,8 +187,8 @@
     "price": 49.99,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01RDsMwM1pGZFuRtfjr__2218406385333-0-cib.jpg",
     "handle": "cross-border-explosive-mens-watch-quartz-mens-watch-calendar-steel-band-watch-mens-fashion-sports-luminous-pointer-wrist-watch",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW023.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW023.glb"
   },
   {
     "id": "CW024",
@@ -197,8 +197,8 @@
     "price": 217.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01CnuZFd1xQf0nNaOA0__2209167486438-0-cib.jpg",
     "handle": "wormhole-concept-square-high-end-watch-mens-quartz-watch-sports-mens-high-end-business-mens-tritium-gas-mens-watch",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW024.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW024.glb"
   },
   {
     "id": "CW025",
@@ -207,8 +207,8 @@
     "price": 205.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN019NeaUd1dcIl18g5DJ__4023503756-0-cib.jpg",
     "handle": "cross-border-popular-engine-style-sports-mens-watch-brand-wristwatch-quartz-watch-wholesale-foreign-trade-fashion-personalized-mens-watch",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW025.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW025.glb"
   },
   {
     "id": "CW026",
@@ -217,8 +217,8 @@
     "price": 146.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01Db9q7S1xMXM8EEFey__2207589666429-0-cib.jpg",
     "handle": "cross-border-popular-blue-angel-multifunctional-chronograph-watch-with-steel-strap-mens-fashion-dial-factory-ready-stock-one-piece-dropshipping",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW026.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW026.glb"
   },
   {
     "id": "CW027",
@@ -227,8 +227,8 @@
     "price": 129.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01Jjaw8q1MVZPWGLV79__3893261440-0-cib.jpg",
     "handle": "curren-curren-8225-calendar-mens-casual-large-dial-waterproof-creative-belt-watch",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW027.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW027.glb"
   },
   {
     "id": "CW028",
@@ -237,8 +237,8 @@
     "price": 361.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01JINUEn1EUdQ0TZ04Q__2202379710355-0-cib.jpg",
     "handle": "cross-border-p11plus-smart-bracelet-with-ecg-body-temperature-heart-rate-blood-oxygen-sleep-monitoring-exercise-tracking-and-step-counting-sports-watch",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW028.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW028.glb"
   },
   {
     "id": "CW029",
@@ -247,8 +247,8 @@
     "price": 123.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01XgWMqS2BeJRXKIg8e__2493348363-0-cib.jpg",
     "handle": "louie-juelen-retro-personalized-quartz-watch-for-teenagers-and-students-mens-watch",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW029.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW029.glb"
   },
   {
     "id": "CW030",
@@ -257,8 +257,8 @@
     "price": 326.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01o9f4Y41OsabFZlMy4__2221330681761-0-cib.jpg",
     "handle": "lige-bangwei-multifunctional-smart-watch-bluetooth-call-step-counting-blood-pressure-and-heart-rate-detection-waterproof-watch",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW030.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW030.glb"
   },
   {
     "id": "CW031",
@@ -267,8 +267,8 @@
     "price": 270.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/21186491992_1229489913.jpg",
     "handle": "2021-amazon-sports-mens-watch-wood-suit-quartz-watch-calendar-multifunctional-fashion-watch",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW031.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW031.glb"
   },
   {
     "id": "CW032",
@@ -277,8 +277,8 @@
     "price": 195.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01u280Zq1rfPvpiBJZn__2218607735658-0-cib.jpg",
     "handle": "new-cross-border-c60-smart-bracelet-sports-watch-with-heart-rate-sleep-monitoring-alarm-blood-oxygen-body-temperature-waterproof-watch-face",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW032.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW032.glb"
   },
   {
     "id": "CW033",
@@ -287,8 +287,8 @@
     "price": 84.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01mg5OLr1IoZRg6XYkM__2705530940-0-cib.jpg",
     "handle": "direct-sales-from-the-source-manufacturer-fashionable-exquisite-high-looking-luminous-waterproof-quartz-watch-couples-watch-silicone-strap-watch",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW033.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW033.glb"
   },
   {
     "id": "CW034",
@@ -297,8 +297,8 @@
     "price": 111.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01sxuRr51y6nMqQWg6B__2217603876530-0-cib.jpg",
     "handle": "hot-selling-megir-mens-watch-tiktok-amazon-popular-sports-versatile-mens-quartz-watch-1010",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW034.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW034.glb"
   },
   {
     "id": "CW035",
@@ -307,8 +307,8 @@
     "price": 108.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01cEUtZv1KCDTkvaYcm__2206597451127-0-cib.jpg",
     "handle": "millennial-vintage-original-design-watch-for-men-and-women-american-style-trendy-niche-cross-border-wristwatch-for-middle-and-high-school-students",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW035.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW035.glb"
   },
   {
     "id": "CW036",
@@ -317,8 +317,8 @@
     "price": 68.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01jqOTJS1z0fkMINe0a__2218756746652-0-cib.jpg",
     "handle": "2026-mens-watch-light-luxury-high-end-simple-and-fashionable-quartz-watch-black-large-dial-set-pointer-type",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW036.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW036.glb"
   },
   {
     "id": "CW037",
