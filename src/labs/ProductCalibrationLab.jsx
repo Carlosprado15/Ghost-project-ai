@@ -321,6 +321,34 @@ export default function ProductCalibrationLab() {
     }
   };
 
+  // Grava SÓ este produto em disco, na hora — mesmo endpoint de dev-server
+  // do "SALVAR TUDO AGORA" da prateleira, mas sem precisar voltar pra lá nem
+  // copiar/colar nada. Pensado pra usar logo depois de "Aplicar", produto a
+  // produto, evitando o problema de "cliquei em Copiar e achei que tinha
+  // salvo".
+  const [saveOneState, setSaveOneState] = useState('idle'); // idle | saving | done | error
+  const [saveOneMsg, setSaveOneMsg] = useState('');
+  const saveOneToDisk = async () => {
+    setSaveOneState('saving');
+    try {
+      const res = await fetch('/__ghost-save-calibration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [id]: buildJsonEntry(id, entry) }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) throw new Error(json.error || `HTTP ${res.status}`);
+      setSaveOneState('done');
+      setSaveOneMsg(`${id} salvo em disco.`);
+    } catch (err) {
+      setSaveOneState('error');
+      setSaveOneMsg(err.message || String(err));
+    }
+  };
+  // Reseta o aviso de salvamento ao trocar de produto — não faz sentido
+  // mostrar "salvo" de um produto na tela de outro.
+  useEffect(() => { setSaveOneState('idle'); setSaveOneMsg(''); }, [id]);
+
   const coord = (label, value) => (
     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
       <span style={{ color: '#94a3b8' }}>{label}</span>
@@ -487,8 +515,22 @@ export default function ProductCalibrationLab() {
         </div>
 
         <button onClick={handleApply} style={btn(savedFlash ? '#16a34a' : '#0284c7')}>
-          {savedFlash ? '✅ Salvo' : 'Aplicar — salvar esta vista como frente'}
+          {savedFlash ? '✅ Aplicado' : '1. Aplicar — salvar esta vista como frente'}
         </button>
+        <button onClick={saveOneToDisk} disabled={saveOneState === 'saving'}
+          title="Grava este produto direto em product-calibration-overrides.json no disco"
+          style={btn(saveOneState === 'done' ? '#16a34a' : saveOneState === 'error' ? '#dc2626' : '#ea580c')}>
+          {saveOneState === 'saving' ? 'Salvando…' : saveOneState === 'done' ? '✓ Salvo no disco!' : saveOneState === 'error' ? '✗ Erro — ver abaixo' : '2. SALVAR NO DISCO'}
+        </button>
+        {saveOneMsg && (
+          <div style={{
+            fontSize: 11, padding: '6px 10px', borderRadius: 6,
+            background: saveOneState === 'error' ? 'rgba(220,38,38,0.15)' : 'rgba(22,163,74,0.15)',
+            color: saveOneState === 'error' ? '#f87171' : '#4ade80',
+          }}>
+            {saveOneMsg}
+          </div>
+        )}
         <button onClick={copyJson} style={btn(copied ? '#16a34a' : '#7c3aed')}>
           {copied ? '✓ Copiado!' : 'Copiar JSON deste produto'}
         </button>
@@ -499,11 +541,12 @@ export default function ProductCalibrationLab() {
 
         <div style={{ fontSize: 10, color: '#64748b', lineHeight: 1.6, marginTop: 'auto' }}>
           Ajuste grosso: gire com o mouse (só aponta a peça pra câmera, não
-          gira o Z) → Aplicar. Ajuste fino: confira o Z — o modelo muda NA
-          HORA e o JSON já sai com tudo somado. A tela SEMPRE mostra o
-          arquivo bruto, nunca o já calibrado — pra ver o resultado real,
-          rode node scripts/normalize-glb/normalize.mjs depois de colar o
-          JSON e olhe o arquivo em public/models/normalized/, não aqui.
+          gira o Z) → 1. Aplicar. Ajuste fino: confira o Z — o modelo muda NA
+          HORA. Depois → 2. SALVAR NO DISCO (grava na hora, sem precisar
+          copiar/colar nada). A tela SEMPRE mostra o arquivo bruto, nunca o já
+          calibrado — pra ver o resultado real, rode node
+          scripts/normalize-glb/normalize.mjs e olhe o arquivo em
+          public/models/normalized/, não aqui.
         </div>
       </div>
     </div>
