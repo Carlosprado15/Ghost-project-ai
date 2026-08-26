@@ -21,7 +21,7 @@ import overridesData from '../../scripts/normalize-glb/product-calibration-overr
 
 // Os 32 produtos ativos hoje (catálogo pós-limpeza de CW010/011/012/015),
 // na ordem em que devem aparecer na prateleira e no navegador Anterior/Próximo.
-const IDS = [
+const ALL_IDS = [
   'CW001', 'CW002', 'CW003', 'CW004', 'CW005', 'CW006', 'CW007', 'CW008', 'CW009',
   'CW013', 'CW014',
   'CW016', 'CW017', 'CW018', 'CW019', 'CW020', 'CW021', 'CW022', 'CW023', 'CW024',
@@ -209,8 +209,19 @@ export default function ProductCalibrationLab() {
   // GLB alternativo (ex.: outra versão de compressão) sem tocar em
   // products.json nem no arquivo em uso. Ausente = comportamento normal.
   const modelUrlOverride = new URLSearchParams(window.location.search).get('modelUrl');
-  const [mode, setMode] = useState(urlId ? 'edit' : 'grid'); // 'grid' = prateleira com os 15
-  const [idx, setIdx] = useState(Math.max(0, IDS.indexOf(urlId ?? 'CW001')));
+  // ?ids=CW009,CW013,... — fila customizada pra revisar só um subconjunto
+  // (ex.: os produtos com leitura ambígua da correção de tombamento) sem
+  // precisar passar pelos outros no meio via Anterior/Próximo. Ausente ou
+  // sem nenhum id reconhecido = comportamento normal (os 32 de sempre).
+  const idsParam = new URLSearchParams(window.location.search).get('ids');
+  const IDS = useMemo(() => {
+    if (!idsParam) return ALL_IDS;
+    const requested = idsParam.split(',').map((s) => s.trim().toUpperCase()).filter(Boolean);
+    const filtered = ALL_IDS.filter((pid) => requested.includes(pid));
+    return filtered.length ? filtered : ALL_IDS;
+  }, [idsParam]);
+  const [mode, setMode] = useState((urlId || idsParam) ? 'edit' : 'grid'); // 'grid' = prateleira com os 15
+  const [idx, setIdx] = useState(Math.max(0, IDS.indexOf(urlId ?? IDS[0])));
   const id   = IDS[idx];
   const type = typeOf(id);
 
@@ -449,16 +460,22 @@ export default function ProductCalibrationLab() {
   // salvo".
   const [saveOneState, setSaveOneState] = useState('idle'); // idle | saving | done | error
   const [saveOneMsg, setSaveOneMsg] = useState('');
+  // Fetch cru reaproveitado tanto pelo "2. SALVAR NO DISCO" quanto pelo
+  // "3. Salvar e Ver como vai ficar" — os dois gravam exatamente o mesmo
+  // corpo no mesmo endpoint, só o segundo continua depois pra gerar a prévia.
+  const postSaveToDisk = async () => {
+    const res = await fetch('/__ghost-save-calibration', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [id]: buildJsonEntry(id, entry, readLive()) }),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.ok) throw new Error(json.error || `HTTP ${res.status}`);
+  };
   const saveOneToDisk = async () => {
     setSaveOneState('saving');
     try {
-      const res = await fetch('/__ghost-save-calibration', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [id]: buildJsonEntry(id, entry, readLive()) }),
-      });
-      const json = await res.json();
-      if (!res.ok || !json.ok) throw new Error(json.error || `HTTP ${res.status}`);
+      await postSaveToDisk();
       setSaveOneState('done');
       setSaveOneMsg(`${id} salvo em disco.`);
     } catch (err) {
@@ -469,6 +486,43 @@ export default function ProductCalibrationLab() {
   // Reseta o aviso de salvamento ao trocar de produto — não faz sentido
   // mostrar "salvo" de um produto na tela de outro.
   useEffect(() => { setSaveOneState('idle'); setSaveOneMsg(''); }, [id]);
+
+  // "3. Salvar e Ver como vai ficar" — salva no disco, roda o normalize.mjs
+  // SÓ deste produto (endpoint /__ghost-normalize-one, ~8s) e troca a tela
+  // pro arquivo já calibrado (public/models/normalized/), a mesma coisa que
+  // ia pro pulso na loja. Antes disso só dava pra ver o resultado real
+  // rodando o script manualmente no terminal e abrindo o arquivo à parte.
+  const [previewMode, setPreviewMode]   = useState('raw'); // 'raw' | 'preview'
+  const [previewState, setPreviewState] = useState('idle'); // idle | saving | normalizing | error
+  const [previewMsg, setPreviewMsg]     = useState('');
+  const [previewBust, setPreviewBust]   = useState(0);
+  const saveAndPreview = async () => {
+    setPreviewState('saving');
+    setPreviewMsg('');
+    try {
+      await postSaveToDisk();
+      setSaveOneState('done');
+      setSaveOneMsg(`${id} salvo em disco.`);
+      setPreviewState('normalizing');
+      const res = await fetch('/__ghost-normalize-one', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) throw new Error(json.error || `HTTP ${res.status}`);
+      setPreviewBust(Date.now());
+      setPreviewMode('preview');
+      setPreviewState('idle');
+    } catch (err) {
+      setPreviewState('error');
+      setPreviewMsg(err.message || String(err));
+    }
+  };
+  const backToEdit = () => { setPreviewMode('raw'); setPreviewState('idle'); setPreviewMsg(''); };
+  // Volta pro modo bruto ao trocar de produto — a prévia é sempre do
+  // produto em que foi gerada, não faz sentido carregar pra outro.
+  useEffect(() => { setPreviewMode('raw'); setPreviewState('idle'); setPreviewMsg(''); }, [id]);
 
   const coord = (label, value) => (
     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
@@ -542,8 +596,8 @@ export default function ProductCalibrationLab() {
         {mvReady ? (
           <model-viewer
             ref={attachMv}
-            key={`${id}-${applyKey}`}
-            src={modelUrlOverride || `/models/${id}.glb?v=${cacheBust}`}
+            key={`${id}-${applyKey}-${previewMode}`}
+            src={previewMode === 'preview' ? `/models/normalized/${id}.glb?v=${previewBust}` : (modelUrlOverride || `/models/${id}.glb?v=${cacheBust}`)}
             camera-controls
             camera-orbit="0deg 90deg auto"
             interaction-prompt="none"
@@ -553,8 +607,8 @@ export default function ProductCalibrationLab() {
             shadow-softness="1"
             exposure="1.2"
             tone-mapping="neutral"
-            orientation={fineOrientation}
-            scale={fineScaleAttr}
+            orientation={previewMode === 'preview' ? undefined : fineOrientation}
+            scale={previewMode === 'preview' ? undefined : fineScaleAttr}
             style={{ width: 'min(65vw, 78vh)', height: 'min(65vw, 78vh)', background: 'transparent' }}
           />
         ) : (
@@ -562,15 +616,16 @@ export default function ProductCalibrationLab() {
         )}
         <div style={{
           position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(0,0,0,0.7)', padding: '6px 16px', borderRadius: 16, fontSize: 14, fontWeight: 700,
-          color: entry.status === 'pass' ? '#4ade80' : entry.status === 'fail' ? '#f87171' : '#facc15',
+          background: previewMode === 'preview' ? 'rgba(22,163,74,0.85)' : 'rgba(0,0,0,0.7)',
+          padding: '6px 16px', borderRadius: 16, fontSize: 14, fontWeight: 700,
+          color: previewMode === 'preview' ? '#0b0f14' : (entry.status === 'pass' ? '#4ade80' : entry.status === 'fail' ? '#f87171' : '#facc15'),
         }}>
-          {id} · {type} · {entry.status}
+          {previewMode === 'preview' ? `👁 ${id} · assim vai ficar no pulso` : `${id} · ${type} · ${entry.status}`}
         </div>
       </div>
 
       {/* Painel lateral enxuto */}
-      <div style={{ flex: '0 0 280px', background: '#11161d', borderLeft: '1px solid rgba(255,255,255,0.1)', padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ flex: '0 0 280px', background: '#11161d', borderLeft: '1px solid rgba(255,255,255,0.1)', padding: 16, display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto' }}>
         <button onClick={backToGrid} style={{ ...btn('#374151'), fontSize: 12 }}>&lt; Voltar pra prateleira</button>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button onClick={() => goTo(idx - 1)} style={btn('#374151')}>&lt; Anterior</button>
@@ -590,72 +645,102 @@ export default function ProductCalibrationLab() {
           {coord('distância',  cam ? cam.radius.toFixed(3)          : '—')}
         </div>
 
-        {/* AJUSTE FINO — gira grau a grau com preview NA HORA */}
-        <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: 8, padding: '10px 12px' }}>
-          <div style={{ color: '#94a3b8', fontSize: 11, marginBottom: 8 }}>
-            AJUSTE FINO (vê na hora)
-          </div>
-          <div style={{
-            display: 'flex', gap: 6, alignItems: 'flex-start', fontSize: 10.5, lineHeight: 1.4,
-            color: '#fbbf24', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.35)',
-            borderRadius: 6, padding: '6px 8px', marginBottom: 10,
-          }}>
-            <span>⚠️</span>
-            <span>Arrastar com o mouse NÃO gira o eixo Z (ponteiro) — só aponta a
-            peça pra câmera. Depois de "Aplicar", confira sempre se o Z abaixo
-            está certo antes de copiar.</span>
-          </div>
-          {[
-            ['x', 'X — tombar frente/trás'],
-            ['y', 'Y — girar esq./dir.'],
-            ['z', 'Z — girar como ponteiro (mouse NÃO ajusta isso)'],
-          ].map(([axis, label]) => (
-            <div key={axis} style={{ marginBottom: 6 }}>
-              <div style={{ fontSize: 10, color: axis === 'z' ? '#fbbf24' : '#64748b', marginBottom: 2, fontWeight: axis === 'z' ? 700 : 400 }}>{label}</div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                {[-15, -1, 1, 15].map((d) => (
-                  <button key={d} onClick={() => nudge(axis, d)}
-                    style={{
-                      ...btn('#1f2937'), flex: 1, padding: '6px 0', fontSize: 12,
-                      border: axis === 'z' ? '1px solid rgba(251,191,36,0.5)' : '1px solid rgba(255,255,255,0.15)',
-                    }}>
-                    {d > 0 ? `+${d}°` : `${d}°`}
-                  </button>
-                ))}
-              </div>
+        {previewMode === 'preview' ? (
+          /* Modo PRÉVIA — o viewer já está mostrando o arquivo calibrado de
+             verdade (public/models/normalized/), não dá pra editar em cima
+             dele. Só "Voltar a editar" volta pro bruto e reabre os controles. */
+          <div style={{ background: 'rgba(22,163,74,0.12)', border: '1px solid rgba(22,163,74,0.4)', borderRadius: 8, padding: '10px 12px' }}>
+            <div style={{ color: '#4ade80', fontSize: 11, lineHeight: 1.5 }}>
+              Isto é o arquivo já calibrado — exatamente o que vai pro pulso na
+              loja. Pra ajustar mais, volte a editar.
             </div>
-          ))}
-          <div style={{ fontSize: 10, color: '#64748b', marginBottom: 2 }}>Tamanho ({(entry.fineScale * 100).toFixed(0)}%)</div>
-          <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
-            <button onClick={() => nudgeScale(1 / 1.05)} style={{ ...btn('#1f2937'), flex: 1, padding: '6px 0', fontSize: 12, border: '1px solid rgba(255,255,255,0.15)' }}>menor −5%</button>
-            <button onClick={() => nudgeScale(1.05)}     style={{ ...btn('#1f2937'), flex: 1, padding: '6px 0', fontSize: 12, border: '1px solid rgba(255,255,255,0.15)' }}>maior +5%</button>
           </div>
-          <button onClick={() => set({ fineM: I3, fineScale: 1 })}
-            style={{ ...btn('#374151'), width: '100%', padding: '6px 0', fontSize: 11 }}>
-            Zerar ajuste fino
-          </button>
-        </div>
-
-        <button onClick={handleApply} style={btn(savedFlash ? '#16a34a' : '#0284c7')}>
-          {savedFlash ? '✅ Aplicado' : '1. Aplicar — salvar esta vista como frente'}
-        </button>
-        <button onClick={saveOneToDisk} disabled={saveOneState === 'saving'}
-          title="Grava este produto direto em product-calibration-overrides.json no disco"
-          style={btn(saveOneState === 'done' ? '#16a34a' : saveOneState === 'error' ? '#dc2626' : '#ea580c')}>
-          {saveOneState === 'saving' ? 'Salvando…' : saveOneState === 'done' ? '✓ Salvo no disco!' : saveOneState === 'error' ? '✗ Erro — ver abaixo' : '2. SALVAR NO DISCO'}
-        </button>
-        {saveOneMsg && (
-          <div style={{
-            fontSize: 11, padding: '6px 10px', borderRadius: 6,
-            background: saveOneState === 'error' ? 'rgba(220,38,38,0.15)' : 'rgba(22,163,74,0.15)',
-            color: saveOneState === 'error' ? '#f87171' : '#4ade80',
-          }}>
-            {saveOneMsg}
+        ) : (
+          /* AJUSTE FINO — gira grau a grau com preview NA HORA */
+          <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: 8, padding: '10px 12px' }}>
+            <div style={{ color: '#94a3b8', fontSize: 11, marginBottom: 8 }}>
+              AJUSTE FINO (vê na hora)
+            </div>
+            <div style={{
+              display: 'flex', gap: 6, alignItems: 'flex-start', fontSize: 10.5, lineHeight: 1.4,
+              color: '#fbbf24', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.35)',
+              borderRadius: 6, padding: '6px 8px', marginBottom: 10,
+            }}>
+              <span>⚠️</span>
+              <span>Arrastar com o mouse NÃO gira o eixo Z (ponteiro) — só aponta a
+              peça pra câmera. Depois de "Aplicar", confira sempre se o Z abaixo
+              está certo antes de copiar.</span>
+            </div>
+            {[
+              ['x', 'X — tombar frente/trás'],
+              ['y', 'Y — girar esq./dir.'],
+              ['z', 'Z — girar como ponteiro (mouse NÃO ajusta isso)'],
+            ].map(([axis, label]) => (
+              <div key={axis} style={{ marginBottom: 6 }}>
+                <div style={{ fontSize: 10, color: axis === 'z' ? '#fbbf24' : '#64748b', marginBottom: 2, fontWeight: axis === 'z' ? 700 : 400 }}>{label}</div>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  {[-15, -1, 1, 15].map((d) => (
+                    <button key={d} onClick={() => nudge(axis, d)}
+                      style={{
+                        ...btn('#1f2937'), flex: 1, padding: '6px 0', fontSize: 12,
+                        border: axis === 'z' ? '1px solid rgba(251,191,36,0.5)' : '1px solid rgba(255,255,255,0.15)',
+                      }}>
+                      {d > 0 ? `+${d}°` : `${d}°`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <div style={{ fontSize: 10, color: '#64748b', marginBottom: 2 }}>Tamanho ({(entry.fineScale * 100).toFixed(0)}%)</div>
+            <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+              <button onClick={() => nudgeScale(1 / 1.05)} style={{ ...btn('#1f2937'), flex: 1, padding: '6px 0', fontSize: 12, border: '1px solid rgba(255,255,255,0.15)' }}>menor −5%</button>
+              <button onClick={() => nudgeScale(1.05)}     style={{ ...btn('#1f2937'), flex: 1, padding: '6px 0', fontSize: 12, border: '1px solid rgba(255,255,255,0.15)' }}>maior +5%</button>
+            </div>
+            <button onClick={() => set({ fineM: I3, fineScale: 1 })}
+              style={{ ...btn('#374151'), width: '100%', padding: '6px 0', fontSize: 11 }}>
+              Zerar ajuste fino
+            </button>
           </div>
         )}
-        <button onClick={copyJson} style={btn(copied ? '#16a34a' : '#7c3aed')}>
-          {copied ? '✓ Copiado!' : 'Copiar JSON deste produto'}
-        </button>
+
+        {previewMode === 'preview' ? (
+          <button onClick={backToEdit} style={btn('#0284c7')}>
+            ‹ Voltar a editar
+          </button>
+        ) : (
+          <>
+            <button onClick={handleApply} style={btn(savedFlash ? '#16a34a' : '#0284c7')}>
+              {savedFlash ? '✅ Aplicado' : '1. Aplicar — salvar esta vista como frente'}
+            </button>
+            <button onClick={saveOneToDisk} disabled={saveOneState === 'saving'}
+              title="Grava este produto direto em product-calibration-overrides.json no disco"
+              style={btn(saveOneState === 'done' ? '#16a34a' : saveOneState === 'error' ? '#dc2626' : '#ea580c')}>
+              {saveOneState === 'saving' ? 'Salvando…' : saveOneState === 'done' ? '✓ Salvo no disco!' : saveOneState === 'error' ? '✗ Erro — ver abaixo' : '2. SALVAR NO DISCO'}
+            </button>
+            {saveOneMsg && (
+              <div style={{
+                fontSize: 11, padding: '6px 10px', borderRadius: 6,
+                background: saveOneState === 'error' ? 'rgba(220,38,38,0.15)' : 'rgba(22,163,74,0.15)',
+                color: saveOneState === 'error' ? '#f87171' : '#4ade80',
+              }}>
+                {saveOneMsg}
+              </div>
+            )}
+            <button onClick={saveAndPreview} disabled={previewState === 'saving' || previewState === 'normalizing'}
+              title="Salva no disco e mostra o arquivo já calibrado (o que vai pro pulso de verdade)"
+              style={btn(previewState === 'error' ? '#dc2626' : '#16a34a')}>
+              {previewState === 'saving' ? 'Salvando…' : previewState === 'normalizing' ? 'Gerando prévia (~8s)…' : previewState === 'error' ? '✗ Erro — ver abaixo' : '3. Salvar e Ver como vai ficar'}
+            </button>
+            {previewMsg && (
+              <div style={{ fontSize: 11, padding: '6px 10px', borderRadius: 6, background: 'rgba(220,38,38,0.15)', color: '#f87171' }}>
+                {previewMsg}
+              </div>
+            )}
+            <button onClick={copyJson} style={btn(copied ? '#16a34a' : '#7c3aed')}>
+              {copied ? '✓ Copiado!' : 'Copiar JSON deste produto'}
+            </button>
+          </>
+        )}
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => set({ status: 'pass' })} style={{ ...btn('#16a34a'), flex: 1 }}>PASS ✅</button>
           <button onClick={() => set({ status: 'fail' })} style={{ ...btn('#dc2626'), flex: 1 }}>FAIL ❌</button>
@@ -665,10 +750,9 @@ export default function ProductCalibrationLab() {
           Ajuste grosso: gire com o mouse (só aponta a peça pra câmera, não
           gira o Z) → 1. Aplicar. Ajuste fino: confira o Z — o modelo muda NA
           HORA. Depois → 2. SALVAR NO DISCO (grava na hora, sem precisar
-          copiar/colar nada). A tela SEMPRE mostra o arquivo bruto, nunca o já
-          calibrado — pra ver o resultado real, rode node
-          scripts/normalize-glb/normalize.mjs e olhe o arquivo em
-          public/models/normalized/, não aqui.
+          copiar/colar nada) ou → 3. Salvar e Ver como vai ficar, que já
+          mostra o arquivo calibrado de verdade (o que vai pro pulso na
+          loja), sem precisar rodar nada no terminal.
         </div>
       </div>
     </div>
