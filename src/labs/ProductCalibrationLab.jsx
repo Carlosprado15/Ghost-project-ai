@@ -545,6 +545,7 @@ export default function ProductCalibrationLab() {
             key={`${id}-${applyKey}`}
             src={modelUrlOverride || `/models/${id}.glb?v=${cacheBust}`}
             camera-controls
+            camera-orbit="0deg 90deg auto"
             interaction-prompt="none"
             disable-tap
             environment-image="neutral"
