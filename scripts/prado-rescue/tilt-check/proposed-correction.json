@@ -1,0 +1,306 @@
+{
+  "CW001": {
+    "id": "CW001",
+    "old": {
+      "x": 99.6,
+      "y": -83.9,
+      "z": -99.7
+    },
+    "new": {
+      "x": 102.5,
+      "y": -85.3,
+      "z": -102.6
+    },
+    "tiltX_before": -1.41,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": 0.02
+  },
+  "CW006": {
+    "id": "CW006",
+    "old": {
+      "x": 38.8,
+      "y": -83.7,
+      "z": -38.5
+    },
+    "new": {
+      "x": -0.9,
+      "y": -85.1,
+      "z": 1.1
+    },
+    "tiltX_before": -4.02,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": -0.003
+  },
+  "CW007": {
+    "id": "CW007",
+    "old": {
+      "x": 90,
+      "y": -75,
+      "z": -90
+    },
+    "new": {
+      "x": -90,
+      "y": -88.8,
+      "z": 90
+    },
+    "tiltX_before": -16.18,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": 0.021
+  },
+  "CW008": {
+    "id": "CW008",
+    "old": {
+      "x": 90,
+      "y": -83,
+      "z": -90
+    },
+    "new": {
+      "x": -90,
+      "y": -89.9,
+      "z": 90
+    },
+    "tiltX_before": -7.11,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": -0.014
+  },
+  "CW014": {
+    "id": "CW014",
+    "old": {
+      "x": 54.4,
+      "y": -81.4,
+      "z": -54
+    },
+    "new": {
+      "x": 2.3,
+      "y": -85,
+      "z": -2.2
+    },
+    "tiltX_before": -6.78,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": 0.001
+  },
+  "CW016": {
+    "id": "CW016",
+    "old": {
+      "x": 106.1,
+      "y": -82.7,
+      "z": -106.2
+    },
+    "new": {
+      "x": -179.9,
+      "y": -88,
+      "z": 179.9
+    },
+    "tiltX_before": -7.02,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": 0
+  },
+  "CW017": {
+    "id": "CW017",
+    "old": {
+      "x": 85.4,
+      "y": -78,
+      "z": -85.2
+    },
+    "new": {
+      "x": 0.6,
+      "y": -89,
+      "z": -0.5
+    },
+    "tiltX_before": -11.95,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": 0
+  },
+  "CW021": {
+    "id": "CW021",
+    "old": {
+      "x": 71.9,
+      "y": -29.7,
+      "z": -41.9
+    },
+    "new": {
+      "x": 71.4,
+      "y": -30.1,
+      "z": -41.6
+    },
+    "tiltX_before": -0.61,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": -0.026
+  },
+  "CW022": {
+    "id": "CW022",
+    "old": {
+      "x": 68.3,
+      "y": -84.6,
+      "z": -68.1
+    },
+    "new": {
+      "x": 26.2,
+      "y": -87.8,
+      "z": -26.1
+    },
+    "tiltX_before": -4.03,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": 0.018
+  },
+  "CW023": {
+    "id": "CW023",
+    "old": {
+      "x": 63,
+      "y": -85.5,
+      "z": -62.9
+    },
+    "new": {
+      "x": 1.5,
+      "y": -88,
+      "z": -1.5
+    },
+    "tiltX_before": -3.96,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": 0.001
+  },
+  "CW024": {
+    "id": "CW024",
+    "old": {
+      "x": 85.2,
+      "y": -78,
+      "z": -85.2
+    },
+    "new": {
+      "x": -36.5,
+      "y": -88.8,
+      "z": 36.4
+    },
+    "tiltX_before": -12.69,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": -0.023
+  },
+  "CW025": {
+    "id": "CW025",
+    "old": {
+      "x": 90,
+      "y": -83,
+      "z": -90
+    },
+    "new": {
+      "x": 90,
+      "y": -84.9,
+      "z": -90
+    },
+    "tiltX_before": -1.92,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": -0.023
+  },
+  "CW027": {
+    "id": "CW027",
+    "old": {
+      "x": 111.6,
+      "y": -79.2,
+      "z": -112
+    },
+    "new": {
+      "x": -178.1,
+      "y": -86,
+      "z": 178
+    },
+    "tiltX_before": -10.17,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": -0.002
+  },
+  "CW029": {
+    "id": "CW029",
+    "old": {
+      "x": 82.6,
+      "y": -74.9,
+      "z": -82.3
+    },
+    "new": {
+      "x": 66.8,
+      "y": -84.9,
+      "z": -66.7
+    },
+    "tiltX_before": -10.32,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": -0.036
+  },
+  "CW030": {
+    "id": "CW030",
+    "old": {
+      "x": 63.8,
+      "y": -76.6,
+      "z": -63.1
+    },
+    "new": {
+      "x": -4.3,
+      "y": -84,
+      "z": 4.4
+    },
+    "tiltX_before": -12.45,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": -0.009
+  },
+  "CW031": {
+    "id": "CW031",
+    "old": {
+      "x": 90,
+      "y": -80,
+      "z": -90
+    },
+    "new": {
+      "x": -90,
+      "y": -89.8,
+      "z": 90
+    },
+    "tiltX_before": -10.16,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": 0.037
+  },
+  "CW033": {
+    "id": "CW033",
+    "old": {
+      "x": 97,
+      "y": -79.9,
+      "z": -96.2
+    },
+    "new": {
+      "x": -149.4,
+      "y": -88.8,
+      "z": 150.3
+    },
+    "tiltX_before": -10.66,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": -0.025
+  },
+  "CW034": {
+    "id": "CW034",
+    "old": {
+      "x": 36.8,
+      "y": -85,
+      "z": -36.7
+    },
+    "new": {
+      "x": -3.1,
+      "y": -86,
+      "z": 3.1
+    },
+    "tiltX_before": -3.21,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": -0.003
+  },
+  "CW036": {
+    "id": "CW036",
+    "old": {
+      "x": 56.5,
+      "y": -79.1,
+      "z": -55.8
+    },
+    "new": {
+      "x": -7.8,
+      "y": -83.8,
+      "z": 7.9
+    },
+    "tiltX_before": -9.9,
+    "tiltX_after": 0,
+    "tiltX_roundtrip": 0.011
+  }
+}

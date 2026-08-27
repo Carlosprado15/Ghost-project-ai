@@ -36,3 +36,7 @@ scripts/normalize-glb/prepared/
 
 # worktrees temporarios de subagentes
 .claude/worktrees/
+
+# AR LAB (prado-rescue) — evidências de diagnóstico (screenshots, vídeos, logcat) são locais,
+# grandes e específicas do aparelho/sessão; não fazem parte do código-fonte.
+docs/prado-rescue/evidence/
