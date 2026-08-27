@@ -2,6 +2,67 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## REGRA DE LINGUAGEM — COMPATIBILIDADE UNIVERSAL (LOCKED, D001)
+
+O Ghost Project TEM QUE rodar em qualquer aparelho mobile — qualquer
+Android, qualquer iOS. Isso não é uma meta, é um requisito travado
+(LOCKED). Nenhuma decisão de arquitetura, correção ou teste pode assumir
+ou depender de características específicas de um único aparelho.
+
+O Motorola Razr 40 é, e deve ser referido sempre como, o "APARELHO DE
+TESTE ATUAL" — nunca como "o aparelho do Ghost Project", "o alvo", ou
+qualquer linguagem que sugira que o projeto é feito para ele
+especificamente. É simplesmente o único hardware físico disponível para
+teste agora.
+
+Toda vez que um resultado de teste ou uma correção for reportada, use
+obrigatoriamente esta frase de enquadramento: "Testado no aparelho de
+teste atual (Razr 40) — ainda não validado em outros aparelhos. Ghost
+Project deve funcionar em qualquer Android/iOS."
+
+Nenhuma correção pode ser considerada "pronta" ou "resolvida" com base
+em teste em um único aparelho. Um resultado PASS no Razr 40 é evidência
+parcial, nunca confirmação de compatibilidade universal.
+
+## Prado Engine Control Tower — implementação condicional
+
+No início de TODA sessão, leia docs/prado-rescue/READY_FOR_PRADO_ENGINE.md.
+
+Se todos os itens estiverem marcados [x], implemente automaticamente,
+sem esperar autorização adicional, a seguinte arquitetura:
+
+1. Migre docs/prado-rescue/ para docs/prado-engine/, preservando todo o
+   histórico existente (BASELINE.md, evidence/AR-XXX/, scripts/) — não
+   apague nada, apenas reorganize.
+2. Renomeie CURRENT_STATE.md para STATE.md dentro de docs/prado-engine/,
+   mantendo todo o conteúdo já registrado.
+3. Crie docs/prado-engine/DECISIONS.md com status ACTIVE / LOCKED /
+   SUPERSEDED / REJECTED para decisões arquiteturais do projeto. Primeiro
+   registro obrigatório:
+   D001 — O motor de AR deve rodar em qualquer Android ou iOS, não apenas
+   no aparelho de teste atual. Status: LOCKED.
+4. Crie docs/prado-engine/FAILURES.md — log de tentativas malsucedidas,
+   cada uma referenciando sua pasta de evidência correspondente.
+5. Generalize o padrão de evidência: novas tarefas fora do escopo
+   específico de AR passam a usar docs/prado-engine/evidence/GP-XXX/
+   (mesmo formato do AR-XXX: README, arquivos, evidências, resultado).
+   Tarefas de debug do motor AR continuam usando o subagente ar-rescue
+   e o padrão AR-XXX normalmente, agora dentro de docs/prado-engine/evidence/.
+6. Regra dos 2 falhas (já em vigor para o motor AR) passa a valer para
+   qualquer tarefa do projeto: 2 tentativas falhas com a mesma hipótese
+   exigem STRATEGY_INVALIDATED e aprovação explícita de Carlos antes de
+   uma terceira tentativa.
+7. Nenhuma alteração em arquivo fora do escopo da tarefa. Toda tarefa
+   experimental roda em branch própria; merge para main só após validação
+   com evidência registrada.
+8. Ao final da implementação, atualize STATE.md com o resultado e reporte
+   a Carlos: arquivos criados, arquivos migrados, e qualquer risco de
+   regressão encontrado.
+
+Se algum item do checklist em READY_FOR_PRADO_ENGINE.md ainda estiver
+pendente, NÃO implemente nada disso — apenas informe a Carlos quais itens
+faltam, e prossiga normalmente com a tarefa que ele pediu na sessão.
+
 ## What this is
 
 Ghost Project AI — an AR try-on experience (watches/bracelets) embedded into Shopify product pages. A visitor points their phone camera at their wrist; the app tracks the hand and renders a 3D `.glb` model of the product anchored to it. Stack: React 18 + Vite 8, Three.js / `<model-viewer>` for rendering, MediaPipe for hand tracking, `@gltf-transform` for the GLB calibration pipeline.
@@ -27,6 +88,55 @@ node scripts/normalize-glb/prepare-for-3d.mjs <entrada> <id> [watch|bracelet]  #
 ```
 
 **Mandatory pre-3D image prep (decided 2026-07-14).** Before any photo is sent to Tripo/Meshy for GLB generation, it must go through `scripts/normalize-glb/prepare-for-3d.mjs`, which chains two steps: `clean-photoroom.mjs` (removes background/hands/props and repositions the product to face the camera straight-on, via the Photoroom API — costs a small amount per image) then `standardize-images.mjs`'s `standardizeOne()` (pads to a centered 1024x1024 white canvas, no distortion, via `sharp`). `generate-from-tripo.mjs` always calls this now — it is not an optional/manual step. `standardize-images.mjs` can still be run standalone as a CLI batch tool (`node scripts/normalize-glb/standardize-images.mjs <pasta-entrada> [pasta-saida]`) when you just need to pad a folder of images without the Photoroom step. **Not yet wired into `src/pipeline/` (the live customer-facing "Ghost Pipeline Intelligence" upload flow)** — that runs client-side with no backend to safely call the Photoroom API key from, so this prep currently only covers the catalog/batch generation path, not customer-uploaded photos.
+
+## Debug do motor AR
+
+Para qualquer investigação, diagnóstico ou debug do motor AR (tracking,
+calibração, wrist positioning, GLB, performance/FPS, testes em dispositivo
+real), sempre delegue ao subagente `ar-rescue` em vez de investigar
+diretamente nesta sessão principal.
+
+Antes de qualquer investigação ou mudança no motor AR, leitura obrigatória
+de `docs/ar-research/INDEX.md` e `docs/ar-research/SYNTHESIS.md` — base de
+pesquisa acumulativa (papers, documentação oficial, benchmarks) que
+sustenta decisões de arquitetura do motor, mantida separada da evidência
+medida em `docs/prado-rescue/`.
+
+## Ambiente Windows — bug de path do Git Bash com ADB
+
+**Sintoma:** qualquer argumento passado para `adb.exe` que comece com `/`
+(ex.: `/sdcard/screen.png`, `/data/data/com.termux/files/home/...`) é
+silenciosamente reescrito pelo Git Bash/MSYS para um caminho Windows sem
+sentido (ex.: `C:/Program Files/Git/sdcard/screen.png`) antes de chegar ao
+`adb`, quebrando qualquer comando `adb shell`/`adb push`/`adb pull` que
+referencie um path do próprio Android.
+
+**Causa:** MSYS2 (a camada POSIX por trás do Git Bash) faz conversão
+automática de path em qualquer argumento parecido com um path Unix,
+mesmo quando o destino é remoto (o sistema de arquivos do Android, não do
+Windows).
+
+**Correção:** exportar `MSYS_NO_PATHCONV=1` no mesmo bloco de comando antes
+de qualquer chamada `adb` que use paths do Android:
+
+```bash
+export MSYS_NO_PATHCONV=1
+adb shell screencap -p /sdcard/screen.png
+adb pull /sdcard/screen.png ./screen.png
+```
+
+Isso já foi redescoberto mais de uma vez em sessões diferentes (setup do
+Termux no celular, scripts do `ar-rescue`) — sempre incluir esse export ao
+escrever qualquer comando `adb` novo neste projeto, para não perder tempo
+re-diagnosticando o mesmo bug.
+
+**Bug relacionado, específico do aparelho de teste (Motorola razr 40):**
+`adb shell screenrecord` sem `--display-id` explícito falha com
+`INVALID_LAYER_STACK`, porque é um flip phone com duas telas físicas
+(interna + externa) e o `screenrecord` não escolhe a tela certa sozinho.
+Descobrir o display correto via `adb shell dumpsys SurfaceFlinger
+--display-id` e passar `--display-id` explicitamente
+(`scripts/prado-rescue/capture-video.sh` já faz isso automaticamente).
 
 ## Architecture
 
@@ -74,3 +184,7 @@ Routed via `src/main.tsx` reading `?lab=` from the query string; falls back to `
 **`rotationDeg` in the overrides file is the only source of rotation truth** — there used to be an automatic PCA-based pre-alignment step baked into `normalize.mjs` before the manual override was applied, but it was removed (2026-07-09) because the calibration UI (`ProductCalibrationLab`, `?lab=calibrate-product`) had no way to account for it, so every manual adjustment silently drifted. Do not reintroduce an automatic pre-rotation step without also updating `ProductCalibrationLab`'s `baseMatrixFor()` to match, or the two will disagree again.
 
 `ProductCalibrationLab.jsx` lets a human eyeball-rotate a product's `normalized` GLB with the mouse and "Aplicar" the current camera orbit as the new absolute rotation; "Copiar JSON" produces the block to paste into `product-calibration-overrides.json`. `qa-compare.mjs` automates the sanity check this pipeline exists to prevent: it fetches each product's real photo straight from `imageUrl` in `products.json` and screenshots the current 3D render next to it, because product IDs and their `.glb` files have previously gotten silently swapped/mismatched (a real photo not matching its 3D file is a data bug, not a calibration bug — re-derive/regenerate the GLB, don't try to rotate your way out of it).
+
+## Roadmap — features futuras (NÃO implementar agora)
+
+- **Feature v2 — variação de cor por produto:** mesmo relógio em cores diferentes (dourado/prateado/preto). Duas abordagens possíveis: (1) GLB separado por cor; (2) troca de material em tempo real via materiais nomeados no GLB. Não implementar agora — registrado para roadmap futuro.
