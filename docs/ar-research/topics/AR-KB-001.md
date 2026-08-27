@@ -80,11 +80,11 @@ EVIDÊNCIA:
 - LandmarksSmoothingCalculatorOptions: 3 modos expostos na API interna
 
 FONTES:
-- https://gery.casiez.net/publications/CHI2012-casiez.pdf
-- https://dl.acm.org/doi/10.1145/2207676.2208639
-- https://fossies.org/dox/mediapipe-0.10.26/classmediapipe_1_1landmarks__smoothing_1_1OneEuroFilter.html
-- https://developers.google.com/mediapipe/api/solutions/python/mp/calculators/util/landmarks_smoothing_calculator_pb2/LandmarksSmoothingCalculatorOptions
-- https://gery.casiez.net/1euro/
+- [PAPER] https://gery.casiez.net/publications/CHI2012-casiez.pdf
+- [PAPER] https://dl.acm.org/doi/10.1145/2207676.2208639
+- [COMUNIDADE] https://fossies.org/dox/mediapipe-0.10.26/classmediapipe_1_1landmarks__smoothing_1_1OneEuroFilter.html (mirror de terceiro, não é domínio do mantenedor — usar só como complemento, não sozinho)
+- [OFICIAL] https://developers.google.com/mediapipe/api/solutions/python/mp/calculators/util/landmarks_smoothing_calculator_pb2/LandmarksSmoothingCalculatorOptions
+- [OFICIAL] https://gery.casiez.net/1euro/
 
 APLICAÇÃO AO GHOST:
 - `src/engine/core/filters/OneEuroFilter.js` — escolha correta, não trocar.

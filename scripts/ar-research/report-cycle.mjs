@@ -1,14 +1,19 @@
 #!/usr/bin/env node
 // Helper compartilhado por cycle.sh e cycle.bat — lê o JSON de resposta do
-// `claude --output-format json` via stdin, imprime o texto legível (campo
-// "result") pro log do ciclo, e grava uma linha em docs/ar-research/CUSTOS.md
-// com data | QR respondida | duração | custo — todos valores reais
-// reportados pela própria API (total_cost_usd, duration_ms), não estimativa.
+// `claude --output-format json` via stdin e imprime o texto legível (campo
+// "result") pro log do ciclo.
 //
-// Uso: node report-cycle.mjs <queue-antes.md> <queue-depois.md> <custos.md> < raw.json
-import { readFileSync, appendFileSync } from 'node:fs';
+// NÃO adivinha qual QR foi respondida (isso já foi tentado por diff de
+// posição de linha no QUEUE.md e é frágil — removido). O próprio ciclo,
+// como última ação do seu prompt, já grava em docs/ar-research/CUSTOS.md
+// uma linha com o identificador real e "PENDENTE" no lugar de duração e
+// custo. Este script só ENCONTRA a última linha PENDENTE e a completa com
+// os valores reais (duration_ms, total_cost_usd) da resposta da API.
+//
+// Uso: node report-cycle.mjs <custos.md> < raw.json
+import { readFileSync, writeFileSync } from 'node:fs';
 
-const [, , queueBeforePath, queueAfterPath, custosPath] = process.argv;
+const [, , custosPath] = process.argv;
 
 let raw = '';
 process.stdin.on('data', (c) => (raw += c));
@@ -27,18 +32,21 @@ process.stdin.on('end', () => {
   const costUsd = j.total_cost_usd != null ? j.total_cost_usd.toFixed(4) : 'desconhecido';
   const durationS = j.duration_ms != null ? Math.round(j.duration_ms / 1000) : '?';
 
-  let qr = 'nenhuma';
-  try {
-    const before = readFileSync(queueBeforePath, 'utf-8').split('\n');
-    const after = readFileSync(queueAfterPath, 'utf-8').split('\n');
-    for (let i = 0; i < after.length; i++) {
-      if (after[i] !== before[i]) {
-        const m = after[i].match(/QR-\d+/);
-        if (m) { qr = m[0]; break; }
-      }
+  const lines = readFileSync(custosPath, 'utf-8').split('\n');
+  let completed = false;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].includes('| PENDENTE | PENDENTE |')) {
+      lines[i] = lines[i].replace('| PENDENTE | PENDENTE |', `| ${durationS}s | \$${costUsd} |`);
+      completed = true;
+      break;
     }
-  } catch { /* sem snapshot antes — deixa "nenhuma" */ }
-
-  const date = new Date().toISOString().slice(0, 10);
-  appendFileSync(custosPath, `| ${date} | ${qr} | ${durationS}s | \$${costUsd} |\n`, 'utf-8');
+  }
+  if (!completed) {
+    process.stdout.write(
+      '[report-cycle] AVISO: nenhuma linha PENDENTE encontrada em CUSTOS.md — o ciclo não gravou a linha esperada como última ação. Custo real desta execução: $' +
+        costUsd + ', duração: ' + durationS + 's (não registrado no arquivo).\n'
+    );
+  } else {
+    writeFileSync(custosPath, lines.join('\n'), 'utf-8');
+  }
 });

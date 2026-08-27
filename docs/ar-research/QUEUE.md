@@ -13,6 +13,23 @@ Cada ciclo (`scripts/ar-research/cycle.sh`/`.bat`) pega a pergunta ABERTA de
 maior prioridade (P0 antes de P1 antes de P2; dentro da mesma prioridade,
 ordem de listagem), responde, e marca o status aqui.
 
+## CONGELAMENTO P1/P2 (2026-08-27) — motivo: custo real ~$1/ciclo, orçamento apertado até o lançamento
+
+Todas as perguntas P1 e P2 estão marcadas `CONGELADA-POS-LANCAMENTO` — os
+ciclos não pegam nenhuma delas até serem reabertas manualmente. Só P0 roda
+por enquanto (ver prompt de `cycle.sh`/`cycle.bat`, que já reforça isso).
+
+**Custo médio medido por ciclo:** $0,99 (média de 2 ciclos reais medidos sob
+o sistema de custo: $0,8870 e $1,0831 — a amostra é pequena, revisar depois
+de mais ciclos).
+
+**P0 abertas hoje: 14.** Estimativa pra terminar essas 14: **~$12 a ~$15**
+(14 × custo médio, faixa cobrindo os dois valores medidos). **Ressalva
+importante:** essa conta cobre só as 14 perguntas que já existem agora —
+cada tópico respondido até agora gerou 2 a 3 perguntas P0 novas (AR-KB-001
+gerou 2, AR-KB-002 gerou 2, AR-KB-003 gerou 3), então o número real de
+ciclos pra "esgotar" P0 tende a ser maior que 14, não um teto fixo.
+
 ---
 
 ## P0 — desbloqueia o lançamento com pulso
@@ -30,39 +47,39 @@ ordem de listagem), responde, e marca o status aqui.
 
 ## P1 — camada transversal, serve para qualquer alvo
 
-- QR-011 [P1][C][ABERTA] Detection versus tracking: por que detectores por frame geram jitter e quais arquiteturas resolvem isso
-- QR-012 [P1][D][ABERTA] Pose estimation a partir de landmarks 2D mais profundidade relativa: PnP, algoritmos e requisitos de calibração
-- QR-013 [P1][G][ABERTA] Calibração intrínseca de câmera em navegador: o que dá para obter sem calibração manual e qual erro isso introduz
-- QR-014 [P1][H][ABERTA] Sistemas de coordenadas em AR web: handedness, espelhamento de câmera frontal, viewport, e as inversões que mais causam bug
-- QR-015 [P1][F][ABERTA] Filtragem adaptativa por velocidade: como evitar arrasto em movimento rápido sem perder estabilidade em repouso
-- QR-016 [P1][J][ABERTA] Spatial anchoring: o que diferencia âncora real de simples reposicionamento por frame
-- QR-017 [P1][E][ABERTA] Métricas objetivas de tracking: detection rate, continuity, loss rate, recovery time, jitter — definições e como medir
-- QR-018 [P1][N][ABERTA] Orçamento de desempenho para AR web mobile: divisão típica entre inferência, render e composição
-- QR-019 [P1][O][ABERTA] Variação entre aparelhos Android: FOV, resolução, rolling shutter, capacidade de ML — o que quebra um motor que só foi testado em um aparelho
-- QR-020 [P1][M][ABERTA] Composição de vídeo de câmera com WebGL sem perda de sincronia entre frame e pose
-- QR-021 [P1][I][ABERTA] Ordem correta de transformações translação, rotação, escala em anexo de objeto a um alvo em movimento
-- QR-022 [P1][N][ABERTA] WebGPU em navegador Android e iOS em 2026: cobertura real e ganho medido versus WebGL para inferência de visão
-- QR-023 [P1][B][ABERTA] Alternativas ao MediaPipe para inferência de visão em web mobile: ONNX Runtime Web, TensorFlow.js, WebNN — maturidade e custo
-- QR-024 [P1][G][ABERTA] Calibração automática de orientação de modelo 3D: existe método robusto para GLB de origem arbitrária
-- QR-025 [P1][P][ABERTA] Sinais de UX que fazem um AR parecer estável mesmo com erro residual: sombra, contato, resposta a movimento
+- QR-011 [P1][C][CONGELADA-POS-LANCAMENTO] Detection versus tracking: por que detectores por frame geram jitter e quais arquiteturas resolvem isso
+- QR-012 [P1][D][CONGELADA-POS-LANCAMENTO] Pose estimation a partir de landmarks 2D mais profundidade relativa: PnP, algoritmos e requisitos de calibração
+- QR-013 [P1][G][CONGELADA-POS-LANCAMENTO] Calibração intrínseca de câmera em navegador: o que dá para obter sem calibração manual e qual erro isso introduz
+- QR-014 [P1][H][CONGELADA-POS-LANCAMENTO] Sistemas de coordenadas em AR web: handedness, espelhamento de câmera frontal, viewport, e as inversões que mais causam bug
+- QR-015 [P1][F][CONGELADA-POS-LANCAMENTO] Filtragem adaptativa por velocidade: como evitar arrasto em movimento rápido sem perder estabilidade em repouso
+- QR-016 [P1][J][CONGELADA-POS-LANCAMENTO] Spatial anchoring: o que diferencia âncora real de simples reposicionamento por frame
+- QR-017 [P1][E][CONGELADA-POS-LANCAMENTO] Métricas objetivas de tracking: detection rate, continuity, loss rate, recovery time, jitter — definições e como medir
+- QR-018 [P1][N][CONGELADA-POS-LANCAMENTO] Orçamento de desempenho para AR web mobile: divisão típica entre inferência, render e composição
+- QR-019 [P1][O][CONGELADA-POS-LANCAMENTO] Variação entre aparelhos Android: FOV, resolução, rolling shutter, capacidade de ML — o que quebra um motor que só foi testado em um aparelho
+- QR-020 [P1][M][CONGELADA-POS-LANCAMENTO] Composição de vídeo de câmera com WebGL sem perda de sincronia entre frame e pose
+- QR-021 [P1][I][CONGELADA-POS-LANCAMENTO] Ordem correta de transformações translação, rotação, escala em anexo de objeto a um alvo em movimento
+- QR-022 [P1][N][CONGELADA-POS-LANCAMENTO] WebGPU em navegador Android e iOS em 2026: cobertura real e ganho medido versus WebGL para inferência de visão
+- QR-023 [P1][B][CONGELADA-POS-LANCAMENTO] Alternativas ao MediaPipe para inferência de visão em web mobile: ONNX Runtime Web, TensorFlow.js, WebNN — maturidade e custo
+- QR-024 [P1][G][CONGELADA-POS-LANCAMENTO] Calibração automática de orientação de modelo 3D: existe método robusto para GLB de origem arbitrária
+- QR-025 [P1][P][CONGELADA-POS-LANCAMENTO] Sinais de UX que fazem um AR parecer estável mesmo com erro residual: sombra, contato, resposta a movimento
 
 ## P2 — expansão corpo e ambiente
 
-- QR-026 [P2][C][ABERTA] Body tracking em web mobile: MediaPipe Pose, BlazePose e concorrentes — precisão e custo
-- QR-027 [P2][C][ABERTA] Face e head tracking para óculos: requisitos diferentes de precisão em relação a pulso
-- QR-028 [P2][D][ABERTA] Anéis e dedos: por que tracking de dedo é mais difícil que pulso e o que a literatura propõe
-- QR-029 [P2][K][ABERTA] Depth estimation monocular em mobile: modelos disponíveis, latência e qualidade suficiente para oclusão
-- QR-030 [P2][L][ABERTA] Oclusão em web mobile sem LiDAR: o que é possível hoje de fato, com segmentação de pessoa e mapa de profundidade
-- QR-031 [P2][J][ABERTA] SLAM e odometria visual-inercial no navegador: WebXR, o que existe e o que não existe
-- QR-032 [P2][J][ABERTA] Colocação de móveis em ambiente via WebXR hit-test: cobertura por plataforma e limitações no iOS
-- QR-033 [P2][G][ABERTA] Medição corporal a partir de câmera única: precisão alcançável, para viabilizar o conceito de passaporte espacial
-- QR-034 [P2][I][ABERTA] Escala física real em ambiente: como obter metro verdadeiro sem marcador e sem LiDAR
-- QR-035 [P2][A][ABERTA] ARKit e ARCore acessíveis via navegador: o que realmente passa para a web e o que exige app nativo
-- QR-036 [P2][L][ABERTA] Segmentação de pessoa em tempo real na web: modelos, latência e qualidade de borda
-- QR-037 [P2][M][ABERTA] Iluminação estimada e sombra de contato: quanto isso aumenta a percepção de realismo, com evidência
-- QR-038 [P2][N][ABERTA] Arquitetura modular de motor AR: como projetar para trocar detector, tracker, filtro e renderizador sem quebrar o resto
-- QR-039 [P2][O][ABERTA] Motores comerciais de AR try-on: quais camadas eles resolvem e onde estão os limites públicos deles
-- QR-040 [P2][K][ABERTA] Fusão de sensores inerciais do aparelho com tracking visual no navegador: DeviceMotion é utilizável na prática
+- QR-026 [P2][C][CONGELADA-POS-LANCAMENTO] Body tracking em web mobile: MediaPipe Pose, BlazePose e concorrentes — precisão e custo
+- QR-027 [P2][C][CONGELADA-POS-LANCAMENTO] Face e head tracking para óculos: requisitos diferentes de precisão em relação a pulso
+- QR-028 [P2][D][CONGELADA-POS-LANCAMENTO] Anéis e dedos: por que tracking de dedo é mais difícil que pulso e o que a literatura propõe
+- QR-029 [P2][K][CONGELADA-POS-LANCAMENTO] Depth estimation monocular em mobile: modelos disponíveis, latência e qualidade suficiente para oclusão
+- QR-030 [P2][L][CONGELADA-POS-LANCAMENTO] Oclusão em web mobile sem LiDAR: o que é possível hoje de fato, com segmentação de pessoa e mapa de profundidade
+- QR-031 [P2][J][CONGELADA-POS-LANCAMENTO] SLAM e odometria visual-inercial no navegador: WebXR, o que existe e o que não existe
+- QR-032 [P2][J][CONGELADA-POS-LANCAMENTO] Colocação de móveis em ambiente via WebXR hit-test: cobertura por plataforma e limitações no iOS
+- QR-033 [P2][G][CONGELADA-POS-LANCAMENTO] Medição corporal a partir de câmera única: precisão alcançável, para viabilizar o conceito de passaporte espacial
+- QR-034 [P2][I][CONGELADA-POS-LANCAMENTO] Escala física real em ambiente: como obter metro verdadeiro sem marcador e sem LiDAR
+- QR-035 [P2][A][CONGELADA-POS-LANCAMENTO] ARKit e ARCore acessíveis via navegador: o que realmente passa para a web e o que exige app nativo
+- QR-036 [P2][L][CONGELADA-POS-LANCAMENTO] Segmentação de pessoa em tempo real na web: modelos, latência e qualidade de borda
+- QR-037 [P2][M][CONGELADA-POS-LANCAMENTO] Iluminação estimada e sombra de contato: quanto isso aumenta a percepção de realismo, com evidência
+- QR-038 [P2][N][CONGELADA-POS-LANCAMENTO] Arquitetura modular de motor AR: como projetar para trocar detector, tracker, filtro e renderizador sem quebrar o resto
+- QR-039 [P2][O][CONGELADA-POS-LANCAMENTO] Motores comerciais de AR try-on: quais camadas eles resolvem e onde estão os limites públicos deles
+- QR-040 [P2][K][CONGELADA-POS-LANCAMENTO] Fusão de sensores inerciais do aparelho com tracking visual no navegador: DeviceMotion é utilizável na prática
 
 ---
 
@@ -72,7 +89,7 @@ Geradas por AR-KB-001:
 
 - QR-041 [P0][F][ABERTA] O @mediapipe/tasks-vision WASM aplica OneEuroFilter internamente antes de exportar worldLandmarks? Se sim, com quais parâmetros?
 - QR-042 [P0][F][ABERTA] Com dupla suavização (WASM interno + OneEuroFilter.js), qual é o lag real medido no aparelho de teste vs. sem o filtro JS?
-- QR-043 [P1][E][ABERTA] Como integrar o score de confiança do HandLandmarker ao holdLastPose de forma gradual (não binária) sem introduzir drift?
+- QR-043 [P1][E][CONGELADA-POS-LANCAMENTO] Como integrar o score de confiança do HandLandmarker ao holdLastPose de forma gradual (não binária) sem introduzir drift?
 
 Geradas por AR-KB-003:
 

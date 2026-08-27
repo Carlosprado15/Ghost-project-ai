@@ -72,7 +72,7 @@ PERGUNTA:
 RESPOSTA EM 3 LINHAS:
 DETALHAMENTO TÉCNICO: (máx 40 linhas, com a matemática quando houver)
 EVIDÊNCIA: (número, benchmark, paper, medição — não opinião)
-FONTES: (URLs completas)
+FONTES: (URLs completas, cada uma rotulada [OFICIAL]/[PAPER]/[COMUNIDADE]/[BLOG] — ver critério abaixo)
 APLICAÇÃO AO GHOST: (o que isso muda no motor, em termos concretos)
 VEREDITO: COMPROVADO / PROVAVEL / HIPOTESE / DESCONHECIDO
 CUSTO DE ADOÇÃO: BAIXO / MÉDIO / ALTO
@@ -89,6 +89,22 @@ Regras do template:
   isso".
 - `NOVAS PERGUNTAS GERADAS` alimenta `QUEUE.md` — todo tópico tende a abrir
   mais perguntas do que fecha; isso é esperado, é o motivo da fila ser viva.
+
+## Critério de fonte (obrigatório, resolve ambiguidade de "oficial")
+
+**OFICIAL** = domínio controlado pelo criador ou mantenedor da tecnologia
+citada (ex.: `developers.google.com` para MediaPipe, `khronos.org` para
+WebGL/glTF), ou paper publicado com revisão. **Estar no GitHub NÃO torna um
+repositório oficial.** Um port, wrapper, fork ou reimplementação feita por
+terceiro é **COMUNIDADE**, nunca OFICIAL — mesmo que seja bom, popular ou
+tecnicamente correto.
+
+Toda fonte em `FONTES:` deve vir rotulada com um destes quatro:
+`[OFICIAL]` `[PAPER]` `[COMUNIDADE]` `[BLOG]`.
+
+**Nenhuma alegação com veredito COMPROVADO pode se apoiar apenas em fonte
+`[COMUNIDADE]` ou `[BLOG]`** — precisa de pelo menos uma `[OFICIAL]` ou
+`[PAPER]` por trás, ou o veredito cai pra PROVAVEL/HIPOTESE.
 
 ## Registro de tópicos concluídos
 

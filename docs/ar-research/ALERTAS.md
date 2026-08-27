@@ -36,6 +36,20 @@ ciclo "produziu algo" — silêncio é o padrão, alerta é a exceção.
 
 ---
 
+## [2026-08-27] [ALTO] rotZ sem unwrap (alerta anterior) já corrigido em branch não mesclada
+ORIGEM: AR-KB-002 — atualização por verificação do ar-rescue (leitura, git show)
+O QUE É: o D4 (commit 9d1d523, branch fix/d1-d2-d4-estabilizacao) já implementa
+  _unwrapRotZ() e corrige exatamente este ponto; ghost-engine-v1 (branch de
+  trabalho normal) segue com o bug, porque o fix nunca foi mesclado pra lá.
+POR QUE IMPORTA PARA O GHOST: o alerta CRITICO anterior sugeria "implementar" algo
+  que já existe pronto em outro branch — a ação certa é mesclar/portar, não recriar.
+AÇÃO SUGERIDA: portar _unwrapRotZ() de fix/d1-d2-d4-estabilizacao pra
+  ghost-engine-v1; a correção em si nunca foi testada fisicamente girando o
+  pulso pela fronteira ±180° em aparelho real — testar antes de dar como resolvido.
+VEREDITO: COMPROVADO (fix existe e resolve o ponto) / HIPOTESE (funciona em campo)
+
+---
+
 ## [2026-08-27] [ALTO] detectForVideo() bloqueia main thread — solução documentada (Web Worker)
 ORIGEM: AR-KB-003
 O QUE É: detectForVideo() é síncrono por design; a doc oficial recomenda Web Workers;

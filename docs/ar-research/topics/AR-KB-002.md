@@ -92,12 +92,12 @@ EVIDÊNCIA:
     / dt sem normalização angular — confirma que recebe o delta cru.
 
 FONTES:
-  - https://theorangeduck.com/page/unrolling-rotations | blog-tecnico
-  - https://www.mathworks.com/help/nav/ug/lowpass-filter-orientation-using-quaternion-slerp.html | doc-oficial
-  - https://github.com/DarioMazzanti/OneEuroFilterUnity | repo-oficial
-  - src/engine/core/GhostEngine.js:154 (código do projeto)
-  - src/engine/core/anchor/wristAnchor.js:75 (código do projeto)
-  - src/engine/core/filters/OneEuroFilter.js:27 (código do projeto)
+  - [BLOG] https://theorangeduck.com/page/unrolling-rotations
+  - [OFICIAL] https://www.mathworks.com/help/nav/ug/lowpass-filter-orientation-using-quaternion-slerp.html
+  - [COMUNIDADE] https://github.com/DarioMazzanti/OneEuroFilterUnity (port de terceiro pra Unity, não é do autor do 1€ nem oficial de nada)
+  - src/engine/core/GhostEngine.js:154 (código do projeto — primário, verificado)
+  - src/engine/core/anchor/wristAnchor.js:75 (código do projeto — primário, verificado)
+  - src/engine/core/filters/OneEuroFilter.js:27 (código do projeto — primário, verificado)
 
 APLICAÇÃO AO GHOST:
   GhostEngine.js:154 faz f.rotZ.filter(anchor.rotZ, ts) sem unwrapping.
