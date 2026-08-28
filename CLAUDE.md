@@ -101,6 +101,8 @@ de `docs/ar-research/INDEX.md` e `docs/ar-research/SYNTHESIS.md` — base de
 pesquisa acumulativa (papers, documentação oficial, benchmarks) que
 sustenta decisões de arquitetura do motor, mantida separada da evidência
 medida em `docs/prado-rescue/`.
+- Consultar também docs/ar-research/EXPERTS.md para abordagens de
+especialistas relevantes ao problema em investigação.
 
 ## Ambiente Windows — bug de path do Git Bash com ADB
 
