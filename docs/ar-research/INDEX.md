@@ -113,3 +113,4 @@ Toda fonte em `FONTES:` deve vir rotulada com um destes quatro:
 | [AR-KB-001](topics/AR-KB-001.md) | F | 1€ vs Kalman vs conf-weighted para landmark de pulso: tradeoff com números | COMPROVADO / PROVAVEL | PULSO / CORPO / AMBIENTE |
 | [AR-KB-002](topics/AR-KB-002.md) | F / D | Wrap-around ±180° em filtro temporal: angle unwrapping e quaternion double cover | COMPROVADO | PULSO / CORPO |
 | [AR-KB-003](topics/AR-KB-003.md) | B / N / O | HandLandmarker GPU Adreno WebGL: FPS, memória e modos de falha documentados | COMPROVADO / PROVAVEL / HIPOTESE | PULSO / CORPO |
+| [AR-KB-004](topics/AR-KB-ROTZ-DISCONTINUITY.md) | D / E / F | Como Cvetković e Holz representam rotação sem descontinuidade em ±180° — comparação com _unwrapRotZ() do Ghost Engine | PROVAVEL | PULSO / CORPO |

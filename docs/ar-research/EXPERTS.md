@@ -13,6 +13,7 @@ Try-On" (IJIMAI, 2026). Framework de AR sem marcadores para relógio de
 pulso, otimizado para smartphone/navegador — mesmo domínio do Ghost
 Project. Usa suavização de parâmetros geométricos por buffer durante
 movimento — comparar com a abordagem de filtro do Ghost Engine.
+→ Análise técnica aplicada em topics/AR-KB-ROTZ-DISCONTINUITY.md
 
 ## 2. Prof. Christian Holz — ETH Zürich (SIPLAB)
 CAMADA: E-TRACKING, D-POSE
@@ -21,6 +22,7 @@ Lab: input decoding e interação em mixed reality, tracking de pulso/mão,
 ex-pesquisador principal na Microsoft Research. Publicações do SIPLAB
 sobre "hand out of view interaction" e tracking com IMU de pulso são
 referência para o problema de descontinuidade de rotação em ±180°.
+→ Análise técnica aplicada em topics/AR-KB-ROTZ-DISCONTINUITY.md
 
 ## 3. Ting-Yu Chang — ex-Stanford (hoje fora da área de pesquisa)
 CAMADA: M-RENDERING
