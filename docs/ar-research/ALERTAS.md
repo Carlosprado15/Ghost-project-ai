@@ -36,6 +36,18 @@ ciclo "produziu algo" — silêncio é o padrão, alerta é a exceção.
 
 ---
 
+## [2026-08-28] [CRITICO] FALLBACK_ROT_TRIM_DEG=0 causa erro de ~90° — constante fixa é arquiteturalmente errada
+ORIGEM: AR-KB-005
+O QUE É: thumb CMC (lm1) tem ROM de 40–70° e se abduz junto com a pronação que ativa o fallback;
+  o offset entre lm5-lm17 e lm1-lm17 varia ±50° além da base de 30–40°, tornando impossível um valor fixo.
+POR QUE IMPORTA PARA O GHOST: os ~93°/~293° observados em teste real (28/08) saem exatamente dessa variação;
+  enquanto FALLBACK_ROT_TRIM_DEG for constante, qualquer valor escolhido será errado em alguma pose.
+AÇÃO SUGERIDA: substituir pela técnica de crossover-offset: medir atan2 dos dois pares no frame de troca,
+  armazenar a diferença, aplicar enquanto degraded=true — ~25 linhas; detalhes em AR-KB-005.
+VEREDITO: COMPROVADO (constante inadequada) / PROVAVEL (fix dinâmico resolve)
+
+---
+
 ## [2026-08-27] [ALTO] rotZ sem unwrap (alerta anterior) já corrigido em branch não mesclada
 ORIGEM: AR-KB-002 — atualização por verificação do ar-rescue (leitura, git show)
 O QUE É: o D4 (commit 9d1d523, branch fix/d1-d2-d4-estabilizacao) já implementa

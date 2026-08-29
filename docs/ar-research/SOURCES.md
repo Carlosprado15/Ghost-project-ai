@@ -34,3 +34,7 @@ Nenhuma alegação COMPROVADO pode se apoiar só em `[COMUNIDADE]`/`[BLOG]`.
 | AR-KB-003 | Issue #5652: Memory leak no GPU delegate corrigido em 0.10.31 | https://github.com/google-ai-edge/mediapipe/issues/5652 | [OFICIAL] | 2026-08-27 |
 | AR-KB-003 | Hand landmarks detection guide for Web JS (Google AI Edge) | https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker/web_js | [OFICIAL] | 2026-08-27 |
 | AR-KB-003 | MediaPipe Hands: On-device Real-time Hand Tracking (arXiv 2006.10214) | https://arxiv.org/abs/2006.10214 | [PAPER] | 2026-08-27 |
+| AR-KB-005 | MediaPipe Hands: On-device Real-time Hand Tracking (arXiv 2006.10214) | https://arxiv.org/abs/2006.10214 | [PAPER] | 2026-08-28 |
+| AR-KB-005 | Multi-Rigid-Body Approximation of Human Hands with Application to Digital Twin (arXiv 2512.07359) | https://arxiv.org/pdf/2512.07359 | [PAPER] | 2026-08-28 |
+| AR-KB-005 | The Carpometacarpal Joint of the Thumb: Stability, Deformity, and Therapeutic Intervention (JOSPT 2003) | https://www.jospt.org/doi/pdf/10.2519/jospt.2003.33.7.386 | [PAPER] | 2026-08-28 |
+| AR-KB-005 | WatchHand: Enabling Continuous Hand Pose Tracking On Off-the-Shelf Smartwatches (arXiv 2602.21610) | https://arxiv.org/abs/2602.21610 | [PAPER] | 2026-08-28 |

@@ -45,7 +45,7 @@ ciclos pra "esgotar" P0 tende a ser maior que 14, não um teto fixo.
 
 ## P0 — desbloqueia o lançamento com pulso
 
-- QR-049 [P0][D][ABERTA] Troca de par de landmarks de referência (ex.: lm5–lm17 → lm1–lm17, "modo degradado") pra calcular o ângulo de orientação de um objeto rastreado por câmera: como a literatura evita ou compensa o salto/erro que essa troca de referência introduz no ângulo calculado — achado real em teste físico do Ghost Engine (28/08): rotações registradas em ~93°/293° sem o pulso real estar nessa posição, `wristAnchor.js` tem uma constante de compensação (`FALLBACK_ROT_TRIM_DEG`) zerada pra esse caso
+- QR-049 [P0][D][RESPONDIDA → AR-KB-005] Troca de par de landmarks de referência (ex.: lm5–lm17 → lm1–lm17, "modo degradado") pra calcular o ângulo de orientação de um objeto rastreado por câmera: como a literatura evita ou compensa o salto/erro que essa troca de referência introduz no ângulo calculado — achado real em teste físico do Ghost Engine (28/08): rotações registradas em ~93°/293° sem o pulso real estar nessa posição, `wristAnchor.js` tem uma constante de compensação (`FALLBACK_ROT_TRIM_DEG`) zerada pra esse caso
 - QR-001 [P0][F][RESPONDIDA → AR-KB-001] One Euro Filter vs Kalman vs filtro ponderado por confiança para landmark de pulso em navegador mobile: relação estabilidade versus latência, com números
 - QR-002 [P0][F][RESPONDIDA → AR-KB-002] Wrap-around de rotação ±180 graus em filtro temporal: formulação matemática correta com quaternion e com ângulo desembrulhado
 - QR-003 [P0][B][RESPONDIDA → AR-KB-003] MediaPipe HandLandmarker em GPU Adreno via WebGL: FPS documentado, uso de memória, modos de falha conhecidos
@@ -108,6 +108,11 @@ Geradas por AR-KB-003:
 - QR-046 [P0][B][ABERTA] O delegate "GPU" em @mediapipe/tasks-vision 0.10.35 realmente usa WebGL no Chrome Android ou ainda cai em XNNPACK silenciosamente? Como detectar sem devtools?
 - QR-047 [P0][N][ABERTA] Mover detectForVideo() para Web Worker: custo de postMessage de frame de vídeo (SharedArrayBuffer vs Transferable vs ImageData) — latência e complexidade de implementação?
 - QR-048 [P0][N][ABERTA] Web Worker com SharedArrayBuffer exige COOP/COEP headers; Vercel/Shopify permitem esses headers no deploy estático do Ghost?
+
+Geradas por AR-KB-005:
+
+- QR-050 [P0][D][ABERTA] Como estruturar o estado de crossoverOffset entre frames em wristAnchor.js — parâmetro no chamador vs. closure — sem quebrar testabilidade do módulo?
+- QR-051 [P0][F][ABERTA] Quantos frames de interpolação na transição de par de landmarks são perceptíveis como lag em AR de pulso a 30 fps? Existe limiar documentado de latência perceptível para movimento de jóia no pulso?
 
 Geradas por AR-KB-002:
 
