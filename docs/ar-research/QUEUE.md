@@ -51,6 +51,8 @@ ciclos pra "esgotar" P0 tende a ser maior que 14, não um teto fixo.
 - QR-003 [P0][B][RESPONDIDA → AR-KB-003] MediaPipe HandLandmarker em GPU Adreno via WebGL: FPS documentado, uso de memória, modos de falha conhecidos
 - QR-050 [P0][D][RESPONDIDA → AR-KB-006] Como estruturar o estado de crossoverOffset entre frames em wristAnchor.js — parâmetro no chamador vs. closure — sem quebrar testabilidade do módulo? (promovida — completa o fix do AR-KB-005, problema real ativo)
 - QR-051 [P0][F][RESPONDIDA → AR-KB-007] Quantos frames de interpolação na transição de par de landmarks são perceptíveis como lag em AR de pulso a 30 fps? Existe limiar documentado de latência perceptível para movimento de jóia no pulso? (promovida — mesma razão)
+- QR-052 [P0][E][RESPONDIDA → AR-KB-008] Quando tracking é perdido (holdLastPose ativa) e depois recuperado, anchorState deve ser zerado, preservado ou congelado até próxima transição primário→fallback? (promovida — completa o fix do AR-KB-005)
+- QR-053 [P0][F][ABERTA] crossoverOffset deve ser aplicado como step function (valor fixo enquanto degraded=true) ou interpolado → 0 nos primeiros N frames do fallback? Lag de interpolação perceptível em AR de pulso a 30 fps? (promovida — última peça do fix)
 - QR-004 [P0][H][ABERTA] Mapeamento de coordenadas normalizadas para elemento com object-fit cover: formulação canônica e armadilhas
 - QR-005 [P0][E][ABERTA] Recuperação após perda de tracking: re-detecção, predição, hold-last-pose — trade-offs e valores de timeout usados na prática
 - QR-006 [P0][G][ABERTA] Estimativa de escala sem sensor de profundidade: quais referências anatômicas a literatura usa e qual erro típico
@@ -115,10 +117,14 @@ Geradas por AR-KB-005: QR-050 e QR-051 promovidas pro topo da fila P0
 principal (logo após QR-003) em 28/08 — completam o fix de um problema
 real ativo, prioridade maior que o resto da lista genérica.
 
-Geradas por AR-KB-006:
+Geradas por AR-KB-006: QR-052 e QR-053 promovidas pro topo da fila P0
+principal em 28/08, mesma razão das anteriores.
 
-- QR-052 [P0][E][ABERTA] Quando tracking é perdido (holdLastPose ativa) e depois recuperado, anchorState deve ser zerado, preservado ou congelado até próxima transição primário→fallback? (reseta crossoverOffset errado vs. aplica offset de sessão anterior)
-- QR-053 [P0][F][ABERTA] crossoverOffset deve ser aplicado como step function (valor fixo enquanto degraded=true) ou interpolado → 0 nos primeiros N frames do fallback? Lag de interpolação perceptível em AR de pulso a 30 fps?
+Geradas por AR-KB-008:
+
+- QR-055 [P0][E][ABERTA] Ao implementar reset de crossoverOffset em GhostEngine.js,
+  como testar a corretude do estado sem UI? Existe padrão para teste unitário de
+  máquinas de estado de tracking com sequência landmarks/null/landmarks?
 
 Geradas por AR-KB-007:
 

@@ -51,3 +51,6 @@ Nenhuma alegação COMPROVADO pode se apoiar só em `[COMUNIDADE]`/`[BLOG]`.
 | AR-KB-007 | ARZARA: Augmented reality app to try watch on your wrist (2021) | https://www.researchgate.net/publication/356210529_ARZARA_Augmented_reality_app_to_try_watch_on_your_wrist | [PAPER] | 2026-08-28 |
 | AR-KB-007 | DAQRI — Motion to Photon Latency in Mobile AR and VR | https://medium.com/@DAQRI/motion-to-photon-latency-in-mobile-ar-and-vr-99f82c480926 | [BLOG] | 2026-08-28 |
 | AR-KB-007 | VRARWiki — Motion-to-photon latency | https://vrarwiki.com/wiki/Motion-to-photon_latency | [BLOG] | 2026-08-28 |
+| AR-KB-008 | Hand landmarks detection guide (re-detection on tracking loss) | https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker | [OFICIAL] | 2026-08-28 |
+| AR-KB-008 | ARCore TrackingState — PAUSED / STOPPED pattern | https://developers.google.com/ar/reference/java/com/google/ar/core/TrackingState | [OFICIAL] | 2026-08-28 |
+| AR-KB-008 | ARCore AugmentedImage — pose preservation on PAUSED vs TRACKING | https://developers.google.com/ar/reference/java/com/google/ar/core/AugmentedImage | [OFICIAL] | 2026-08-28 |

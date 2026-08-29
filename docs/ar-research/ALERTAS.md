@@ -36,6 +36,17 @@ ciclo "produziu algo" — silêncio é o padrão, alerta é a exceção.
 
 ---
 
+## [2026-08-28] [ALTO] anchorState reset: solução de 2 linhas para state management do crossoverOffset
+ORIGEM: AR-KB-008
+O QUE É: quando hold expira (held===null), zerar crossoverOffset e prevDegraded; durante hold, preservar.
+POR QUE IMPORTA PARA O GHOST: sem essa regra, implementação ingênua de AR-KB-005 fix preserva offset
+  velho após perda longa — poderia causar erro permanente de ~90° no reaparecimento do modelo.
+AÇÃO SUGERIDA: ao codificar AR-KB-005 fix em GhostEngine.js, acrescentar 2 linhas no bloco
+  `if (held===null)` já existente (linha 122) — custo BAIXO, padrão já estabelecido por _scaleHist.
+VEREDITO: COMPROVADO (MediaPipe re-detecção + ARCore PAUSED/STOPPED) / PROVAVEL (aplicação ao Ghost)
+
+---
+
 ## [2026-08-28] [CRITICO] FALLBACK_ROT_TRIM_DEG=0 causa erro de ~90° — constante fixa é arquiteturalmente errada
 ORIGEM: AR-KB-005
 O QUE É: thumb CMC (lm1) tem ROM de 40–70° e se abduz junto com a pronação que ativa o fallback;
