@@ -139,5 +139,11 @@ export function computeWristAnchor(
   const x      = lm0.x - fdx * offset;
   const y      = lm0.y - fdy * offset;
 
-  return { x, y, z: lm0.z ?? 0, rotZ, scale, degraded };
+  // HUD (AR-004-fisico, 2026-08-28→29): expõe `degraded` (já calculado acima)
+  // e `crossoverOffset` — em radianos, mesma unidade não-rotulada de `rotZ`
+  // já retornado aqui (a conversão pra grau, quando necessária, é feita só
+  // na exibição, igual já acontece com rotZ em TasksWristLab.jsx) — pra
+  // dar visibilidade direta no lab de qual estado de anchorState está
+  // ativo, sem precisar inferir pelos números crus de rotZ.
+  return { x, y, z: lm0.z ?? 0, rotZ, scale, degraded, crossoverOffset: anchorState.crossoverOffset ?? 0 };
 }

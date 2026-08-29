@@ -182,6 +182,12 @@ export class GhostEngine {
         raw:       null,
         filtered:  held ? { pos: held.position, rotZ: held.rotationZ, scale: held.scale } : null,
         landmarks: null,
+        // HUD (AR-004-fisico): sem landmarks novos aqui não há anchor fresco
+        // pra ler degraded/crossoverOffset — reusa o anchorState mantido por
+        // este engine, que só é invalidado quando o hold expira de vez
+        // (ver bloco `if (held === null)` acima).
+        degraded:        this._anchorState.prevDegraded,
+        crossoverOffset: this._anchorState.crossoverOffset,
       });
       return;
     }
@@ -219,6 +225,12 @@ export class GhostEngine {
       raw:      { pos: { x: anchor.x, y: anchor.y, z: anchor.z }, rotZ: anchor.rotZ, scale: anchor.scale },
       filtered: { pos: filtPos, rotZ: filtRotZ, scale: filtScl },
       landmarks,   // 21 landmarks crus (normalizados 0-1) — overlay de tracking
+      // HUD (AR-004-fisico): repassa direto do anchor — nem `degraded` nem
+      // `crossoverOffset` passam pelo One Euro Filter (não são posição/
+      // rotação contínua, são estado discreto de qual par de landmarks está
+      // ativo), então não têm equivalente em `raw`/`filtered`.
+      degraded:        anchor.degraded,
+      crossoverOffset: anchor.crossoverOffset,
     });
   }
 

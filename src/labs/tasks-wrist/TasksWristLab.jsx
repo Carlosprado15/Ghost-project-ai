@@ -116,6 +116,12 @@ export default function TasksWristLab() {
   // Aberto por padrão — o HUD (fps/delegate/tracking) é o objetivo do
   // diagnóstico deste lab, não deve depender de um toque extra na tela.
   const [hudOpen, setHudOpen] = useState(true);
+  // Painel de calibração (top-right) — FECHADO por padrão (AR-004-fisico, 2026-08-27).
+  // Antes era sempre visível e, somado ao HUD (top-left), a largura combinada dos dois
+  // painéis (240+262=502 CSS px) excede a largura de tela em retrato no aparelho de teste
+  // atual (~411 CSS px), cobrindo o número de fps/scale/rotZ do HUD. Começar fechado libera
+  // o HUD; "▼ Calibração" continua abrindo o painel quando for de fato calibrar.
+  const [calibPanelOpen, setCalibPanelOpen] = useState(false);
   const attachGlbErrorListener = useCallback((el) => {
     if (!el || el.dataset.errBound) return;
     el.dataset.errBound = '1';
@@ -159,7 +165,7 @@ export default function TasksWristLab() {
 
   // ── Engine hook ─────────────────────────────────────────────────────────────
   const tracking = useGhostWristAR({ videoRef, enabled: camReady, onRawFrame, filterPreset: legacySmoothPreset });
-  const { isTracking, position, rotationZ, scale, raw, filtered, landmarks, fps, error: trackError, ready, mvReady, mvError, delegate, warning, modelSource, updateFilterPreset } = tracking;
+  const { isTracking, position, rotationZ, scale, degraded, crossoverOffset, raw, filtered, landmarks, fps, error: trackError, ready, mvReady, mvError, delegate, warning, modelSource, updateFilterPreset } = tracking;
 
   // M069G: watchdog visível do carregamento do detector de mão.
   // 'ok' → nada · 'slow' (>10s) → aviso amarelo · 'timeout' (>30s) → erro vermelho
@@ -832,6 +838,8 @@ export default function TasksWristLab() {
                 <div><span style={{ color: '#94a3b8' }}>lm17: </span>{landmarks ? `${landmarks[17].x.toFixed(3)}, ${landmarks[17].y.toFixed(3)}` : '—'}</div>
                 <div><span style={{ color: '#94a3b8' }}>rotZ: </span>{filtered?.rotZ != null ? (filtered.rotZ * 180 / Math.PI).toFixed(1) + '°' : '—'}</div>
                 <div><span style={{ color: '#94a3b8' }}>scale: </span>{filtered?.scale?.toFixed(4) ?? '—'}</div>
+                <div><span style={{ color: '#94a3b8' }}>degraded: </span>{String(degraded)}</div>
+                <div><span style={{ color: '#94a3b8' }}>crossoverOffset: </span>{crossoverOffset != null ? (crossoverOffset * 180 / Math.PI).toFixed(1) + '°' : '—'}</div>
                 <div><span style={{ color: '#94a3b8' }}>fps: </span>{fps}</div>
               </>
             )}
@@ -842,6 +850,8 @@ export default function TasksWristLab() {
                 <div><span style={{ color: '#94a3b8' }}>position: </span>{filtered?.pos ? `${filtered.pos.x.toFixed(3)}, ${filtered.pos.y.toFixed(3)}` : '—'}</div>
                 <div><span style={{ color: '#94a3b8' }}>rotZ: </span>{filtered?.rotZ != null ? (filtered.rotZ * 180 / Math.PI).toFixed(1) + '°' : '—'}</div>
                 <div><span style={{ color: '#94a3b8' }}>scale: </span>{filtered?.scale?.toFixed(4) ?? '—'}</div>
+                <div><span style={{ color: '#94a3b8' }}>degraded: </span>{String(degraded)}</div>
+                <div><span style={{ color: '#94a3b8' }}>crossoverOffset: </span>{crossoverOffset != null ? (crossoverOffset * 180 / Math.PI).toFixed(1) + '°' : '—'}</div>
                 <div><span style={{ color: '#94a3b8' }}>mvReady: </span>{String(mvReady)} <span style={{ color: '#94a3b8' }}>| glbActive: </span>{String(glbActive)}</div>
                 <div>
                   <span style={{ color: '#94a3b8' }}>preset: </span>
@@ -868,9 +878,24 @@ export default function TasksWristLab() {
         )}
       </div>
 
-      {/* ── Calibration panel — top right (sempre visível quando não há overlay auto) ── */}
+      {/* ── Calibration panel — top right, FECHADO por padrão (ver comentário do
+          estado calibPanelOpen). "▼ Calibração" abre; "▲ Calibração" fecha de volta,
+          liberando o HUD de fps/scale/rotZ do painel esquerdo. ── */}
       {!autoPhase && (
-        <div style={{ ...panelBase, position: 'absolute', top: 14, right: 14, zIndex: 10, width: 240 }}>
+        <div style={{ position: 'absolute', top: 14, right: 14, zIndex: 10 }}>
+          <button
+            onClick={() => setCalibPanelOpen(v => !v)}
+            style={{
+              cursor: 'pointer', background: '#374151', color: '#e2e8f0', border: 'none',
+              borderRadius: 6, padding: '5px 10px', fontSize: 11, fontFamily: 'monospace',
+              display: 'block', marginLeft: 'auto',
+            }}
+          >
+            {calibPanelOpen ? '▲ Calibração' : '▼ Calibração'}
+          </button>
+
+          {calibPanelOpen && (
+        <div style={{ ...panelBase, width: 240, marginTop: 6 }}>
           <div style={{ color: '#fb923c', fontWeight: 700, fontSize: 12, marginBottom: 8 }}>
             Calibração One Euro Filter
           </div>
@@ -940,6 +965,8 @@ export default function TasksWristLab() {
                 <button onClick={downloadReport} style={mkBtn('#0f766e', false)}>↓ Download</button>
               </div>
             </div>
+          )}
+        </div>
           )}
         </div>
       )}
