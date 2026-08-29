@@ -41,16 +41,48 @@ const ROTATION_OFFSET_DEG = 60;
 // const ROTATION_OFFSET_DEG = 45;  // alternativa
 // const ROTATION_OFFSET_DEG = 0;   // estado "limpo" p/ normalizados (quebrou originais)
 
-// M069J: ajustes aplicados SÓ quando o par de fallback lm1–lm17 está ativo
-// (o eixo palmar tem inclinação e comprimento diferentes do lm5–lm17):
-const FALLBACK_ROT_TRIM_DEG = 0;     // correção angular extra do eixo palmar
-const FALLBACK_SCALE_RATIO  = 0.85;  // lm1–lm17 é maior que lm5–lm17 — normaliza
+// M069J: ajuste aplicado SÓ quando o par de fallback lm1–lm17 está ativo
+// (lm1–lm17 é maior que lm5–lm17 — normaliza a escala do par palmar):
+const FALLBACK_SCALE_RATIO  = 0.85;
 
 // M069J: limiares de degradação do par primário
 const SPAN_RATIO_MIN = 0.45;  // span primário < 45% da palma → encurtado
 const Z_SPLAY_MAX    = 0.08;  // |z5 − z17| acima disso → mão rotacionada
 
-export function computeWristAnchor(landmarks, { offsetRatio = 0.18, rotationOffsetDeg = ROTATION_OFFSET_DEG } = {}) {
+// AR-KB-005/006/008/009 (AR-004-fisico, 2026-08-28): FALLBACK_ROT_TRIM_DEG
+// (constante fixa, zerada) foi REMOVIDA — não funciona porque lm1 (thumb CMC)
+// tem ROM de abdução ativa de 40–70° (JOSPT 2003), então o offset angular
+// entre o par primário (lm5–lm17) e o par de fallback (lm1–lm17) não é
+// constante; medido no teste físico de 28/08 causou erro de ~93°/~293°.
+//
+// Correção: "crossover offset" dinâmico (AR-KB-005), medido no PRÓPRIO frame
+// em que `degraded` transiciona de false→true (ainda dá pra medir os dois
+// ângulos nesse frame) e aplicado como STEP FUNCTION enquanto degraded=true
+// (bumpless transfer — AR-KB-009: o offset é estrutural/anatômico, não
+// transitório, então NÃO deve decair/interpolar para 0). O estado
+// (`prevDegraded`, `crossoverOffset`) precisa sobreviver entre frames; como
+// esta função é stateless por design, o estado é responsabilidade do
+// CHAMADOR, passado explicitamente via `anchorState` (AR-KB-006 — parâmetro
+// explícito, não closure/factory: mais testável, reentrante, e a única
+// mudança de estado desta função pequena não justifica o overhead de uma
+// factory como a do HandTracker). Reset de anchorState em tracking loss
+// longa (hold expirado) é responsabilidade do chamador — ver GhostEngine.js.
+
+// Normaliza um ângulo em radianos para (-π, π] — mesma lógica de unwrap
+// usada em D4/_unwrapRotZ (GhostEngine.js), aplicada aqui à diferença entre
+// primaryAngle e fallbackAngle no frame de cruzamento.
+function normalizeAngle(rad) {
+  let a = rad;
+  while (a > Math.PI)  a -= 2 * Math.PI;
+  while (a <= -Math.PI) a += 2 * Math.PI;
+  return a;
+}
+
+export function computeWristAnchor(
+  landmarks,
+  anchorState = {},
+  { offsetRatio = 0.18, rotationOffsetDeg = ROTATION_OFFSET_DEG } = {}
+) {
   const lm0  = landmarks[0];   // wrist
   const lm1  = landmarks[1];   // thumb CMC
   const lm5  = landmarks[5];   // index MCP
@@ -71,9 +103,25 @@ export function computeWristAnchor(landmarks, { offsetRatio = 0.18, rotationOffs
   const scale = Math.hypot(refA.x - refB.x, refA.y - refB.y)
               * (degraded ? FALLBACK_SCALE_RATIO : 1);
 
-  // Rotação: ângulo do eixo efetivo + offset base (+ trim do fallback)
-  const rotZ = Math.atan2(refB.y - refA.y, refB.x - refA.x)
-             + ((rotationOffsetDeg + (degraded ? FALLBACK_ROT_TRIM_DEG : 0)) * Math.PI / 180);
+  // ── Ângulos dos dois pares — ambos sempre computáveis (AR-KB-005) ─────────
+  const primaryAngle  = Math.atan2(lm17.y - lm5.y, lm17.x - lm5.x);
+  const fallbackAngle = Math.atan2(lm17.y - lm1.y, lm17.x - lm1.x);
+
+  // Frame de cruzamento (false → true): mede o offset geométrico entre os
+  // dois pares AGORA, enquanto ambos ainda são válidos, e guarda em
+  // anchorState (AR-KB-005/006). Fora da transição, enquanto degraded=true,
+  // reusa o offset já guardado (step function — AR-KB-009).
+  if (degraded && !anchorState.prevDegraded) {
+    anchorState.crossoverOffset = normalizeAngle(primaryAngle - fallbackAngle);
+  }
+  anchorState.prevDegraded = degraded;
+
+  // Rotação: ângulo do par efetivo (+ crossoverOffset só quando degraded)
+  // + offset base do produto.
+  const effectiveAngle = degraded
+    ? fallbackAngle + (anchorState.crossoverOffset ?? 0)
+    : primaryAngle;
+  const rotZ = effectiveAngle + (rotationOffsetDeg * Math.PI / 180);
 
   // Palm center do par efetivo
   const pcx = (refA.x + refB.x) / 2;

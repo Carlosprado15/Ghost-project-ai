@@ -38,6 +38,12 @@ export class GhostEngine {
     this._hold      = new HoldLastPose(HOLD_POSE_MS);
     this._scaleHist = [];   // últimos SCALE_REF_WINDOW valores de escala
 
+    // AR-KB-005/006/008 (AR-004-fisico, 2026-08-28): estado do "crossover
+    // offset" de wristAnchor.js, mantido AQUI (chamador) e passado por
+    // referência a computeWristAnchor() a cada frame — ver wristAnchor.js
+    // para o porquê de estado explícito em vez de closure/factory.
+    this._anchorState = { prevDegraded: false, crossoverOffset: 0 };
+
     this._frameCount = 0;
     this._lastFpsTs  = 0;
     this._fps        = 0;
@@ -125,6 +131,9 @@ export class GhostEngine {
     this._initFilters(this._filterPreset);
     this._hold.reset();
     this._lastRotZ = null;
+    // AR-KB-006: reinicializar o motor invalida qualquer crossoverOffset de
+    // uma sessão de tracking anterior.
+    this._anchorState = { prevDegraded: false, crossoverOffset: 0 };
 
     this._tracker = new HandTracker({
       onFrame: (lms, ts) => this._onFrame(lms, ts),
@@ -153,7 +162,15 @@ export class GhostEngine {
     if (!landmarks) {
       if (this._onRawFrame) this._onRawFrame({ ts, detected: false });
       const held = this._hold.onLost(ts);
-      if (held === null) this._scaleHist = [];  // perda real: recomeça histórico de escala
+      if (held === null) {
+        this._scaleHist = [];  // perda real: recomeça histórico de escala
+        // AR-KB-008: hold expirado = nova sessão de tracking (MediaPipe
+        // re-detecta via palm detection) — crossoverOffset da sessão
+        // anterior é inválido. Perda CURTA (hold ainda ativo, não entra
+        // aqui) preserva o estado sem nenhuma ação extra.
+        this._anchorState.crossoverOffset = 0;
+        this._anchorState.prevDegraded    = false;
+      }
       this._onPose({
         ts,
         fps:       this._fps,
@@ -169,7 +186,7 @@ export class GhostEngine {
       return;
     }
 
-    const anchor = computeWristAnchor(landmarks);
+    const anchor = computeWristAnchor(landmarks, this._anchorState);
 
     if (this._onRawFrame) {
       this._onRawFrame({
