@@ -1,8 +1,15 @@
 # QUEUE — Fila de Pesquisa AR-KB
 
-**PESQUISA PAUSADA em 27/08.** Motivo: fila auto-alimentada (cada tópico
-gera 2-3 P0 novas) + orçamento. Retomar só após o lançamento. 14 P0 abertas,
-31 P1/P2 congeladas. Nenhum ciclo deve rodar enquanto este aviso estiver aqui.
+**PESQUISA P0 REATIVADA em 28/08, sob demanda.** Carlos autorizou
+explicitamente (conversa de 28/08): sempre que for necessário pesquisar pra
+resolver um problema real do motor AR, não precisa pedir de novo a cada
+vez — o bloqueio anterior era um limite que o Claude Code tinha colocado
+sozinho por precaução de custo, não uma restrição do Carlos. Continua valendo
+o hábito de registrar custo/duração em `CUSTOS.md` pra manter isso visível,
+e de rodar pesquisa ligada a um problema concreto, não só pra "esgotar a
+fila" sem necessidade. P1/P2 continuam `CONGELADA-POS-LANCAMENTO` — essa
+parte não mudou, é expansão (corpo/ambiente), não resolução de problema
+atual.
 
 Formato por linha: `QR-NNN [PRIORIDADE][CAMADA][STATUS] pergunta`
 
@@ -38,16 +45,17 @@ ciclos pra "esgotar" P0 tende a ser maior que 14, não um teto fixo.
 
 ## P0 — desbloqueia o lançamento com pulso
 
+- QR-049 [P0][D][ABERTA] Troca de par de landmarks de referência (ex.: lm5–lm17 → lm1–lm17, "modo degradado") pra calcular o ângulo de orientação de um objeto rastreado por câmera: como a literatura evita ou compensa o salto/erro que essa troca de referência introduz no ângulo calculado — achado real em teste físico do Ghost Engine (28/08): rotações registradas em ~93°/293° sem o pulso real estar nessa posição, `wristAnchor.js` tem uma constante de compensação (`FALLBACK_ROT_TRIM_DEG`) zerada pra esse caso
 - QR-001 [P0][F][RESPONDIDA → AR-KB-001] One Euro Filter vs Kalman vs filtro ponderado por confiança para landmark de pulso em navegador mobile: relação estabilidade versus latência, com números
 - QR-002 [P0][F][RESPONDIDA → AR-KB-002] Wrap-around de rotação ±180 graus em filtro temporal: formulação matemática correta com quaternion e com ângulo desembrulhado
 - QR-003 [P0][B][RESPONDIDA → AR-KB-003] MediaPipe HandLandmarker em GPU Adreno via WebGL: FPS documentado, uso de memória, modos de falha conhecidos
-- QR-004 [P0][H][PAUSADA] Mapeamento de coordenadas normalizadas para elemento com object-fit cover: formulação canônica e armadilhas
-- QR-005 [P0][E][PAUSADA] Recuperação após perda de tracking: re-detecção, predição, hold-last-pose — trade-offs e valores de timeout usados na prática
-- QR-006 [P0][G][PAUSADA] Estimativa de escala sem sensor de profundidade: quais referências anatômicas a literatura usa e qual erro típico
-- QR-007 [P0][D][PAUSADA] Landmark de pulso isolado versus pose completa da mão para derivar orientação do antebraço: qual é mais estável
-- QR-008 [P0][N][PAUSADA] Medir latência real entrada-para-saída em pipeline de AR web mobile: metodologia aceita, não só FPS
-- QR-009 [P0][A][PAUSADA] Erros de driver de estabilização óptica interferindo em pipeline de câmera web: existe caso documentado
-- QR-010 [P0][M][PAUSADA] model-viewer versus Three.js puro para AR de precisão: limites reais de controle de transformação e desempenho
+- QR-004 [P0][H][ABERTA] Mapeamento de coordenadas normalizadas para elemento com object-fit cover: formulação canônica e armadilhas
+- QR-005 [P0][E][ABERTA] Recuperação após perda de tracking: re-detecção, predição, hold-last-pose — trade-offs e valores de timeout usados na prática
+- QR-006 [P0][G][ABERTA] Estimativa de escala sem sensor de profundidade: quais referências anatômicas a literatura usa e qual erro típico
+- QR-007 [P0][D][ABERTA] Landmark de pulso isolado versus pose completa da mão para derivar orientação do antebraço: qual é mais estável
+- QR-008 [P0][N][ABERTA] Medir latência real entrada-para-saída em pipeline de AR web mobile: metodologia aceita, não só FPS
+- QR-009 [P0][A][ABERTA] Erros de driver de estabilização óptica interferindo em pipeline de câmera web: existe caso documentado
+- QR-010 [P0][M][ABERTA] model-viewer versus Three.js puro para AR de precisão: limites reais de controle de transformação e desempenho
 
 ## P1 — camada transversal, serve para qualquer alvo
 
@@ -91,17 +99,17 @@ ciclos pra "esgotar" P0 tende a ser maior que 14, não um teto fixo.
 
 Geradas por AR-KB-001:
 
-- QR-041 [P0][F][PAUSADA] O @mediapipe/tasks-vision WASM aplica OneEuroFilter internamente antes de exportar worldLandmarks? Se sim, com quais parâmetros?
-- QR-042 [P0][F][PAUSADA] Com dupla suavização (WASM interno + OneEuroFilter.js), qual é o lag real medido no aparelho de teste vs. sem o filtro JS?
+- QR-041 [P0][F][ABERTA] O @mediapipe/tasks-vision WASM aplica OneEuroFilter internamente antes de exportar worldLandmarks? Se sim, com quais parâmetros?
+- QR-042 [P0][F][ABERTA] Com dupla suavização (WASM interno + OneEuroFilter.js), qual é o lag real medido no aparelho de teste vs. sem o filtro JS?
 - QR-043 [P1][E][CONGELADA-POS-LANCAMENTO] Como integrar o score de confiança do HandLandmarker ao holdLastPose de forma gradual (não binária) sem introduzir drift?
 
 Geradas por AR-KB-003:
 
-- QR-046 [P0][B][PAUSADA] O delegate "GPU" em @mediapipe/tasks-vision 0.10.35 realmente usa WebGL no Chrome Android ou ainda cai em XNNPACK silenciosamente? Como detectar sem devtools?
-- QR-047 [P0][N][PAUSADA] Mover detectForVideo() para Web Worker: custo de postMessage de frame de vídeo (SharedArrayBuffer vs Transferable vs ImageData) — latência e complexidade de implementação?
-- QR-048 [P0][N][PAUSADA] Web Worker com SharedArrayBuffer exige COOP/COEP headers; Vercel/Shopify permitem esses headers no deploy estático do Ghost?
+- QR-046 [P0][B][ABERTA] O delegate "GPU" em @mediapipe/tasks-vision 0.10.35 realmente usa WebGL no Chrome Android ou ainda cai em XNNPACK silenciosamente? Como detectar sem devtools?
+- QR-047 [P0][N][ABERTA] Mover detectForVideo() para Web Worker: custo de postMessage de frame de vídeo (SharedArrayBuffer vs Transferable vs ImageData) — latência e complexidade de implementação?
+- QR-048 [P0][N][ABERTA] Web Worker com SharedArrayBuffer exige COOP/COEP headers; Vercel/Shopify permitem esses headers no deploy estático do Ghost?
 
 Geradas por AR-KB-002:
 
-- QR-044 [P0][F][PAUSADA] O hold-last-pose e o reset de tracking reiniciam os campos de estado do unwrap em GhostEngine? Se não, re-detecção começará com ângulo acumulado errado e o filtro divergirá.
-- QR-045 [P0][F][PAUSADA] Com unwrapping ativo e rotação de pulso contínua (>1 volta), o ângulo acumulado crescerá indefinidamente — existe um protocolo de re-normalização periódica sem causar descontinuidade visível?
+- QR-044 [P0][F][ABERTA] O hold-last-pose e o reset de tracking reiniciam os campos de estado do unwrap em GhostEngine? Se não, re-detecção começará com ângulo acumulado errado e o filtro divergirá.
+- QR-045 [P0][F][ABERTA] Com unwrapping ativo e rotação de pulso contínua (>1 volta), o ângulo acumulado crescerá indefinidamente — existe um protocolo de re-normalização periódica sem causar descontinuidade visível?
