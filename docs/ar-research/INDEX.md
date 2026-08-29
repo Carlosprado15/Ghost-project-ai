@@ -116,3 +116,4 @@ Toda fonte em `FONTES:` deve vir rotulada com um destes quatro:
 | [AR-KB-004](topics/AR-KB-ROTZ-DISCONTINUITY.md) | D / E / F | Como Cvetković e Holz representam rotação sem descontinuidade em ±180° — comparação com _unwrapRotZ() do Ghost Engine | PROVAVEL | PULSO / CORPO |
 | [AR-KB-005](topics/AR-KB-005.md) | D / G / H | Troca de par de landmarks lm5-lm17 → lm1-lm17: como compensar salto angular na troca de referência (crossover-offset dinâmico) | COMPROVADO / PROVAVEL | PULSO / CORPO |
 | [AR-KB-006](topics/AR-KB-006.md) | D / E | crossoverOffset entre frames: factory/closure vs. estado explícito como parâmetro — testabilidade e reentrância | COMPROVADO / PROVAVEL | PULSO / CORPO |
+| [AR-KB-007](topics/AR-KB-007.md) | F / E / P | Frames de interpolação na troca de landmark pair: limiar de percepção de lag em AR de pulso a 30fps; lacuna de dado para jóia no pulso | COMPROVADO / HIPOTESE | PULSO / CORPO |

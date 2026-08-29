@@ -43,3 +43,11 @@ Nenhuma alegação COMPROVADO pode se apoiar só em `[COMUNIDADE]`/`[BLOG]`.
 | AR-KB-006 | MediaPipe Hands: On-device Real-time Hand Tracking (arXiv 2006.10214) | https://arxiv.org/abs/2006.10214 | [PAPER] | 2026-08-28 |
 | AR-KB-006 | Easy Unit Testing with Pure Functions (Jeremy D. Miller, 2024) | https://jeremydmiller.com/2024/01/10/building-a-critter-stack-application-easy-unit-testing-with-pure-functions/ | [BLOG] | 2026-08-28 |
 | AR-KB-006 | Pure functions helped simplify unit testing (Medium / Caffeine and Testing) | https://medium.com/caffeine-and-testing/javascript-pure-functions-helped-simplify-unit-testing-for-me-baf8baf08a7f | [BLOG] | 2026-08-28 |
+| AR-KB-007 | Casper DPM: Cascaded Perceptual Dynamic Projection Mapping onto Hands (SIGGRAPH Asia 2024) | https://dl.acm.org/doi/full/10.1145/3680528.3687624 | [PAPER] | 2026-08-28 |
+| AR-KB-007 | Casper DPM preprint (arxiv 2409.04397) | https://arxiv.org/abs/2409.04397 | [PAPER] | 2026-08-28 |
+| AR-KB-007 | Penner et al. 2026 — Perceptual Requirements for Low-Latency Head-Mounted Displays (arxiv 2603.15796) | https://arxiv.org/abs/2603.15796 | [PAPER] | 2026-08-28 |
+| AR-KB-007 | Mania et al. 2004 — Perceptual sensitivity to head tracking latency (ACM APGV) | https://dl.acm.org/doi/10.1145/1012551.1012559 | [PAPER] | 2026-08-28 |
+| AR-KB-007 | Edge-Centric Augmented Reality Framework for Realtime Wristwatch Try-On (IJIMAI 2022) | https://www.ijimai.org/index.php/ijimai/article/view/2227 | [PAPER] | 2026-08-28 |
+| AR-KB-007 | ARZARA: Augmented reality app to try watch on your wrist (2021) | https://www.researchgate.net/publication/356210529_ARZARA_Augmented_reality_app_to_try_watch_on_your_wrist | [PAPER] | 2026-08-28 |
+| AR-KB-007 | DAQRI — Motion to Photon Latency in Mobile AR and VR | https://medium.com/@DAQRI/motion-to-photon-latency-in-mobile-ar-and-vr-99f82c480926 | [BLOG] | 2026-08-28 |
+| AR-KB-007 | VRARWiki — Motion-to-photon latency | https://vrarwiki.com/wiki/Motion-to-photon_latency | [BLOG] | 2026-08-28 |

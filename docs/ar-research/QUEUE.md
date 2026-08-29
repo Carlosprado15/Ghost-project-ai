@@ -50,7 +50,7 @@ ciclos pra "esgotar" P0 tende a ser maior que 14, não um teto fixo.
 - QR-002 [P0][F][RESPONDIDA → AR-KB-002] Wrap-around de rotação ±180 graus em filtro temporal: formulação matemática correta com quaternion e com ângulo desembrulhado
 - QR-003 [P0][B][RESPONDIDA → AR-KB-003] MediaPipe HandLandmarker em GPU Adreno via WebGL: FPS documentado, uso de memória, modos de falha conhecidos
 - QR-050 [P0][D][RESPONDIDA → AR-KB-006] Como estruturar o estado de crossoverOffset entre frames em wristAnchor.js — parâmetro no chamador vs. closure — sem quebrar testabilidade do módulo? (promovida — completa o fix do AR-KB-005, problema real ativo)
-- QR-051 [P0][F][ABERTA] Quantos frames de interpolação na transição de par de landmarks são perceptíveis como lag em AR de pulso a 30 fps? Existe limiar documentado de latência perceptível para movimento de jóia no pulso? (promovida — mesma razão)
+- QR-051 [P0][F][RESPONDIDA → AR-KB-007] Quantos frames de interpolação na transição de par de landmarks são perceptíveis como lag em AR de pulso a 30 fps? Existe limiar documentado de latência perceptível para movimento de jóia no pulso? (promovida — mesma razão)
 - QR-004 [P0][H][ABERTA] Mapeamento de coordenadas normalizadas para elemento com object-fit cover: formulação canônica e armadilhas
 - QR-005 [P0][E][ABERTA] Recuperação após perda de tracking: re-detecção, predição, hold-last-pose — trade-offs e valores de timeout usados na prática
 - QR-006 [P0][G][ABERTA] Estimativa de escala sem sensor de profundidade: quais referências anatômicas a literatura usa e qual erro típico
@@ -119,6 +119,10 @@ Geradas por AR-KB-006:
 
 - QR-052 [P0][E][ABERTA] Quando tracking é perdido (holdLastPose ativa) e depois recuperado, anchorState deve ser zerado, preservado ou congelado até próxima transição primário→fallback? (reseta crossoverOffset errado vs. aplica offset de sessão anterior)
 - QR-053 [P0][F][ABERTA] crossoverOffset deve ser aplicado como step function (valor fixo enquanto degraded=true) ou interpolado → 0 nos primeiros N frames do fallback? Lag de interpolação perceptível em AR de pulso a 30 fps?
+
+Geradas por AR-KB-007:
+
+- QR-054 [P1][P][CONGELADA-POS-LANCAMENTO] Motion masking: durante movimento rápido de mão, artifacts de tracking são menos detectáveis em AR? Existe limiar de velocidade angular documentado para mão/pulso acima do qual step function se torna preferível à rampa (artifact mascarado pelo próprio movimento)?
 
 Geradas por AR-KB-002:
 
