@@ -38,3 +38,8 @@ Nenhuma alegação COMPROVADO pode se apoiar só em `[COMUNIDADE]`/`[BLOG]`.
 | AR-KB-005 | Multi-Rigid-Body Approximation of Human Hands with Application to Digital Twin (arXiv 2512.07359) | https://arxiv.org/pdf/2512.07359 | [PAPER] | 2026-08-28 |
 | AR-KB-005 | The Carpometacarpal Joint of the Thumb: Stability, Deformity, and Therapeutic Intervention (JOSPT 2003) | https://www.jospt.org/doi/pdf/10.2519/jospt.2003.33.7.386 | [PAPER] | 2026-08-28 |
 | AR-KB-005 | WatchHand: Enabling Continuous Hand Pose Tracking On Off-the-Shelf Smartwatches (arXiv 2602.21610) | https://arxiv.org/abs/2602.21610 | [PAPER] | 2026-08-28 |
+| AR-KB-006 | HandLandmarker class — MediaPipe JS API (factory pattern, detectForVideo timestamp monotônico) | https://developers.google.com/mediapipe/api/solutions/js/tasks-vision.handlandmarker | [OFICIAL] | 2026-08-28 |
+| AR-KB-006 | Hand landmarks detection guide for Web (VIDEO_STREAM mode, tracking inter-frame) | https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker/web_js | [OFICIAL] | 2026-08-28 |
+| AR-KB-006 | MediaPipe Hands: On-device Real-time Hand Tracking (arXiv 2006.10214) | https://arxiv.org/abs/2006.10214 | [PAPER] | 2026-08-28 |
+| AR-KB-006 | Easy Unit Testing with Pure Functions (Jeremy D. Miller, 2024) | https://jeremydmiller.com/2024/01/10/building-a-critter-stack-application-easy-unit-testing-with-pure-functions/ | [BLOG] | 2026-08-28 |
+| AR-KB-006 | Pure functions helped simplify unit testing (Medium / Caffeine and Testing) | https://medium.com/caffeine-and-testing/javascript-pure-functions-helped-simplify-unit-testing-for-me-baf8baf08a7f | [BLOG] | 2026-08-28 |

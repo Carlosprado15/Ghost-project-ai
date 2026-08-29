@@ -115,3 +115,4 @@ Toda fonte em `FONTES:` deve vir rotulada com um destes quatro:
 | [AR-KB-003](topics/AR-KB-003.md) | B / N / O | HandLandmarker GPU Adreno WebGL: FPS, memória e modos de falha documentados | COMPROVADO / PROVAVEL / HIPOTESE | PULSO / CORPO |
 | [AR-KB-004](topics/AR-KB-ROTZ-DISCONTINUITY.md) | D / E / F | Como Cvetković e Holz representam rotação sem descontinuidade em ±180° — comparação com _unwrapRotZ() do Ghost Engine | PROVAVEL | PULSO / CORPO |
 | [AR-KB-005](topics/AR-KB-005.md) | D / G / H | Troca de par de landmarks lm5-lm17 → lm1-lm17: como compensar salto angular na troca de referência (crossover-offset dinâmico) | COMPROVADO / PROVAVEL | PULSO / CORPO |
+| [AR-KB-006](topics/AR-KB-006.md) | D / E | crossoverOffset entre frames: factory/closure vs. estado explícito como parâmetro — testabilidade e reentrância | COMPROVADO / PROVAVEL | PULSO / CORPO |

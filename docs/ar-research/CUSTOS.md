@@ -14,3 +14,4 @@ rodados (ver coluna Custo abaixo conforme for enchendo).
 | 2026-08-27 | QR-002 | 311s | $0.8870 |
 | 2026-08-27 | QR-003 | 357s | $1.0831 |
 | 2026-08-28 | QR-049 | 418s | $1.2832 |
+| 2026-08-28 | QR-050 | 448s | $1.0275 |
