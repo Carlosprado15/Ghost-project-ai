@@ -52,7 +52,7 @@ ciclos pra "esgotar" P0 tende a ser maior que 14, não um teto fixo.
 - QR-050 [P0][D][RESPONDIDA → AR-KB-006] Como estruturar o estado de crossoverOffset entre frames em wristAnchor.js — parâmetro no chamador vs. closure — sem quebrar testabilidade do módulo? (promovida — completa o fix do AR-KB-005, problema real ativo)
 - QR-051 [P0][F][RESPONDIDA → AR-KB-007] Quantos frames de interpolação na transição de par de landmarks são perceptíveis como lag em AR de pulso a 30 fps? Existe limiar documentado de latência perceptível para movimento de jóia no pulso? (promovida — mesma razão)
 - QR-052 [P0][E][RESPONDIDA → AR-KB-008] Quando tracking é perdido (holdLastPose ativa) e depois recuperado, anchorState deve ser zerado, preservado ou congelado até próxima transição primário→fallback? (promovida — completa o fix do AR-KB-005)
-- QR-053 [P0][F][ABERTA] crossoverOffset deve ser aplicado como step function (valor fixo enquanto degraded=true) ou interpolado → 0 nos primeiros N frames do fallback? Lag de interpolação perceptível em AR de pulso a 30 fps? (promovida — última peça do fix)
+- QR-053 [P0][F][RESPONDIDA → AR-KB-009] crossoverOffset deve ser aplicado como step function (valor fixo enquanto degraded=true) ou interpolado → 0 nos primeiros N frames do fallback? Lag de interpolação perceptível em AR de pulso a 30 fps? (promovida — última peça do fix)
 - QR-004 [P0][H][ABERTA] Mapeamento de coordenadas normalizadas para elemento com object-fit cover: formulação canônica e armadilhas
 - QR-005 [P0][E][ABERTA] Recuperação após perda de tracking: re-detecção, predição, hold-last-pose — trade-offs e valores de timeout usados na prática
 - QR-006 [P0][G][ABERTA] Estimativa de escala sem sensor de profundidade: quais referências anatômicas a literatura usa e qual erro típico
@@ -125,6 +125,12 @@ Geradas por AR-KB-008:
 - QR-055 [P0][E][ABERTA] Ao implementar reset de crossoverOffset em GhostEngine.js,
   como testar a corretude do estado sem UI? Existe padrão para teste unitário de
   máquinas de estado de tracking com sequência landmarks/null/landmarks?
+
+Geradas por AR-KB-009:
+
+- QR-056 [P0][D][ABERTA] Na transição de RETORNO (fallback→primário, quando lm5 reaparece),
+  o crossoverOffset precisa de compensação simétrica, ou o par primário já retorna ao
+  ângulo correto sem correção adicional? Existe risco de jump no retorno?
 
 Geradas por AR-KB-007:
 

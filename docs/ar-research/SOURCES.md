@@ -54,3 +54,7 @@ Nenhuma alegação COMPROVADO pode se apoiar só em `[COMUNIDADE]`/`[BLOG]`.
 | AR-KB-008 | Hand landmarks detection guide (re-detection on tracking loss) | https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker | [OFICIAL] | 2026-08-28 |
 | AR-KB-008 | ARCore TrackingState — PAUSED / STOPPED pattern | https://developers.google.com/ar/reference/java/com/google/ar/core/TrackingState | [OFICIAL] | 2026-08-28 |
 | AR-KB-008 | ARCore AugmentedImage — pose preservation on PAUSED vs TRACKING | https://developers.google.com/ar/reference/java/com/google/ar/core/AugmentedImage | [OFICIAL] | 2026-08-28 |
+| AR-KB-009 | Cheong & Safonov — Bumpless Transfer for Adaptive Switching Controls (IFAC 2008) | https://skoge.folk.ntnu.no/prost/proceedings/ifac2008/data/papers/2555.pdf | [PAPER] | 2026-08-28 |
+| AR-KB-009 | Cheong & Safonov — entrada Semantic Scholar (confirmação de autoria e publicação) | https://www.semanticscholar.org/paper/Bumpless-Transfer-for-Adaptive-Switching-Controls-Cheong-Safonov/09b3781dedcfbfb4f87f5d3129a76ec92faa0854 | [PAPER] | 2026-08-28 |
+| AR-KB-009 | MATLAB/Simulink — Bumpless Control Transfer (documentação oficial MathWorks) | https://www.mathworks.com/help/simulink/slref/bumpless-control-transfer.html | [OFICIAL] | 2026-08-28 |
+| AR-KB-009 | Åström & Hägglund — Advanced PID Control cap.1 (ISA, bumpless transfer por bias) | https://www.isa.org/getmedia/fb0e41bc-e4f3-422a-9f67-b9bd31340e16/Advanced-PID-Control_AstromHagglund_Chapter1-Introduction.pdf | [PAPER] | 2026-08-28 |
