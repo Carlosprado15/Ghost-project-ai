@@ -451,3 +451,34 @@ respondendo à inclinação real do pulso. Causa raiz confirmada no código:
 
 **Pendente:** limiar de confiança (0.3→0.5), sentir a suavização em 3 camadas, comparar tremor
 mão vs. braço — ainda não testados nesta rodada, continuando na mesma sessão física.
+
+## Padrões novos aplicados na loja (2026-08-30, código de verdade)
+
+Confirmados e aplicados como default de produção (não mais só via `?fitDebug=1`):
+
+- `watchRotationOffset`: 0 → **-5°** (`WristTracker.js`). Encontrado matematicamente (interpolação
+  entre os extremos -20°/+15° testados com o braço apoiado numa mesa, estável) e **confirmado
+  visualmente ao vivo por Carlinhos**: "agora está perfeito, não mexa mais".
+- `watchSizeMultiplier`: 1.5 → **1.9** (`App_FINAL.jsx`). Causa raiz do "pequeno demais" era dupla:
+  o multiplicador estava baixo E o teto `maxWatchSize` (220px) já estava sendo batido antes mesmo
+  de aumentar o multiplicador — os dois precisavam subir juntos.
+- `maxWatchSize`: 220 → **320** (`WristTracker.js`). Sem isso, aumentar o multiplicador não tinha
+  efeito nenhum (o resultado já estava sendo cortado no teto antigo).
+- `minDetectionConfidence`/`minTrackingConfidence`: 0.3 → **0.5** (padrão oficial do MediaPipe).
+  Testado com mão fechada em punho (que reduz confiança) — ainda detecta 100%, sem prejuízo.
+
+Todas testadas ao vivo no aparelho de teste atual (Razr 40), confirmadas por Carlinhos como "está
+tudo muito perfeito" — mas continua valendo a regra: teste em UM aparelho não é confirmação
+universal, Ghost Project deve funcionar em qualquer Android/iOS.
+
+## Achado à parte, não corrigido (decisão consciente) — mão fechada em punho
+
+Fechar a mão totalmente em punho faz o relógio ficar pequeno e mal posicionado (cálculo de tamanho
+usa a distância entre os dedos abertos). Mão parcialmente fechada funciona bem. Carlinhos decidiu
+não mexer nisso — uso normal é com a mão relaxada/aberta, não em punho fechado.
+
+## Achado à parte, registrado pra depois — efeito "adesivo" (falta de 3D real)
+
+Ver seção anterior "Achado novo, estrutural" — `pitch`/`yaw` fixos em zero, câmera do model-viewer
+travada. Decisão consciente do Carlinhos: não mexer agora, prioridade é não tocar no que já
+funciona. Vira tarefa de desenvolvimento própria, numa branch separada, quando houver tempo.

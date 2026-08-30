@@ -65,8 +65,11 @@ const SAMPLE_INTERVAL_MS = Number(argVal('interval', '150'));
 const ROUND             = argVal('round', '2');
 const OUT_DEFAULT       = `${REPO_ROOT}/docs/prado-rescue/evidence/AR-004/fisico-rodada${ROUND}-metrics-live.txt`;
 const OUT_PATH          = argVal('out', OUT_DEFAULT);
-const URL_MATCH         = 'lab=tasks-wrist';
-const HOST_MATCH        = 'localhost:5173';
+// --url-match permite reusar este script pra outra tela sem duplicar o arquivo.
+// Default preserva o comportamento original (lab do motor novo, ?lab=tasks-wrist).
+// Pra o motor antigo (App_FINAL.jsx), usar --url-match=showTrackingDebug=1.
+const URL_MATCH         = argVal('url-match', 'lab=tasks-wrist');
+const HOST_MATCH        = argVal('host-match', 'localhost:5173');
 
 function nowIso() {
   return new Date().toISOString();
@@ -138,16 +141,23 @@ const INSTALL_COLLECTOR_EXPR = `
   function readHud() {
     try {
       const text = document.body.innerText || '';
-      const rot = text.match(/rotZ:\\s*(-?\\d+\\.?\\d*)°/);
-      const scl = text.match(/scale:\\s*(-?\\d+\\.?\\d*)/);
-      const fps = text.match(/fps:\\s*(\\d+)/);
-      const trk = text.match(/isTracking:\\s*(true|false)/i);
+      // Motor novo (TasksWristLab): "rotZ: 12.3°", "scale: 1.0", "fps: 30", "isTracking: true".
+      // Motor antigo (App_FINAL.jsx, ?fitDebug=1&showTrackingDebug=1): sem rotZ/fps rotulados
+      // assim — usa "rot: 12.3°" e "hand: detected|lost" + "conf: 80%". Tenta os dois formatos;
+      // campo fica null quando o HUD atual não expõe aquele dado (não inventa valor).
+      const rot = text.match(/rotZ:\s*(-?\d+\.?\d*)°/) || text.match(/rot:\s*(-?\d+\.?\d*)°/);
+      const scl = text.match(/scale:\s*(-?\d+\.?\d*)/);
+      const fps = text.match(/fps:\s*(\d+)/);
+      const trk = text.match(/isTracking:\s*(true|false)/i);
+      const hand = text.match(/hand:\s*(detected|lost)/i);
+      const conf = text.match(/conf:\s*(\d+)%/);
       window.__AR004_CAP__.log.push({
         t: Date.now(),
         rotZ: rot ? Number(rot[1]) : null,
         scale: scl ? Number(scl[1]) : null,
         fps: fps ? Number(fps[1]) : null,
-        isTracking: trk ? (trk[1].toLowerCase() === 'true') : null,
+        isTracking: trk ? (trk[1].toLowerCase() === 'true') : (hand ? hand[1].toLowerCase() === 'detected' : null),
+        conf: conf ? Number(conf[1]) : null,
       });
     } catch (e) {
       window.__AR004_CAP__.log.push({ t: Date.now(), error: String(e) });

@@ -292,7 +292,11 @@ export default function App() {
       rotationBeta: 0.5,
       scaleMinCutoff: 0.8,
       scaleBeta: 0.1,
-      watchSizeMultiplier: 1.5,
+      // M074: era 1.5 — testado ao vivo em 2026-08-30, ficava pequeno
+      // comparado ao pulso real (e o teto de 220px em WristTracker.js
+      // mascarava boa parte do efeito de subir isso antes de também subir
+      // o teto). Ver docs/prado-rescue/CURRENT_STATE.md.
+      watchSizeMultiplier: 1.9,
       watchOffsetRatio: 0.18,
       ...fitParams,
     });
@@ -481,8 +485,10 @@ const handleBuyNow = () => {
         hands.setOptions({
           maxNumHands: 1,
           modelComplexity: 0,
-          minDetectionConfidence: 0.3,
-          minTrackingConfidence: 0.3,
+          // M074: eram 0.3 — testado ao vivo em 2026-08-30, 0.5 (padrão
+          // oficial do MediaPipe) não piorou a detecção em nada perceptível.
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5,
         });
 
         hands.onResults(onHandsResults);

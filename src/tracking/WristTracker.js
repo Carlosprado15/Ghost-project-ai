@@ -43,8 +43,17 @@ export class WristTracker {
       watchSizeMultiplier: config.watchSizeMultiplier ?? 1.5,
       watchOffsetRatio: config.watchOffsetRatio ?? 0.18,
       minWatchSize: config.minWatchSize ?? 80,
-      maxWatchSize: config.maxWatchSize ?? 220,
-      watchRotationOffset: config.watchRotationOffset ?? 0, // M073: era -90 — suspeita de ser a causa do "deitado", em teste
+      // M074: era 220 — teto batendo antes mesmo do produto ficar do tamanho
+      // certo (rawSize já ultrapassava 220 em uso normal). Testado ao vivo
+      // em 2026-08-30, ver docs/prado-rescue/CURRENT_STATE.md.
+      maxWatchSize: config.maxWatchSize ?? 320,
+      // M074: era 0 — testado ao vivo em 2026-08-30 (CW002, CW014). Primeira
+      // rodada (braço livre) apontou 15° como melhor entre 0/14/16/20/25,
+      // mas com resíduo pequeno ainda visível. Segunda rodada (braço apoiado
+      // em mesa, mais estável) testou os extremos -20°/+15°, interpolou
+      // matematicamente o ponto de cruzamento (-5°) e Carlinhos CONFIRMOU
+      // visualmente "agora está perfeito". Ver CURRENT_STATE.md.
+      watchRotationOffset: config.watchRotationOffset ?? -5,
       watchOffsetFlip:     config.watchOffsetFlip     ?? false,
     };
 
