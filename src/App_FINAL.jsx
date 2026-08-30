@@ -143,6 +143,11 @@ export default function App() {
   const trackerRef       = useRef(null);
   const poseTrackerRef   = useRef(null);
   const poseFallbackPoseRef = useRef(null);
+  // Offset medido no exato quadro em que a troca mão→braço acontece — mesma
+  // técnica de crossoverOffset do motor novo (AR-KB-005/009), pra evitar que
+  // o relógio gire de repente ao trocar de sistema de rastreamento. null =
+  // não estamos no reforço agora (ou acabou de sair dele).
+  const poseFallbackOffsetRef = useRef(null);
   const pipelineRef      = useRef(null);
   const precisionFitRef  = useRef(null);
   const fitFlipXRef           = useRef(false);
@@ -421,12 +426,34 @@ const handleBuyNow = () => {
       const lms = results.multiHandLandmarks?.[0] ?? null;
       const videoRect = videoRef.current.getBoundingClientRect();
       const mirrorX = camMode === 'user' || fitFlipXRef.current;
+      // Dimensões reais do vídeo (em vez de assumir 1280x720 fixo dentro do
+      // tracker) — corrige o deslocamento do relógio quando a mão sai do
+      // centro do quadro. Ver WristTracker.js#_toLandmark.
+      const videoDims = {
+        width: videoRef.current.videoWidth,
+        height: videoRef.current.videoHeight,
+      };
 
-      let pose = trackerRef.current.update(lms, null, videoRect, mirrorX);
+      let pose = trackerRef.current.update(lms, null, videoRect, mirrorX, videoDims);
       // Hands não achou nada (nem a última pose segurada): tenta o reforço
       // por braço antes de deixar a tela sem relógio.
       if (!pose && poseFallbackPoseRef.current) {
-        pose = poseFallbackPoseRef.current;
+        const fallback = poseFallbackPoseRef.current;
+        if (poseFallbackOffsetRef.current === null) {
+          // Primeiro quadro no reforço: mede a diferença entre o último
+          // ângulo bom da mão e o ângulo cru do braço, e trava esse offset
+          // enquanto durar o reforço — em vez de saltar direto pro ângulo
+          // do braço (que usa uma geometria diferente: cotovelo→pulso, não
+          // palma). Mesma técnica de crossoverOffset do motor novo.
+          const lastGoodRotation = trackerRef.current.lastValidPose?.rotation;
+          poseFallbackOffsetRef.current =
+            typeof lastGoodRotation === 'number' ? lastGoodRotation - fallback.rotation : 0;
+        }
+        pose = { ...fallback, rotation: fallback.rotation + poseFallbackOffsetRef.current };
+      } else if (pose) {
+        // Mão real detectada de novo — zera o offset pra próxima vez que
+        // entrar no reforço ele ser medido do zero, não reaproveitado.
+        poseFallbackOffsetRef.current = null;
       }
       pipelineRef.current.updatePose(pose);
     },

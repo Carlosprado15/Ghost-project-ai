@@ -142,7 +142,7 @@ export class PoseWristTracker {
     );
 
     const smoothedPos = this.positionFilter.filter({ x: wristPx.x, y: wristPx.y }, timestamp);
-    const smoothedRotation = this.rotationFilter.filter(rawRotation, timestamp);
+    const smoothedRotation = this._filterRotation(rawRotation, timestamp);
     const smoothedSize = this.scaleFilter.filter(rawSize, timestamp);
 
     return {
@@ -152,6 +152,27 @@ export class PoseWristTracker {
       rotation: smoothedRotation,
       source: 'pose-fallback',
     };
+  }
+
+  /**
+   * Filtra rotação com tratamento de wrap-around (-180/+180) — mesma técnica
+   * de WristTracker._filterRotation(), que faltava aqui. Sem isso, o ângulo
+   * do antebraço pode "girar" bruscamente ao cruzar a fronteira de 180°
+   * (mesma classe de bug documentada em AR-KB-002/004 pro motor novo).
+   */
+  _filterRotation(newRotation, timestamp) {
+    if (this.rotationFilter.x.lastValue === null) {
+      return this.rotationFilter.filter(newRotation, timestamp);
+    }
+
+    const lastRot = this.rotationFilter.x.lastValue;
+    let delta = newRotation - lastRot;
+
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+
+    const correctedRotation = lastRot + delta;
+    return this.rotationFilter.filter(correctedRotation, timestamp);
   }
 
   // Mesmo cálculo de "object-fit: cover" do WristTracker._toLandmark, mas

@@ -100,7 +100,7 @@ export class WristTracker {
   /**
    * Processa landmarks do MediaPipe e retorna pose do relógio
    */
-  update(landmarks, handedness, videoRect, mirrorX = false) {
+  update(landmarks, handedness, videoRect, mirrorX = false, videoDims = null) {
     this.state.totalFrames++;
     const timestamp = performance.now();
 
@@ -109,10 +109,10 @@ export class WristTracker {
     }
 
     // Extrair landmarks anatômicos corretos
-    const wrist = this._toLandmark(landmarks[0], videoRect, mirrorX);
-    const indexMcp = this._toLandmark(landmarks[5], videoRect, mirrorX);
-    const middleMcp = this._toLandmark(landmarks[9], videoRect, mirrorX);
-    const pinkyMcp = this._toLandmark(landmarks[17], videoRect, mirrorX);
+    const wrist = this._toLandmark(landmarks[0], videoRect, mirrorX, videoDims);
+    const indexMcp = this._toLandmark(landmarks[5], videoRect, mirrorX, videoDims);
+    const middleMcp = this._toLandmark(landmarks[9], videoRect, mirrorX, videoDims);
+    const pinkyMcp = this._toLandmark(landmarks[17], videoRect, mirrorX, videoDims);
 
     // Calcular confidence score
     const confidence = this._calculateConfidence(
@@ -174,10 +174,17 @@ export class WristTracker {
   /**
    * Converte landmark normalizado para coordenadas de tela
    */
-  _toLandmark(norm, rect, mirrorX) {
-    const MP_W = 1280;
-    const MP_H = 720;
-    
+  _toLandmark(norm, rect, mirrorX, videoDims) {
+    // Usa as dimensões REAIS do vídeo quando disponíveis, em vez do buffer
+    // fixo 1280x720 assumido aqui antes — que não batia com o pedido real da
+    // câmera em App_FINAL.jsx (640x480) e deslocava o relógio sempre que a
+    // mão saía do centro do quadro. Mesmo princípio já usado em
+    // PoseWristTracker.js#_toScreen() e em src/engine/react/coverMapping.js
+    // (D2/AR-004). Fallback preserva o comportamento antigo se o vídeo ainda
+    // não tiver metadata carregada (videoDims null/incompleto).
+    const MP_W = videoDims?.width  || 1280;
+    const MP_H = videoDims?.height || 720;
+
     const scale = Math.max(rect.width / MP_W, rect.height / MP_H);
     const dW = MP_W * scale;
     const dH = MP_H * scale;
