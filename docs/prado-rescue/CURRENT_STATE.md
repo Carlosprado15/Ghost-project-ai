@@ -412,3 +412,42 @@ Tudo num lugar só, pra não perder o fio:
 5. Ver se a pista de que `@mediapipe/tasks-vision` pode suavizar menos que a API antiga também
    aparece no reforço de braço (`PoseWristTracker.js`) — comparar o "reforço" (braço) com o
    rastreamento principal (mão) em termos de tremor.
+
+## AR-006-fisico (2026-08-30) — teste real no Razr 40, resultado
+
+**Metodologia nova:** controle remoto total via ADB (Claude abre a URL, aperta botões, lê o painel
+de calibração ao vivo via CDP, tira print) — Carlinhos só aponta a câmera pro pulso. Resolve o
+pedido dele de não depender só de descrição verbal pra calibrar.
+
+**As 3 correções de código de ontem: CONFIRMADAS funcionando.** Tracking perfeito, "gruda" no
+pulso, sem tremedeira nenhuma reportada por Carlinhos ("está tudo muito perfeito"). Diminuição de
+tamanho ao virar o pulso de lado é comportamento CORRETO (perspectiva real), não bug.
+
+**Calibração de rotação (watchRotationOffset):** o valor 0 (do mês passado) deixava o produto
+visivelmente torto. Testado ao vivo com CW002 e CW014: **15° é sensivelmente melhor que 0, 14, 16,
+20 ou 25** — mas ainda sobra uma inclinação residual pequena ("minimamente deitada"). Isso NÃO é o
+mesmo tipo de bug de antes (era ~30-90° errado; agora é um resíduo pequeno). Ajuste feito ao vivo
+via slider da tela de calibração (`?fitDebug=1`), sem precisar recarregar a página — método mais
+confiável que reabrir a URL a cada teste (reabrir exige o Carlinhos reapontar o pulso, o que muda
+ligeiramente a pose e contamina a comparação). **Ainda não perfeito — próxima sessão pode tentar
+fechar esse resíduo, mas com retorno decrescente.**
+
+**Achado novo, não estava na lista de ontem — proporção de tamanho:** `sizeMultiplier` (1.5) deixava
+o relógio pequeno demais comparado ao pulso real do Carlinhos. Subido pra ~1.9-1.95 ao vivo, melhor
+mas "quase imperceptível a mudança" — pode precisar de mais um pouco.
+
+**Achado novo, estrutural — efeito "adesivo" em vez de objeto 3D real:** Carlinhos percebeu (é
+detalhista) que o produto renderizado parece mais uma figura 2D girando do que um objeto 3D sólido
+respondendo à inclinação real do pulso. Causa raiz confirmada no código:
+- `WristTracker.js` linhas 299-300, 323-324: `pitch`/`yaw` (inclinação 3D real) são calculados
+  como **zero fixo** — existe a infraestrutura de filtro (`pitchFilter`, `yawFilter`) mas nunca foi
+  implementado o cálculo real desses ângulos a partir dos landmarks.
+- `App_FINAL.jsx` linhas 1594-1597: o `camera-orbit` do `<model-viewer>` está **travado** num ângulo
+  fixo (`min-camera-orbit`/`max-camera-orbit` iguais) — mesmo que pitch/yaw fossem calculados, não
+  estão conectados à renderização 3D hoje.
+- **Decisão do Carlinhos:** não mexer nisso agora (prioridade é não tocar no que já funciona).
+  Registrado pra virar tarefa de desenvolvimento própria, numa branch separada, com calma — não é
+  ajuste de configuração, é funcionalidade que nunca foi construída.
+
+**Pendente:** limiar de confiança (0.3→0.5), sentir a suavização em 3 camadas, comparar tremor
+mão vs. braço — ainda não testados nesta rodada, continuando na mesma sessão física.
