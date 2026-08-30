@@ -1,10 +1,9 @@
 # CURRENT_STATE — PRADO GHOST RESCUE / AR LAB v1
 
-Última atualização: 2026-08-28 — AR-004-fisico executado de verdade, em 2 rodadas, no
-aparelho de teste atual (Motorola Razr 40). Rodada 1: só métricas (CDP), rotZ/fps/isTracking
-por ~150ms, sem vídeo. Rodada 2: métricas + vídeo de tela sincronizados, usados pra checar
-visualmente 2 problemas novos relatados por Carlos ("tremendo muito" e "não acompanha no
-vai-e-vem" e "de ponta cabeça" ao girar o pulso). Resultado abaixo — ver seção própria.
+Última atualização: 2026-08-29/30 — auditoria de código do motor ANTIGO (`src/tracking/`, em
+produção) + 3 bugs corrigidos (câmera fixa, salto de ângulo no reforço, offset mão→braço) +
+limpeza de catálogo. Ver seção "Motor antigo" no final deste arquivo. Nenhum teste físico do
+motor antigo feito ainda — fica pra amanhã. Histórico do motor NOVO abaixo, sem mudança.
 **Ler este arquivo antes de qualquer nova investigação — não repetir o que já foi feito aqui.**
 
 ## AR-004-fisico — Rodada 2 (2026-08-28) — vídeo + métricas sincronizados
@@ -301,3 +300,67 @@ estruturalmente coberto por um painel de calibração permanente no código atua
 | `AR-002` | AR-BASELINE-10S (Fase 5, repetição) | FAIL isTracking; modo CORRETO desta vez; HUD continua coberto (limitação estrutural do código, não resolvível por UI); câmera majoritariamente sem mão em quadro; erro OIS reproduzido 206x |
 | `AR-003` | AR-BASELINE-10S (Fase 5, condição limpa) | PASS isTracking (18/24 amostras); modo certo + mão real em quadro confirmados antes de gravar; fps continua NÃO OBSERVÁVEL (HUD coberto); erro OIS reproduzido 206x (3ª vez); escopo: só pulso majoritariamente parado |
 | `AR-004` | Fase 6 — Experimento de código (`src/engine`) | D1/D2/D4 portados do motor legado; PROMOTE para branch `fix/d1-d2-d4-estabilizacao`; verificação só local (build/rotas), sem teste físico ainda; nesta sessão (2026-08-27): painel de calibração do lab virou colapsável (libera leitura do fps) + protocolo `PROTOCOLO-FISICO-CARLOS.md` pronto para a captura física pendente (AR-004-fisico) |
+
+## Motor antigo (`src/tracking/`, em produção) — auditoria de código e correções (2026-08-29/30)
+
+Depois de várias noites só no motor novo, Carlos pediu uma auditoria do motor antigo (o que
+está de fato na loja) pra decidir se compensa investir nele pro lançamento. Trabalho feito só
+por leitura de código + histórico do Git (barato) — **nenhum teste físico ainda**. Branch:
+`ghost-engine-v1` (a principal de verdade — ver nota de branch abaixo).
+
+**Nota de branch importante (erro cometido e corrigido nesta sessão):** parte do trabalho da
+noite foi feito por engano na branch `fix/d1-d2-d4-estabilizacao` (separada há 20 dias da
+principal, sem o lote de 32 GLBs gerados em 22/08). Foi descoberto, revertido (`git stash`,
+nada perdido) e refeito do zero em `ghost-engine-v1`. Se uma sessão futura for mexer no motor
+antigo, confirmar SEMPRE que está em `ghost-engine-v1` antes de começar.
+
+**Catálogo real (35 produtos, não 39 — CW010/011/012/015 já descontinuados em 22/08):**
+- 32 produtos com calibração de rotação/tamanho aplicada e validada (compressão Draco também
+  corrigida nesta sessão: arquivos que chegavam a 60MB agora ficam entre 250KB e 6,5MB).
+- 3 produtos (CW037, CW038, CW039) sem modelo 3D gerado — bloqueado por falta de crédito Tripo
+  (saldo consultado hoje via `/v3/account/balance`: **R$/US$ 0,00**).
+- Checagem visual foto-real vs. 3D (`qa-compare.mjs --all`) rodada em todos os 32: **2 confirmados
+  com modelo 3D errado** (CW006 — deveria ser quadrado, gerou redondo; CW007 — deveria ser pulseira
+  fitness fina, gerou cápsula arredondada). 4 suspeitos não confirmados (CW024, CW025, CW032, CW033)
+  — cor ou formato parecem não bater, mas a foto de comparação é de perfil, não de frente; não
+  investigado a fundo. Regenerar CW006/CW007 fica pra quando houver crédito Tripo (Carlos decidiu
+  adiar — não compensa comprar crédito só pra 2 produtos agora).
+
+**3 bugs de código encontrados e já corrigidos (commits `3b61a2a`, `9e7efe8`, ambos locais, não
+enviados ao GitHub ainda):**
+1. `WristTracker.js` assumia câmera fixa 1280x720 (real: 640x480 pedido em `App_FINAL.jsx`) —
+   deslocava o relógio quando a mão saía do centro do quadro (calculado: até ~23% da largura da
+   tela). Corrigido pra usar `videoWidth`/`videoHeight` reais.
+2. `PoseWristTracker.js` (reforço por braço, entra quando a mão some >10s) não tinha a proteção
+   contra salto de ângulo ao cruzar ±180° que `WristTracker.js`/`RenderPipeline.js`/
+   `PrecisionFitController.js` já tinham. Corrigido (mesmo padrão `_filterRotation`).
+3. `App_FINAL.jsx` trocava de motor (mão→braço) sem medir a diferença de ângulo entre os dois
+   sistemas — mesma classe de bug do "crossoverOffset" resolvido essa semana no motor novo
+   (AR-KB-005/009). Corrigido: mede o offset no 1º quadro do reforço, aplica como step function,
+   zera quando a mão real volta.
+
+**Achados encontrados mas NÃO resolvidos (precisam de teste físico pra concluir, não de mais
+leitura de código):**
+- O motor antigo empilha 3 camadas de suavização (OneEuroFilter → dead-zone/clamp → interpolação
+  exponencial no `RenderPipeline` a `interpolationSpeed=0.35`). A 3ª camada não é redundante por
+  si só — ela existe pra disfarçar a taxa de atualização mais lenta do MediaPipe Hands em relação
+  ao `requestAnimationFrame` — mas empilhada com as outras duas pode estar somando um atraso
+  perceptível (a própria interpolação de 0.35/frame já leva ~6 frames, ~100ms, pra chegar a 95%
+  do alvo, ANTES de somar o atraso do OneEuroFilter). Não dá pra confirmar se isso "trava" a
+  experiência sem sentir no aparelho. Não é bug, é uma pergunta de ajuste fino em aberto.
+- Os valores de β (beta) do filtro de rotação do motor antigo (0.6-0.8) são bem mais altos que o
+  preset atual do motor novo (0.3) — mas as escalas de sinal são diferentes (motor antigo mede em
+  graus, o β de referência da pesquisa em AR-KB-001 veio de um paper com mouse em pixels), então
+  não dá pra concluir que está errado sem medir. Registrado como pergunta em aberto, não como bug.
+- Confirmado (histórico do Git, `git blame`): esses parâmetros de filtro nunca foram re-ajustados
+  desde a criação do arquivo em 25-27/05/2026, exceto a correção pontual do -90° em 25/07. Ou seja,
+  não são valores "blindados por muita iteração" — é plausível que estejam desatualizados.
+
+**Pendente pra amanhã (2026-08-30):** teste físico no aparelho de teste atual (Razr 40) das 3
+correções de código de hoje — nenhuma foi validada em uso real ainda. Testado apenas por leitura
+de código. Ghost Project deve funcionar em qualquer Android/iOS — resultado de amanhã será só
+evidência parcial (só Razr 40), não confirmação universal.
+
+**Control Tower (`docs/prado-rescue/READY_FOR_PRADO_ENGINE.md`):** conferido nesta sessão — ainda
+faltam 3 de 4 itens (SDK comercial decidido, catálogo religado, reteste com rotação+FPS). Não
+implementado, como manda a regra condicional do `CLAUDE.md`.
