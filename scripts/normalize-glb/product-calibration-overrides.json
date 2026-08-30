@@ -593,22 +593,5 @@
     "flip180Y": false,
     "flip180Z": false,
     "status": "needs_new_model"
-  },
-  "TEST-FOXBOX-RAW": {
-    "type": "watch",
-    "rotationDeg": {
-      "x": 0,
-      "y": -90,
-      "z": 0
-    },
-    "scale": 1,
-    "offset": {
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "flip180Y": false,
-    "flip180Z": false,
-    "status": "calibrated"
   }
 }
