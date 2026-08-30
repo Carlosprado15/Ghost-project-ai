@@ -85,6 +85,8 @@ FONTES:
 - [COMUNIDADE] https://fossies.org/dox/mediapipe-0.10.26/classmediapipe_1_1landmarks__smoothing_1_1OneEuroFilter.html (mirror de terceiro, não é domínio do mantenedor — usar só como complemento, não sozinho)
 - [OFICIAL] https://developers.google.com/mediapipe/api/solutions/python/mp/calculators/util/landmarks_smoothing_calculator_pb2/LandmarksSmoothingCalculatorOptions
 - [OFICIAL] https://gery.casiez.net/1euro/
+- [OFICIAL] https://github.com/google-ai-edge/mediapipe/docs/solutions/hands.md — confirma que a API legada (`@mediapipe/hands`, usada em `src/tracking/WristTracker.js`) só documenta 5 parâmetros (static_image_mode, max_num_hands, model_complexity, min_detection_confidence, min_tracking_confidence); NÃO documenta suavização interna — descarta a suspeita de dupla suavização especificamente para o WristTracker.js.
+- [COMUNIDADE] https://github.com/google/mediapipe/issues/4507 — issue aberto, sem resposta oficial: relata aumento de jitter ao migrar de `smoothLandmarks` (API antiga) pra `@mediapipe/tasks-vision` (a nova), sugerindo que a suavização interna não foi portada.
 
 APLICAÇÃO AO GHOST:
 - `src/engine/core/filters/OneEuroFilter.js` — escolha correta, não trocar.
@@ -103,8 +105,23 @@ APLICAÇÃO AO GHOST:
   mesma pergunta em aberto abaixo, e é código que roda na loja hoje, não só
   no laboratório. Eleva a prioridade dessa pergunta.
 
-VEREDITO: COMPROVADO (para 1€ vs Kalman em jitter/lag); PROVAVEL (para
-dupla suavização WASM+JS — requer medição no aparelho).
+VEREDITO: COMPROVADO (para 1€ vs Kalman em jitter/lag); a dúvida de dupla
+suavização WASM+JS agora tem indício em sentido OPOSTO ao que se pensava —
+ver atualização 2026-08-30 abaixo. HIPOTESE (não PROVAVEL — uma única
+fonte de comunidade, sem confirmação do time do MediaPipe).
+
+**2026-08-30 — indício de que a suspeita original está invertida:** issue
+público [COMUNIDADE] relata que migrar da API antiga (`@mediapipe/hands`/
+`pose`, que tinha `smoothLandmarks`) pra `@mediapipe/tasks-vision` (a nova,
+usada pelo motor novo E pelo `PoseWristTracker.js` do motor antigo)
+**aumentou** o tremor, porque a suavização interna da API antiga não foi
+portada pra nova. Sem resposta oficial do time do MediaPipe (thread aberta,
+aguardando "googler"). Se confirmado, a preocupação não é "suavizar duas
+vezes" — é o contrário: a lib nova pode suavizar MENOS por padrão do que a
+antiga, e os filtros próprios do Ghost (JS) podem não estar compensando
+essa perda. Isso é consistente com o "treme muito" já relatado no motor
+novo em teste físico real esta semana. QR-041/042 continuam ABERTAS —
+isso não fecha a pergunta, só muda a direção mais provável da resposta.
 
 CUSTO DE ADOÇÃO: BAIXO (1€ já adotado; verificação da dupla suavização
 é uma medição, não reimplementação)
