@@ -93,6 +93,15 @@ APLICAÇÃO AO GHOST:
 - `src/engine/core/pose/holdLastPose.js` — o gatilho binário já é a forma
   certa de usar o score de confiança (não filtro ponderado contínuo).
 - Para corpo e ambiente: ajustar β para movimento mais lento (β≈0.001–0.003).
+- **2026-08-30 — também se aplica ao motor ANTIGO, achado na auditoria de
+  `src/tracking/`:** `PoseWristTracker.js` (o "reforço" que entra quando a
+  mão some da câmera, em produção via `App_FINAL.jsx`) usa
+  `PoseLandmarker.createFromOptions()` do MESMO `@mediapipe/tasks-vision` —
+  não é a API antiga (`@mediapipe/hands`, confirmada SEM suavização interna
+  documentada, essa parte descartada). `runningMode: 'VIDEO'`, sem nenhuma
+  opção de suavização configurada em `opts()` (linhas 80-87) — herda a
+  mesma pergunta em aberto abaixo, e é código que roda na loja hoje, não só
+  no laboratório. Eleva a prioridade dessa pergunta.
 
 VEREDITO: COMPROVADO (para 1€ vs Kalman em jitter/lag); PROVAVEL (para
 dupla suavização WASM+JS — requer medição no aparelho).

@@ -107,6 +107,13 @@ Geradas por AR-KB-001:
 - QR-042 [P0][F][ABERTA] Com dupla suavização (WASM interno + OneEuroFilter.js), qual é o lag real medido no aparelho de teste vs. sem o filtro JS?
 - QR-043 [P1][E][CONGELADA-POS-LANCAMENTO] Como integrar o score de confiança do HandLandmarker ao holdLastPose de forma gradual (não binária) sem introduzir drift?
 
+  **2026-08-30:** QR-041/042 deixam de ser só do motor novo — auditoria do
+  motor ANTIGO achou que `src/tracking/PoseWristTracker.js` (reforço de
+  braço, em produção via App_FINAL.jsx) também usa `@mediapipe/tasks-vision`
+  (`PoseLandmarker`), sem nenhuma opção de suavização configurada. Mesma
+  pergunta, agora também sobre código que já está na loja, não só no
+  laboratório — ver AR-KB-001.md, seção "Aplicação ao Ghost".
+
 Geradas por AR-KB-003:
 
 - QR-046 [P0][B][ABERTA] O delegate "GPU" em @mediapipe/tasks-vision 0.10.35 realmente usa WebGL no Chrome Android ou ainda cai em XNNPACK silenciosamente? Como detectar sem devtools?

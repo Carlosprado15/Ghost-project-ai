@@ -348,6 +348,18 @@ leitura de código):**
   perceptível (a própria interpolação de 0.35/frame já leva ~6 frames, ~100ms, pra chegar a 95%
   do alvo, ANTES de somar o atraso do OneEuroFilter). Não dá pra confirmar se isso "trava" a
   experiência sem sentir no aparelho. Não é bug, é uma pergunta de ajuste fino em aberto.
+- **Pesquisa feita 2026-08-30 (fontes oficiais), refina a suspeita acima:** checado se o próprio
+  MediaPipe já suaviza os landmarks por dentro, antes mesmo do filtro do Ghost — o que seria uma
+  4ª camada escondida. Pra `WristTracker.js` (usa a API antiga `@mediapipe/hands`): **descartado**,
+  documentação oficial não lista suavização interna nessa API. Mas `PoseWristTracker.js` (reforço
+  de braço) usa uma biblioteca diferente e mais nova, `@mediapipe/tasks-vision` — a MESMA do motor
+  novo — e essa já tinha uma pergunta em aberto (`QR-041`/`QR-042`, ver `docs/ar-research/topics/
+  AR-KB-001.md`) sobre suavização interna escondida. Ou seja: **o reforço de braço do motor antigo
+  pode compartilhar exatamente esse risco com o motor novo** — não é bug confirmado, é a mesma
+  pergunta de pesquisa em aberto, agora sabendo que também afeta código em produção.
+- Pesquisa também checou se misturar zona-morta com o filtro contínuo (1€) é prática desaconselhada
+  — o paper original (Casiez et al. CHI 2012) não aborda o assunto. Fica DESCONHECIDO, não é bug
+  nem prática validada.
 - Os valores de β (beta) do filtro de rotação do motor antigo (0.6-0.8) são bem mais altos que o
   preset atual do motor novo (0.3) — mas as escalas de sinal são diferentes (motor antigo mede em
   graus, o β de referência da pesquisa em AR-KB-001 veio de um paper com mouse em pixels), então
