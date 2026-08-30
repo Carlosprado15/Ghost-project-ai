@@ -376,3 +376,39 @@ evidência parcial (só Razr 40), não confirmação universal.
 **Control Tower (`docs/prado-rescue/READY_FOR_PRADO_ENGINE.md`):** conferido nesta sessão — ainda
 faltam 3 de 4 itens (SDK comercial decidido, catálogo religado, reteste com rotação+FPS). Não
 implementado, como manda a regra condicional do `CLAUDE.md`.
+
+### Pesquisa adicional (mesma noite) — configurações nunca revisitadas desde o MVP original
+
+Comparando `hands.setOptions()` (`App_FINAL.jsx` linhas 482-486) com os valores padrão oficiais do
+MediaPipe Hands. Confirmado por `git blame`: todos vêm do primeiro commit do projeto
+(`2350b20`, "Stable MVP checkpoint"), maio de 2026 — nunca reajustados.
+
+- `modelComplexity: 0` (modelo leve) vs. padrão oficial `1` (completo). Documentação oficial
+  confirma: precisão E velocidade sobem juntas com a complexidade — o modo leve troca precisão
+  por velocidade. Pode ter sido necessário na época; pode estar sem necessidade hoje.
+- `minDetectionConfidence`/`minTrackingConfidence: 0.3` vs. padrão oficial `0.5`. Relatos de
+  comunidade (não é papel oficial): confiança de rastreamento mais baixa tolera mais "deriva"
+  antes de forçar nova detecção. Testar subir pra 0.5 não custa desempenho (é só um limiar).
+
+**Descartado nesta rodada de pesquisa (fontes oficiais, não vale reinvestigar):**
+- `selfieMode` do MediaPipe Hands: confirmado na doc oficial que só afeta o RÓTULO de qual mão é
+  esquerda/direita, não a posição x,y dos landmarks. Motor antigo ignora esse rótulo (`handedness`
+  sempre `null`) — irrelevante aqui, não é a causa de nada.
+- Resolução da câmera (640x480 vs. maior): pesquisa não achou comparação conclusiva pro caso de
+  uso do Ghost (mão relativamente perto da câmera). Sem evidência suficiente pra recomendar mudar.
+
+## Lista consolidada pro teste físico de amanhã (2026-08-30)
+
+Tudo num lugar só, pra não perder o fio:
+
+1. Testar as 3 correções de código já commitadas (`3b61a2a`): câmera real (1280x720→dinâmico),
+   salto de ângulo no reforço de braço, offset na troca mão→braço.
+2. Testar subir `minDetectionConfidence`/`minTrackingConfidence` de 0.3 pra 0.5 (padrão oficial) —
+   grátis em desempenho; ver se piora a velocidade de detectar a mão pela primeira vez.
+3. Se sobrar tempo: testar `modelComplexity: 1` (modelo completo) — mais preciso, mas pode custar
+   FPS; testar com mais cautela que o item 2.
+4. Sentir se a suavização em 3 camadas empilhadas (OneEuroFilter → dead-zone/clamp → interpolação
+   do RenderPipeline a 0.35) dá sensação de atraso/"flutuando".
+5. Ver se a pista de que `@mediapipe/tasks-vision` pode suavizar menos que a API antiga também
+   aparece no reforço de braço (`PoseWristTracker.js`) — comparar o "reforço" (braço) com o
+   rastreamento principal (mão) em termos de tremor.
