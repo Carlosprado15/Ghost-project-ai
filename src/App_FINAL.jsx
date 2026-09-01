@@ -17,6 +17,13 @@ import { AssetStatus } from './assets/AssetStatus.js';
 import GhostDiagnostics from './components/GhostDiagnostics.jsx';
 import Hero3D from './components/Hero3D.jsx';
 
+// Produtos cujo modelo 3D foi gerado no plano grátis da Meshy (2026-08-30):
+// a licença CC BY 4.0 desse plano exige crédito visível em qualquer uso
+// comercial. Manter essa lista atualizada sempre que um novo modelo vier
+// da Meshy — some da lista se a loja assinar o plano pago da Meshy (aí a
+// exigência de crédito deixa de existir).
+const MESHY_CREDIT_REQUIRED_PRODUCTS = new Set(['CW006', 'CW007', 'CW037', 'CW038', 'CW039']);
+
 // ─── CDN loaders ──────────────────────────────────────────────────────────────
 function loadScript(src, id) {
   return new Promise((resolve, reject) => {
@@ -1655,6 +1662,29 @@ const handleBuyNow = () => {
                 </button>
               )}
             </div>
+          )}
+
+          {/* Crédito Meshy — obrigatório pela licença CC BY 4.0 do plano grátis.
+              Diferente da assinatura acima, este NÃO some em modo embedded:
+              o cliente real da loja é exatamente quem precisa ver o crédito. */}
+          {MESHY_CREDIT_REQUIRED_PRODUCTS.has(productId) && (
+            <a
+              href="https://www.meshy.ai/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                position: 'absolute',
+                bottom: '6px',
+                right: '10px',
+                fontSize: '9px',
+                letterSpacing: '0.02em',
+                color: 'rgba(255,255,255,0.4)',
+                textDecoration: 'none',
+                zIndex: 5,
+              }}
+            >
+              3D: Meshy · CC BY 4.0
+            </a>
           )}
         </>
       )}
