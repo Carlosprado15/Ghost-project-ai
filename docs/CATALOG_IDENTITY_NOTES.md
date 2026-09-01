@@ -67,3 +67,18 @@ e `handle` **não foram atualizados** (o Claude Chat não forneceu esses
 dados) — ficam com os valores antigos, herdados do "Smartwatch Slim C60
 AMOLED" que estava lá antes. Conferir/corrigir se algum dia isso causar
 problema visível na loja.
+
+## CW003 — Pulseira Vinterly Turquesa
+
+| Campo | Valor |
+|---|---|
+| Nome | Pulseira Vinterly Turquesa – Cobre Puro & Terapia Magnética |
+| GID | `gid://shopify/Product/9280080511194` |
+
+Caso diferente dos outros dois: aqui o modelo 3D **sempre esteve
+correto**, calibrado — o único problema era o link da foto de referência
+em `imageUrl` (achado em 01/09 numa checagem de rotina de todos os 35
+links do catálogo, sem relação com a investigação do CW006/CW007), que
+tinha ficado morto (404). Corrigido com o link atual fornecido pelo
+Claude Chat, confirmado retornando `200 OK` antes de aplicar. Não foi
+necessário gerar nem recalibrar nada.
