@@ -16,6 +16,7 @@
 
 import { NodeIO, getBounds } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
+import draco3d from 'draco3dgltf';
 import { writeFileSync, readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -35,9 +36,21 @@ const TARGET_MAX_DIM = { watch: 0.08, bracelet: 0.07 };
 const CENTER_TOL     = 0.01;
 const SCALE_TOL      = 0.10; // ±10%
 
-const PRODUCT_IDS = Array.from({ length: 15 }, (_, i) => `CW${String(i + 1).padStart(3, '0')}`);
+// 2026-09-01: era um range fixo CW001–CW015, que ficou defasado assim que o
+// catálogo cresceu (produtos novos nunca eram checados). O overrides.json já
+// é a fonte única de verdade de "quais produtos existem" pro resto do
+// pipeline (normalize.mjs, ProductCalibrationLab) — usar a mesma fonte aqui.
+const PRODUCT_IDS = Object.keys(OVERRIDES);
 
-const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
+// Os normalizados saem comprimidos com Draco (normalize.mjs) — sem registrar
+// o decoder aqui, io.read() quebra com "Cannot read properties of undefined
+// (reading 'DT_FLOAT32')" em qualquer arquivo com KHR_draco_mesh_compression.
+// (2026-09-01: bug pré-existente que fazia validate.mjs falhar silenciosamente
+// pra TODOS os produtos assim que a compressão Draco entrou no pipeline —
+// não era específico dos 5 produtos desta rodada.)
+const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
+  'draco3d.decoder': await draco3d.createDecoderModule(),
+});
 
 const f = (n) => n.toFixed(4);
 
@@ -109,7 +122,7 @@ ${rows.map(r =>
   `| ${r.id} | ${r.type ?? '—'} | ${f(r.dim[0])} | ${f(r.dim[1])} | ${f(r.dim[2])} | ${r.standing ? 'Sim' : 'NÃO'} | ${r.centered ? 'Sim' : 'NÃO'} | ${r.status} |`
 ).join('\n')}
 
-**Resultado: ${okCount}/15 ✅ OK · ${15 - okCount} ⚠️ REVISAR**
+**Resultado: ${okCount}/${rows.length} ✅ OK · ${rows.length - okCount} ⚠️ REVISAR**
 ${issues.length ? `
 ## Sugestões de correção
 
@@ -124,4 +137,4 @@ ${issues.map(i => `### ${i.id}\n${i.sugg.map(s => `- ${s}`).join('\n')}`).join('
 writeFileSync(OUT_MD, md, 'utf8');
 console.log(md);
 console.log(`Relatório salvo em ${OUT_MD}`);
-if (okCount < 15) process.exitCode = 1;
+if (okCount < rows.length) process.exitCode = 1;
