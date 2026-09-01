@@ -62,10 +62,10 @@
   },
   {
     "id": "CW007",
-    "title": "Smartwatch Slim C60 AMOLED – Edição Premium",
+    "title": "Smartwatch ChiBear Active Pro – Monitoramento Avançado",
     "sku": "14:193",
     "price": 220,
-    "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/666d1f0b7a31921e97929e06fa4323ba_1500x1378x219238.jpg?v=1780545266",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/baeb101768bc9e1224279fb6b6f47944_800x800x159636.jpg?v=1780544471",
     "handle": "amoled-relogio-inteligente-banda-smartwatch-feminino-masculino-frequencia-cardia",
     "status": "active",
     "modelUrl": "/models/normalized/CW007.glb"
@@ -327,8 +327,8 @@
     "price": 76.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01FGmKNr222RrJlyQqK__2200749257062-0-cib.jpg",
     "handle": "official-authentic-full-automatic-movement-watch-mens-new-non-mechanical-steel-belt-business-waterproof-luminous-calendar",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW037.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW037.glb"
   },
   {
     "id": "CW038",
@@ -337,8 +337,8 @@
     "price": 77.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01u4AjtE1FocNV9XcUE__2216592930534-0-cib.jpg",
     "handle": "bubble-brand-trendy-high-end-light-luxury-all-match-automatic-quartz-luminous-waterproof-roman-hollow-mens-watch",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW038.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW038.glb"
   },
   {
     "id": "CW039",
@@ -347,7 +347,7 @@
     "price": 399.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01W1M2rp1PFUCVphT76__2217500971811-0-cib.jpg",
     "handle": "new-k52-bluetooth-call-smart-watch-ultra-long-standby-heart-rate-blood-oxygen-outdoor-three-proof-sports-smart-watch",
-    "status": "pending_3d",
-    "modelUrl": "/models/CW039.glb"
+    "status": "active",
+    "modelUrl": "/models/normalized/CW039.glb"
   }
 ]

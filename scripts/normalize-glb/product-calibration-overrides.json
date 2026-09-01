@@ -87,9 +87,9 @@
   "CW006": {
     "type": "watch",
     "rotationDeg": {
-      "x": -0.9,
-      "y": -85.1,
-      "z": 1.1
+      "x": 0,
+      "y": 0,
+      "z": 0
     },
     "scale": 1,
     "offset": {
@@ -99,14 +99,14 @@
     },
     "flip180Y": false,
     "flip180Z": false,
-    "status": "calibrated"
+    "status": "needs_new_model"
   },
   "CW007": {
     "type": "watch",
     "rotationDeg": {
-      "x": -90,
-      "y": -88.8,
-      "z": 90
+      "x": -0.9,
+      "y": -85.1,
+      "z": 1.1
     },
     "scale": 1,
     "offset": {
@@ -558,7 +558,7 @@
     },
     "flip180Y": false,
     "flip180Z": false,
-    "status": "needs_new_model"
+    "status": "calibrated"
   },
   "CW038": {
     "type": "watch",
@@ -575,7 +575,7 @@
     },
     "flip180Y": false,
     "flip180Z": false,
-    "status": "needs_new_model"
+    "status": "calibrated"
   },
   "CW039": {
     "type": "watch",
@@ -592,6 +592,6 @@
     },
     "flip180Y": false,
     "flip180Z": false,
-    "status": "needs_new_model"
+    "status": "calibrated"
   }
 }
