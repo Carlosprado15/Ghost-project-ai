@@ -104,6 +104,15 @@ medida em `docs/prado-rescue/`.
 - Consultar também docs/ar-research/EXPERTS.md para abordagens de
 especialistas relevantes ao problema em investigação.
 
+### Servidor local pra teste físico — usar Monitor, não ficar checando
+
+Toda vez que subir um servidor local pra um teste físico no celular
+(`npm run dev`, `npm run lab:m069b`, capturas de evidência AR-XXX/GP-XXX
+etc.), usar a ferramenta de Monitor pra observar o log/processo em vez de
+ficar checando repetidamente se algo deu errado. O Monitor fica de olho
+e só avisa quando acontece algo relevante de verdade (erro, crash,
+travamento) — não a cada poucos segundos.
+
 ## Ambiente Windows — bug de path do Git Bash com ADB
 
 **Sintoma:** qualquer argumento passado para `adb.exe` que comece com `/`
