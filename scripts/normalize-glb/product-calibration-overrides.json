@@ -99,7 +99,7 @@
     },
     "flip180Y": false,
     "flip180Z": false,
-    "status": "needs_new_model"
+    "status": "calibrated"
   },
   "CW007": {
     "type": "watch",

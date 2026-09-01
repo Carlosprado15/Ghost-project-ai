@@ -10,8 +10,8 @@ Critérios por tipo — **watch**: Y maior ou 2ª maior (em pé), alvo 0.08 · *
 | CW003 | bracelet | 0.0700 | 0.0351 | 0.0646 | Sim | Sim | ✅ OK |
 | CW004 | bracelet | 0.0689 | 0.0700 | 0.0315 | Sim | Sim | ✅ OK |
 | CW005 | bracelet | 0.0700 | 0.0699 | 0.0317 | Sim | Sim | ✅ OK |
-| CW006 | watch | 0.0488 | 0.0800 | 0.0464 | Sim | Sim | ✅ OK |
-| CW007 | watch | 0.0333 | 0.0800 | 0.0452 | Sim | Sim | ✅ OK |
+| CW006 | watch | 0.0359 | 0.0800 | 0.0704 | Sim | Sim | ✅ OK |
+| CW007 | watch | 0.0488 | 0.0800 | 0.0464 | Sim | Sim | ✅ OK |
 | CW008 | watch | 0.0401 | 0.0800 | 0.0257 | Sim | Sim | ✅ OK |
 | CW009 | watch | 0.0289 | 0.0800 | 0.0306 | Sim | Sim | ✅ OK |
 | CW013 | watch | 0.0216 | 0.0800 | 0.0288 | Sim | Sim | ✅ OK |
