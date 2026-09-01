@@ -27,6 +27,9 @@ const ALL_IDS = [
   'CW016', 'CW017', 'CW018', 'CW019', 'CW020', 'CW021', 'CW022', 'CW023', 'CW024',
   'CW025', 'CW026', 'CW027', 'CW028', 'CW029', 'CW030', 'CW031', 'CW032', 'CW033',
   'CW034', 'CW035', 'CW036',
+  // 2026-09-01: CW006/CW007 (modelo trocado) + CW037-CW039 (novos, nunca
+  // calibrados) — adicionados pra rodada de calibração da leva Meshy.
+  'CW037', 'CW038', 'CW039',
 ];
 
 // Tipo (watch/bracelet) lido do overrides vigente — mesma fonte de verdade
