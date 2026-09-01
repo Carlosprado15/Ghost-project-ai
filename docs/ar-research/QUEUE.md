@@ -147,3 +147,7 @@ Geradas por AR-KB-002:
 
 - QR-044 [P0][F][ABERTA] O hold-last-pose e o reset de tracking reiniciam os campos de estado do unwrap em GhostEngine? Se não, re-detecção começará com ângulo acumulado errado e o filtro divergirá.
 - QR-045 [P0][F][ABERTA] Com unwrapping ativo e rotação de pulso contínua (>1 volta), o ângulo acumulado crescerá indefinidamente — existe um protocolo de re-normalização periódica sem causar descontinuidade visível?
+
+Geradas por levantamento manual do Carlinhos (FERRAMENTAS-CLAUDE-CODE.md, 01/09):
+
+- QR-057 [P0][D][RESPONDIDA → AR-KB-010] AR-KB-004 aponta a Opção B (quatérnion) como correção estrutural do salto ±180°, mas sem implementação de referência própria. MiKaPo (github.com/AmyangXYZ/MiKaPo, [COMUNIDADE], GPL-3.0 — só estudar, nunca copiar código) documenta "swing-twist decomposition" com pseudocódigo funcionando: calibra direção de referência do osso em repouso 1x, a cada quadro transforma landmark pro espaço local do pai, rotaciona referência até a direção ao vivo → quatérnion direto, sem ângulo Euler acumulado. UPose (github.com/digitalworlds/UPose, [COMUNIDADE]) confirma a mesma técnica em contexto Unity/C#, segunda fonte independente. Pergunta pro próximo ciclo: como adaptar swing-twist decomposition (calibração de pose de repouso + rotação relativa por quadro) para os 3 pontos que o Ghost Engine já lê (WRIST, INDEX_MCP, PINKY_MCP), sem herdar nenhuma linha de código GPL — só a técnica matemática, para viabilizar a Opção B do AR-KB-004 com uma implementação nossa, de fato prototipável.

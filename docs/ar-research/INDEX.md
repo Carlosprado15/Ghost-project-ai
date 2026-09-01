@@ -119,3 +119,4 @@ Toda fonte em `FONTES:` deve vir rotulada com um destes quatro:
 | [AR-KB-007](topics/AR-KB-007.md) | F / E / P | Frames de interpolação na troca de landmark pair: limiar de percepção de lag em AR de pulso a 30fps; lacuna de dado para jóia no pulso | COMPROVADO / HIPOTESE | PULSO / CORPO |
 | [AR-KB-008](topics/AR-KB-008.md) | E | anchorState (crossoverOffset) durante tracking loss/recovery: preservar no hold, zerar quando hold expira | COMPROVADO / PROVAVEL | PULSO / CORPO |
 | [AR-KB-009](topics/AR-KB-009.md) | F / E / D | crossoverOffset: step function vs. interpolado→0 durante fallback — bumpless transfer confirma step; ramp-up só no sub-caso recovery-pós-hold | COMPROVADO / PROVAVEL | PULSO / CORPO |
+| [AR-KB-010](topics/AR-KB-010.md) | D / F | Swing-twist decomposition (MiKaPo) aplicada aos 3 pontos do Ghost: viabilidade + esboço de plano pra implementar a Opção B do AR-KB-004 sem herdar código GPL-3.0 | PROVAVEL | PULSO / CORPO |
