@@ -113,6 +113,18 @@ ficar checando repetidamente se algo deu errado. O Monitor fica de olho
 e só avisa quando acontece algo relevante de verdade (erro, crash,
 travamento) — não a cada poucos segundos.
 
+### Captura de console/rede no Chrome — preferir o MCP oficial
+
+Desde 01/09/2026, `.mcp.json` registra o `chrome-devtools-mcp` (mantido
+pelo próprio time do Chrome DevTools do Google — ver
+`docs/ar-research/FERRAMENTAS-CLAUDE-CODE.md`, item 5). Pra captura de
+console/rede/performance/screenshot em teste físico, preferir esse MCP
+em vez de escrever um script CDP novo (`scripts/prado-rescue/_poll_*.mjs`
+etc.) — `capture-console-live.mjs` tem um bug conhecido, não corrigido,
+de engolir erro silenciosamente dentro do coletor `setInterval`. Scripts
+CDP customizados continuam válidos pra necessidade muito específica que
+o MCP não cubra, mas não como primeira opção.
+
 ## Ambiente Windows — bug de path do Git Bash com ADB
 
 **Sintoma:** qualquer argumento passado para `adb.exe` que comece com `/`
