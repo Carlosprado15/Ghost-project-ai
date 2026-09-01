@@ -3,6 +3,10 @@
     "chrome-devtools": {
       "command": "npx",
       "args": ["-y", "chrome-devtools-mcp@latest"]
+    },
+    "blender": {
+      "command": "C:\\Users\\Bi\\AppData\\Roaming\\Python\\Python314\\Scripts\\uvx.exe",
+      "args": ["blender-mcp"]
     }
   }
 }
