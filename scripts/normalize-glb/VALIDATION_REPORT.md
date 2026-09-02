@@ -1,5 +1,5 @@
 # VALIDATION_REPORT — GLBs Normalizados
-Gerado por `node scripts/normalize-glb/validate.mjs` em 2026-09-01
+Gerado por `node scripts/normalize-glb/validate.mjs` em 2026-09-02
 
 Critérios por tipo — **watch**: Y maior ou 2ª maior (em pé), alvo 0.08 · **bracelet**: Y é a MENOR dimensão (loop ⊥ Y), alvo 0.07 · **Centralizado**: centro do bbox a < 0.01 da origem · escala ±10%
 
@@ -9,7 +9,7 @@ Critérios por tipo — **watch**: Y maior ou 2ª maior (em pé), alvo 0.08 · *
 | CW002 | bracelet | 0.0222 | 0.0697 | 0.0700 | NÃO | Sim | ⚠️ REVISAR (loop não ⊥ Y (Y=0.0697 é a 2ª dimensão, deveria ser a menor)) |
 | CW003 | bracelet | 0.0700 | 0.0351 | 0.0646 | Sim | Sim | ✅ OK |
 | CW004 | bracelet | 0.0689 | 0.0700 | 0.0315 | Sim | Sim | ✅ OK |
-| CW005 | bracelet | 0.0700 | 0.0699 | 0.0317 | Sim | Sim | ✅ OK |
+| CW005 | bracelet | 0.0700 | 0.0189 | 0.0622 | Sim | Sim | ✅ OK |
 | CW006 | watch | 0.0359 | 0.0800 | 0.0704 | Sim | Sim | ✅ OK |
 | CW007 | watch | 0.0488 | 0.0800 | 0.0464 | Sim | Sim | ✅ OK |
 | CW008 | watch | 0.0401 | 0.0800 | 0.0257 | Sim | Sim | ✅ OK |
