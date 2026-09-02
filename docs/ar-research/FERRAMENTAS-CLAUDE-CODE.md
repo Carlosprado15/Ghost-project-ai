@@ -135,6 +135,27 @@ AR sendo a prioridade da semana, não é hora de abrir essa frente. Guardar
 pra quando o próximo lote grande de produtos precisar ser gerado (ex.:
 quando a loja crescer de novo, como aconteceu de 15 pra 35).
 
+**ATUALIZAÇÃO 01/09/2026 — instalado e conectado.** Ver
+`docs/CATALOG_IDENTITY_NOTES.md` (histórico de instalação: `uv`/`uvx`,
+addon copiado e ativado no Blender, "MCP for Blender" conectado via
+Claude Chat guiando por print). Testado agora (`get_scene_info`) —
+conexão responde de verdade, porta 9876.
+
+**Capacidade nova confirmada:** a integração **Hyper3D Rodin** (geração
+de modelo 3D a partir de imagem, direto de dentro do Blender) está
+**ativada, com chave de API válida** (trial gratuito, modo `MAIN_SITE`,
+já configurada no Blender do Carlinhos — não precisei fazer nada pra
+isso funcionar, já veio pronto). Confirmado via `get_hyper3d_status`.
+
+Isso abre um **segundo caminho pra gerar modelo 3D a partir de foto**,
+além da Tripo (paga) e da Meshy (manual, via site) — esse aqui eu
+controlaria o processo inteiro sozinho, sem depender de qual foto o
+Carlinhos sobe manualmente numa tela web (era exatamente esse ponto
+cego que causou a confusão do CW006 hoje). **Ainda não usado pra
+nada real** — só confirmado que está disponível e funcionando. Testar
+num produto de baixo risco antes de confiar nele pro catálogo de
+verdade continua valendo como próximo passo, não decisão de hoje.
+
 ## 5. Chrome DevTools MCP — formaliza a captura dos testes AR-004
 
 CAMADA: E-TRACKING (ferramenta de teste, não do motor)
