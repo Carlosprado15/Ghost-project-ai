@@ -1159,6 +1159,19 @@ const handleBuyNow = () => {
     return (
       <div className="home">
         <UrlDiagnosticsPanel />
+        {/* Botão SAIR — só faz sentido quando o app está dentro de um iframe
+            (embutido na loja Shopify). Sem isso o cliente não tinha como
+            fechar o provador e voltar pra loja. Reaproveita o mesmo sinal
+            'ghost-close' que public/gsdk.js já escuta e fecha o overlay. */}
+        {window.parent !== window && (
+          <button
+            className="back-btn"
+            onClick={() => window.parent.postMessage({ type: 'ghost-close' }, '*')}
+            style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 20 }}
+          >
+            ✕ Sair
+          </button>
+        )}
         <div
           className="home-background"
           style={{
