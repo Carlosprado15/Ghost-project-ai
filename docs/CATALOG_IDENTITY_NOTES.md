@@ -39,13 +39,9 @@ caminho e foi descartada**, não tem relação com CW006 nem CW007.
 
 `imageUrl` do CW006 em `products.json` **já apontava pro produto certo
 desde o primeiro commit do projeto** — nunca precisou de edição.
-**Modelo 3D correto ainda não foi gerado** (01/09, fim do dia) — as 3
-tentativas de geração (Tripo original, Meshy 30/08, Meshy 01/09) saíram
-todas com a geometria que, agora sabemos, pertence ao CW007 (ver abaixo).
-Fica pendente nova tentativa, com sessão da Meshy 100% limpa (login novo
-ou aba anônima), usando a foto real acima —
-já preparada em `fotos-limpas/CW006.png` e em
-`C:\Users\Bi\Downloads\SUBIR_NO_MESHY_CW006_LIGE.jpg`.
+**RESOLVIDO** (01/09, commit `df6c99d`): a 4ª tentativa de geração
+(Meshy, sessão limpa) saiu correta — confirmado visualmente de 4
+ângulos, calibração 0°/0°/0° já nasceu certa.
 
 ## CW007 — Smartwatch ChiBear Active Pro
 
@@ -82,3 +78,32 @@ links do catálogo, sem relação com a investigação do CW006/CW007), que
 tinha ficado morto (404). Corrigido com o link atual fornecido pelo
 Claude Chat, confirmado retornando `200 OK` antes de aplicar. Não foi
 necessário gerar nem recalibrar nada.
+
+## CW017 — Smartwatch T9
+
+| Campo | Valor |
+|---|---|
+| Nome | Smartwatch T9 – Monitor Cardíaco & Assistente de Voz |
+| GID | `gid://shopify/Product/9395048841434` |
+| Estoque | 0 unidades em todas as 61 variantes (vendor "DropShipping",
+lote de 13/07 — mesmo padrão já visto em outros produtos desse lote;
+não é urgente corrigir, registrado pra auditoria de catálogo pendente) |
+
+Caso diferente dos outros: aqui o problema não era duplicidade nem link
+morto, era **foto de referência errada desde a origem** —
+`fotos-limpas/CW017.png` tinha, desde o único commit que já tocou nesse
+arquivo (13/07/2026, exatamente o dia da importação em massa dos 24
+produtos novos com remoção simultânea de 3 duplicados antigos), a foto
+de um relógio completamente diferente (redondo, pulseira de metal,
+mostrador tema astronauta — mesma imagem genérica que já causou a
+confusão do CW006/CW007). Provável causa: mistura de arquivo durante a
+reorganização em massa daquele dia, nunca percebida porque o modelo 3D
+nunca tinha sido comparado com a foto real até 01-02/09.
+
+Corrigido em 02/09/2026 com uma foto nova (não a `imageUrl` original,
+que tinha reflexo forte no mostrador — Carlinhos pediu fotos alternativas
+da galeria do produto): pulseira de silicone preta, mostrador redondo
+analógico-digital limpo, sem reflexo. `fotos-limpas/CW017.png` e
+`imageUrl` em `products.json` atualizados. **Modelo 3D ainda não
+regenerado** — fica pra quando decidirem tratar a leva de cores erradas
+(ver [[project_lembrete_cw016_cw017_meshy]] na memória).
