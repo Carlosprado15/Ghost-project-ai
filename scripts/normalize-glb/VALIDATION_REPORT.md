@@ -28,12 +28,12 @@ Critérios por tipo — **watch**: Y maior ou 2ª maior (em pé), alvo 0.08 · *
 | CW025 | watch | 0.0445 | 0.0800 | 0.0452 | Sim | Sim | ✅ OK |
 | CW026 | watch | 0.0577 | 0.0800 | 0.0551 | Sim | Sim | ✅ OK |
 | CW027 | watch | 0.0570 | 0.0800 | 0.0289 | Sim | Sim | ✅ OK |
-| CW028 | watch | 0.0323 | 0.0800 | 0.0592 | Sim | Sim | ✅ OK |
+| CW028 | watch | 0.0777 | 0.0800 | 0.0376 | Sim | Sim | ✅ OK |
 | CW029 | watch | 0.0469 | 0.0800 | 0.0298 | Sim | Sim | ✅ OK |
 | CW030 | watch | 0.0498 | 0.0800 | 0.0347 | Sim | Sim | ✅ OK |
 | CW031 | watch | 0.0490 | 0.0800 | 0.0200 | Sim | Sim | ✅ OK |
-| CW032 | watch | 0.0251 | 0.0800 | 0.0315 | Sim | Sim | ✅ OK |
-| CW033 | watch | 0.0484 | 0.0800 | 0.0190 | Sim | Sim | ✅ OK |
+| CW032 | watch | 0.0783 | 0.0800 | 0.0515 | Sim | Sim | ✅ OK |
+| CW033 | watch | 0.0502 | 0.0747 | 0.0800 | Sim | Sim | ✅ OK |
 | CW034 | watch | 0.0506 | 0.0800 | 0.0267 | Sim | Sim | ✅ OK |
 | CW035 | watch | 0.0336 | 0.0800 | 0.0657 | Sim | Sim | ✅ OK |
 | CW036 | watch | 0.0449 | 0.0800 | 0.0189 | Sim | Sim | ✅ OK |
