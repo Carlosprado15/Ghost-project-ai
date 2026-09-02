@@ -40,6 +40,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { prepareForGeneration } from './prepare-for-3d.mjs';
+import { requireGid } from './lib/requireGid.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '../..');
@@ -204,6 +205,9 @@ async function main() {
     const product = products.find(p => p.id === id);
     if (!product) { console.error(`Produto ${id} não encontrado em products.json`); continue; }
     try {
+      // Trava de identidade (02/09/2026, resposta à confusão CW006/CW007):
+      // não gera nada sem GID da Shopify confirmado primeiro.
+      requireGid(id, products);
       await generateOne(apiKey, id, product.imageUrl, { raw });
     } catch (err) {
       console.error(`  ❌ ${id} falhou: ${err.message}`);

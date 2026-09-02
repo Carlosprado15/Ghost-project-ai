@@ -28,7 +28,8 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/61427c8dce136979b726c79dc3ed284e_1000x1000x132217.jpg?v=1780608053",
     "handle": "vinterly-pulseiras-magneticas-de-cobre-puro-para-mulheres-joias-de-terapia-vint",
     "status": "active",
-    "modelUrl": "/models/normalized/CW003.glb"
+    "modelUrl": "/models/normalized/CW003.glb",
+    "shopifyGid": "gid://shopify/Product/9280080511194"
   },
   {
     "id": "CW004",
@@ -58,7 +59,8 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/f65fd2d6755dfb2da91e51edbaa3af95_800x800x156967.jpg?v=1780545473",
     "handle": "bluetooth-conectado-telefone-relogio-inteligente-das-mulheres-dos-homens-musica",
     "status": "active",
-    "modelUrl": "/models/normalized/CW006.glb"
+    "modelUrl": "/models/normalized/CW006.glb",
+    "shopifyGid": "gid://shopify/Product/9278949916890"
   },
   {
     "id": "CW007",
@@ -68,7 +70,8 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/baeb101768bc9e1224279fb6b6f47944_800x800x159636.jpg?v=1780544471",
     "handle": "amoled-relogio-inteligente-banda-smartwatch-feminino-masculino-frequencia-cardia",
     "status": "active",
-    "modelUrl": "/models/normalized/CW007.glb"
+    "modelUrl": "/models/normalized/CW007.glb",
+    "shopifyGid": "gid://shopify/Product/9278924587226"
   },
   {
     "id": "CW008",
@@ -128,7 +131,8 @@
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01n8tiII2Amj0QV9fnp__2218112178246-0-cib.jpg?v=1783963084",
     "handle": "smart-watch-watch-adult-heart-rate-monitoring-sports-entertainment-black-technology-ai-intelligent-voice-cross-border-hot-model",
     "status": "active",
-    "modelUrl": "/models/normalized/CW017.glb"
+    "modelUrl": "/models/normalized/CW017.glb",
+    "shopifyGid": "gid://shopify/Product/9395048841434"
   },
   {
     "id": "CW018",
