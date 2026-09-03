@@ -1,357 +1,486 @@
 [
   {
     "id": "CW001",
+    "ghostId": "gp_bfdb4bd241b7",
     "title": "Relógio Casio Vintage LF-20W-8A",
     "sku": "14:201447598#LF-20W-8A",
+    "gtin": null,
     "price": 480,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/929fdf680aeaf75dc92018f9063c38c1_1000x1000x189235.jpg?v=1780609207",
     "handle": "relogio-casio-para-neutro-2023-novos-estilos-definir-marca-superior-de-luxo-a-pr",
     "status": "active",
     "modelUrl": "/models/normalized/CW001.glb",
-    "arScale": 1
+    "arScale": 1,
+    "platformRefs": []
   },
   {
     "id": "CW002",
+    "ghostId": "gp_5ed9e37d1db0",
     "title": "Pulseira NIDIN Zircônia Craft – Acabamento Premium",
     "sku": "200001034:6145#White",
+    "gtin": null,
     "price": 160,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/bd65fa5ad169b8203ed317d84c6df6f8_1000x1000x241930.jpg?v=1780608470",
     "handle": "nidin-moda-banhado-a-ouro-corrente-mistura-pulseira-para-mulheres-colorido-crist",
     "status": "active",
-    "modelUrl": "/models/normalized/CW002.glb"
+    "modelUrl": "/models/normalized/CW002.glb",
+    "platformRefs": []
   },
   {
     "id": "CW003",
+    "ghostId": "gp_8f0d7b778930",
     "title": "Pulseira Vinterly Turquesa – Cobre Puro & Terapia Magnética",
     "sku": "200001034:200003757#bracelet tool box",
+    "gtin": null,
     "price": 230,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/61427c8dce136979b726c79dc3ed284e_1000x1000x132217.jpg?v=1780608053",
     "handle": "vinterly-pulseiras-magneticas-de-cobre-puro-para-mulheres-joias-de-terapia-vint",
     "status": "active",
     "modelUrl": "/models/normalized/CW003.glb",
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9280080511194"
+      }
+    ],
     "shopifyGid": "gid://shopify/Product/9280080511194"
   },
   {
     "id": "CW004",
+    "ghostId": "gp_d27263dbcfa8",
     "title": "Bracelete Magnético Vinterly Heritage – Edição Limitada",
     "sku": "200001034:200003762#inlay 6 magnets",
+    "gtin": null,
     "price": 130,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/e77f84bbaaeba2a99c7ba98afe929253_1000x1000x144404.jpg?v=1780607885",
     "handle": "pulseiras-de-cobre-puro-vinterly-estilo-viking-yggdrasil-15mm-ajustaveis-joi",
     "status": "active",
-    "modelUrl": "/models/normalized/CW004.glb"
+    "modelUrl": "/models/normalized/CW004.glb",
+    "platformRefs": []
   },
   {
     "id": "CW005",
+    "ghostId": "gp_72fcd79ad8bb",
     "title": "Pulseira Magnético Equilíbrio",
     "sku": "14:366#524;491:200000313",
+    "gtin": null,
     "price": 99,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/2314a4c0875cc618f72ff3a0366babee_463x463x37421.jpg?v=1780545847",
     "handle": "pulseira-magnetico-bioquantico-de-equilibrio-original",
     "status": "active",
-    "modelUrl": "/models/normalized/CW005.glb"
+    "modelUrl": "/models/normalized/CW005.glb",
+    "platformRefs": []
   },
   {
     "id": "CW006",
+    "ghostId": "gp_33cbd62b07c3",
     "title": "Smartwatch LIGE Chronos – Conectividade e Alta Performance",
     "sku": "14:193#Orange",
+    "gtin": null,
     "price": 299,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/f65fd2d6755dfb2da91e51edbaa3af95_800x800x156967.jpg?v=1780545473",
     "handle": "bluetooth-conectado-telefone-relogio-inteligente-das-mulheres-dos-homens-musica",
     "status": "active",
     "modelUrl": "/models/normalized/CW006.glb",
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9278949916890"
+      }
+    ],
     "shopifyGid": "gid://shopify/Product/9278949916890"
   },
   {
     "id": "CW007",
+    "ghostId": "gp_eaa9c07510bb",
     "title": "Smartwatch ChiBear Active Pro – Monitoramento Avançado",
     "sku": "14:193",
+    "gtin": null,
     "price": 220,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/baeb101768bc9e1224279fb6b6f47944_800x800x159636.jpg?v=1780544471",
     "handle": "amoled-relogio-inteligente-banda-smartwatch-feminino-masculino-frequencia-cardia",
     "status": "active",
     "modelUrl": "/models/normalized/CW007.glb",
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9278924587226"
+      }
+    ],
     "shopifyGid": "gid://shopify/Product/9278924587226"
   },
   {
     "id": "CW008",
+    "ghostId": "gp_026a9e971e5b",
     "title": "Relógio Quartzo Curren Luxury Gold – Pulseira em Aço",
     "sku": "14:29#GW-BOX",
+    "gtin": null,
     "price": 199,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/e9b70205a0a32bfbacd615b8c43a0dcc_1000x687x121950.jpg?v=1780545081",
     "handle": "curren-relogio-de-ouro-feminino-relogios-senhoras-criativo-aco-pulseira-relogios",
     "status": "active",
-    "modelUrl": "/models/normalized/CW008.glb"
+    "modelUrl": "/models/normalized/CW008.glb",
+    "platformRefs": []
   },
   {
     "id": "CW009",
+    "ghostId": "gp_f697c40e7d00",
     "title": "Relógio Quartzo Bee Sister – Acabamento Premium com Strass",
     "sku": "14:173#silver gold",
+    "gtin": null,
     "price": 120,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/c3ead220395c9d98bdcbf140b65d9320_800x800x346795.jpg?v=1780544894",
     "handle": "diamante-relogio-feminino-marca-de-luxo-2025-strass-elegante-senhoras-relogios-r",
     "status": "active",
-    "modelUrl": "/models/normalized/CW009.glb"
+    "modelUrl": "/models/normalized/CW009.glb",
+    "platformRefs": []
   },
   {
     "id": "CW013",
+    "ghostId": "gp_e9cc19e0543e",
     "title": "Relógio Quartzo DIJANES Mesh – Design Minimalista em Aço",
     "sku": "14:865#M Orange Rose Gold",
+    "gtin": null,
     "price": 60,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/779a88a5304b0a03a303749bfb7c943a_800x800x208496.jpg?v=1780543026",
     "handle": "reloj-hombre-2023-relogio-masculino-minimalista-ultra-fino-relogios-moda-masculi",
     "status": "active",
-    "modelUrl": "/models/normalized/CW013.glb"
+    "modelUrl": "/models/normalized/CW013.glb",
+    "platformRefs": []
   },
   {
     "id": "CW014",
+    "ghostId": "gp_62ee4f95411f",
     "title": "Relógio Quartzo Curren Sport – Design Militar Premium",
     "sku": "14:201447598#Blue-box",
+    "gtin": null,
     "price": 330,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/281067ad8ae58e9c35f8e0f147260bbb_800x800x183353.jpg?v=1780542545",
     "handle": "curren-relogio-de-pulso-masculino-cronografo-a-prova-d-39-agua-militar-do-exe",
     "status": "active",
-    "modelUrl": "/models/normalized/CW014.glb"
+    "modelUrl": "/models/normalized/CW014.glb",
+    "platformRefs": []
   },
   {
     "id": "CW016",
+    "ghostId": "gp_3cfb3d7c1c83",
     "title": "Smartwatch HW20 – Monitor Cardíaco & Tela Grande",
     "sku": "5344766913220",
+    "gtin": null,
     "price": 195.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN015UQkpH1ZGzVXyz071__2214539433168-0-cib.jpg",
     "handle": "hw20-smart-watch-ecg-ppg-business-stainless-steel-strap-1-46-large-screen-bluetooth-call-smart-watch",
     "status": "active",
-    "modelUrl": "/models/normalized/CW016.glb"
+    "modelUrl": "/models/normalized/CW016.glb",
+    "platformRefs": []
   },
   {
     "id": "CW017",
+    "ghostId": "gp_277784515a35",
     "title": "Smartwatch T9 – Monitor Cardíaco & Assistente de Voz",
     "sku": "5821526340163",
+    "gtin": null,
     "price": 225.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01n8tiII2Amj0QV9fnp__2218112178246-0-cib.jpg?v=1783963084",
     "handle": "smart-watch-watch-adult-heart-rate-monitoring-sports-entertainment-black-technology-ai-intelligent-voice-cross-border-hot-model",
     "status": "active",
     "modelUrl": "/models/normalized/CW017.glb",
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395048841434"
+      }
+    ],
     "shopifyGid": "gid://shopify/Product/9395048841434"
   },
   {
     "id": "CW018",
+    "ghostId": "gp_38a669e2d727",
     "title": "Relógio Infantil LED Pacha Dog – Estampas Divertidas",
     "sku": "5355755114760",
+    "gtin": null,
     "price": 49.99,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01WBl5dP1reV3Gvm0Xw__2685245656-0-cib.jpg",
     "handle": "new-pacha-dog-cartoon-electronic-watch-student-cute-children-cartoon-printed-led-sports-watch-wholesale",
     "status": "active",
-    "modelUrl": "/models/normalized/CW018.glb"
+    "modelUrl": "/models/normalized/CW018.glb",
+    "platformRefs": []
   },
   {
     "id": "CW019",
+    "ghostId": "gp_4858d22e4350",
     "title": "Smartwatch V69 – Tela 1.85\" & Chamadas Bluetooth",
     "sku": "5684968787261",
+    "gtin": null,
     "price": 353.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01OM6n4S2LDQApVGFIv__2215623759658-0-cib.jpg",
     "handle": "cross-border-v69-smart-watch-1-85-inch-bluetooth-call-large-screen-heart-rate-blood-oxygen-multi-sports-waterproof-smart-watch",
     "status": "active",
-    "modelUrl": "/models/normalized/CW019.glb"
+    "modelUrl": "/models/normalized/CW019.glb",
+    "platformRefs": []
   },
   {
     "id": "CW020",
+    "ghostId": "gp_4f0807e860ce",
     "title": "Relógio Feminino Retrô – Mostrador Textura Madeira",
     "sku": "5998036156661",
+    "gtin": null,
     "price": 49.99,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01GKop9j1Lkr34xxjQb__2200707891338-0-cib.jpg",
     "handle": "foreign-trade-cross-border-new-womens-watch-student-wristwatch-wood-grain-dial-retro-striped-leather-strap-in-stock-wholesale",
     "status": "active",
-    "modelUrl": "/models/normalized/CW020.glb"
+    "modelUrl": "/models/normalized/CW020.glb",
+    "platformRefs": []
   },
   {
     "id": "CW021",
+    "ghostId": "gp_8f406f67145b",
     "title": "Relógio Megir Cronógrafo 2144 – Esportivo em Silicone",
     "sku": "4349206009662",
+    "gtin": null,
     "price": 238.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/14690036308_1696831007.jpg",
     "handle": "brand-megir-mens-watch-multifunctional-chronograph-sports-silicone-mens-quartz-sports-watch-2144",
     "status": "active",
-    "modelUrl": "/models/normalized/CW021.glb"
+    "modelUrl": "/models/normalized/CW021.glb",
+    "platformRefs": []
   },
   {
     "id": "CW022",
+    "ghostId": "gp_deae1f090025",
     "title": "Relógio HONMIN Outdoor – Mostrador Grande & Luminoso",
     "sku": "5661255765721",
+    "gtin": null,
     "price": 144.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01Ot99Ao1PgVeaSySUN__2208896371870-0-cib.jpg",
     "handle": "honmin-brand-watch-outdoor-casual-mens-watch-multifunctional-quartz-watch-luminous-waterproof-large-dial-watch-for-men",
     "status": "active",
-    "modelUrl": "/models/normalized/CW022.glb"
+    "modelUrl": "/models/normalized/CW022.glb",
+    "platformRefs": []
   },
   {
     "id": "CW023",
+    "ghostId": "gp_ee98cc21c86c",
     "title": "Relógio Masculino Aço – Calendário & Ponteiros Luminosos",
     "sku": "5743745121378",
+    "gtin": null,
     "price": 49.99,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01RDsMwM1pGZFuRtfjr__2218406385333-0-cib.jpg",
     "handle": "cross-border-explosive-mens-watch-quartz-mens-watch-calendar-steel-band-watch-mens-fashion-sports-luminous-pointer-wrist-watch",
     "status": "active",
-    "modelUrl": "/models/normalized/CW023.glb"
+    "modelUrl": "/models/normalized/CW023.glb",
+    "platformRefs": []
   },
   {
     "id": "CW024",
+    "ghostId": "gp_6407333113bf",
     "title": "Relógio Wormhole Square – Design Quadrado de Alto Padrão",
     "sku": "6083338517242",
+    "gtin": null,
     "price": 217.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01CnuZFd1xQf0nNaOA0__2209167486438-0-cib.jpg",
     "handle": "wormhole-concept-square-high-end-watch-mens-quartz-watch-sports-mens-high-end-business-mens-tritium-gas-mens-watch",
     "status": "active",
-    "modelUrl": "/models/normalized/CW024.glb"
+    "modelUrl": "/models/normalized/CW024.glb",
+    "platformRefs": []
   },
   {
     "id": "CW025",
+    "ghostId": "gp_6fd0b60f5a88",
     "title": "Relógio Engine Sport – Estilo Motor, Design Esportivo",
     "sku": "6027157405150",
+    "gtin": null,
     "price": 205.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN019NeaUd1dcIl18g5DJ__4023503756-0-cib.jpg",
     "handle": "cross-border-popular-engine-style-sports-mens-watch-brand-wristwatch-quartz-watch-wholesale-foreign-trade-fashion-personalized-mens-watch",
     "status": "active",
-    "modelUrl": "/models/normalized/CW025.glb"
+    "modelUrl": "/models/normalized/CW025.glb",
+    "platformRefs": []
   },
   {
     "id": "CW026",
+    "ghostId": "gp_f673f6e8ae1e",
     "title": "Relógio Blue Angel Cronógrafo – Pulseira em Aço",
     "sku": "5944419351520",
+    "gtin": null,
     "price": 146.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01Db9q7S1xMXM8EEFey__2207589666429-0-cib.jpg",
     "handle": "cross-border-popular-blue-angel-multifunctional-chronograph-watch-with-steel-strap-mens-fashion-dial-factory-ready-stock-one-piece-dropshipping",
     "status": "active",
-    "modelUrl": "/models/normalized/CW026.glb"
+    "modelUrl": "/models/normalized/CW026.glb",
+    "platformRefs": []
   },
   {
     "id": "CW027",
+    "ghostId": "gp_39ff8e9283db",
     "title": "Relógio Curren 8225 – Calendário & Mostrador Grande",
     "sku": "5823573433697",
+    "gtin": null,
     "price": 129.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01Jjaw8q1MVZPWGLV79__3893261440-0-cib.jpg",
     "handle": "curren-curren-8225-calendar-mens-casual-large-dial-waterproof-creative-belt-watch",
     "status": "active",
-    "modelUrl": "/models/normalized/CW027.glb"
+    "modelUrl": "/models/normalized/CW027.glb",
+    "platformRefs": []
   },
   {
     "id": "CW028",
+    "ghostId": "gp_94dd8a096493",
     "title": "Smartwatch P11 Plus – Monitor Completo de Saúde",
     "sku": "5131518795890",
+    "gtin": null,
     "price": 361.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01JINUEn1EUdQ0TZ04Q__2202379710355-0-cib.jpg",
     "handle": "cross-border-p11plus-smart-bracelet-with-ecg-body-temperature-heart-rate-blood-oxygen-sleep-monitoring-exercise-tracking-and-step-counting-sports-watch",
     "status": "active",
-    "modelUrl": "/models/normalized/CW028.glb"
+    "modelUrl": "/models/normalized/CW028.glb",
+    "platformRefs": []
   },
   {
     "id": "CW029",
+    "ghostId": "gp_ea116c5b7ab6",
     "title": "Relógio Juelen Retrô – Estilo Jovem e Despojado",
     "sku": "5900664328042",
+    "gtin": null,
     "price": 123.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01XgWMqS2BeJRXKIg8e__2493348363-0-cib.jpg",
     "handle": "louie-juelen-retro-personalized-quartz-watch-for-teenagers-and-students-mens-watch",
     "status": "active",
-    "modelUrl": "/models/normalized/CW029.glb"
+    "modelUrl": "/models/normalized/CW029.glb",
+    "platformRefs": []
   },
   {
     "id": "CW030",
+    "ghostId": "gp_6b2d272bfa1d",
     "title": "Smartwatch Lige – Chamadas, Pressão & Frequência Cardíaca",
     "sku": "6045381992182",
+    "gtin": null,
     "price": 326.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01o9f4Y41OsabFZlMy4__2221330681761-0-cib.jpg",
     "handle": "lige-bangwei-multifunctional-smart-watch-bluetooth-call-step-counting-blood-pressure-and-heart-rate-detection-waterproof-watch",
     "status": "active",
-    "modelUrl": "/models/normalized/CW030.glb"
+    "modelUrl": "/models/normalized/CW030.glb",
+    "platformRefs": []
   },
   {
     "id": "CW031",
+    "ghostId": "gp_1665f912e064",
     "title": "Relógio Esportivo Textura Madeira – Calendário Multifuncional",
     "sku": "4621226618806",
+    "gtin": null,
     "price": 270.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/21186491992_1229489913.jpg",
     "handle": "2021-amazon-sports-mens-watch-wood-suit-quartz-watch-calendar-multifunctional-fashion-watch",
     "status": "active",
-    "modelUrl": "/models/normalized/CW031.glb"
+    "modelUrl": "/models/normalized/CW031.glb",
+    "platformRefs": []
   },
   {
     "id": "CW032",
+    "ghostId": "gp_0b1745d897a7",
     "title": "Smartwatch C60 – Monitor de Sono & Frequência Cardíaca",
     "sku": "6072581826961",
+    "gtin": null,
     "price": 195.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01u280Zq1rfPvpiBJZn__2218607735658-0-cib.jpg",
     "handle": "new-cross-border-c60-smart-bracelet-sports-watch-with-heart-rate-sleep-monitoring-alarm-blood-oxygen-body-temperature-waterproof-watch-face",
     "status": "active",
-    "modelUrl": "/models/normalized/CW032.glb"
+    "modelUrl": "/models/normalized/CW032.glb",
+    "platformRefs": []
   },
   {
     "id": "CW033",
+    "ghostId": "gp_398358fec529",
     "title": "Relógio Casal Silicone – À Prova D'água & Luminoso",
     "sku": "6095037580013",
+    "gtin": null,
     "price": 84.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01mg5OLr1IoZRg6XYkM__2705530940-0-cib.jpg",
     "handle": "direct-sales-from-the-source-manufacturer-fashionable-exquisite-high-looking-luminous-waterproof-quartz-watch-couples-watch-silicone-strap-watch",
     "status": "active",
-    "modelUrl": "/models/normalized/CW033.glb"
+    "modelUrl": "/models/normalized/CW033.glb",
+    "platformRefs": []
   },
   {
     "id": "CW034",
+    "ghostId": "gp_81615f622aa6",
     "title": "Relógio Megir 1010 – Esportivo Versátil",
     "sku": "5810143648449",
+    "gtin": null,
     "price": 111.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01sxuRr51y6nMqQWg6B__2217603876530-0-cib.jpg",
     "handle": "hot-selling-megir-mens-watch-tiktok-amazon-popular-sports-versatile-mens-quartz-watch-1010",
     "status": "active",
-    "modelUrl": "/models/normalized/CW034.glb"
+    "modelUrl": "/models/normalized/CW034.glb",
+    "platformRefs": []
   },
   {
     "id": "CW035",
+    "ghostId": "gp_29b60aebbcbb",
     "title": "Relógio Millennial Vintage – Estilo Americano Retrô",
     "sku": "6169578806906",
+    "gtin": null,
     "price": 108.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01cEUtZv1KCDTkvaYcm__2206597451127-0-cib.jpg",
     "handle": "millennial-vintage-original-design-watch-for-men-and-women-american-style-trendy-niche-cross-border-wristwatch-for-middle-and-high-school-students",
     "status": "active",
-    "modelUrl": "/models/normalized/CW035.glb"
+    "modelUrl": "/models/normalized/CW035.glb",
+    "platformRefs": []
   },
   {
     "id": "CW036",
+    "ghostId": "gp_b99418bbd680",
     "title": "Relógio Quartz Luxo Mostrador Preto",
     "sku": "6268140327050",
+    "gtin": null,
     "price": 68.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01jqOTJS1z0fkMINe0a__2218756746652-0-cib.jpg",
     "handle": "2026-mens-watch-light-luxury-high-end-simple-and-fashionable-quartz-watch-black-large-dial-set-pointer-type",
     "status": "active",
-    "modelUrl": "/models/normalized/CW036.glb"
+    "modelUrl": "/models/normalized/CW036.glb",
+    "platformRefs": []
   },
   {
     "id": "CW037",
+    "ghostId": "gp_a569d7c7b03f",
     "title": "Relógio Automático Aço Inox",
     "sku": "4798894145246",
+    "gtin": null,
     "price": 76.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01FGmKNr222RrJlyQqK__2200749257062-0-cib.jpg",
     "handle": "official-authentic-full-automatic-movement-watch-mens-new-non-mechanical-steel-belt-business-waterproof-luminous-calendar",
     "status": "active",
-    "modelUrl": "/models/normalized/CW037.glb"
+    "modelUrl": "/models/normalized/CW037.glb",
+    "platformRefs": []
   },
   {
     "id": "CW038",
+    "ghostId": "gp_07ab8126b277",
     "title": "Relógio Skeleton Quartz",
     "sku": "5273271946443",
+    "gtin": null,
     "price": 77.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01u4AjtE1FocNV9XcUE__2216592930534-0-cib.jpg",
     "handle": "bubble-brand-trendy-high-end-light-luxury-all-match-automatic-quartz-luminous-waterproof-roman-hollow-mens-watch",
     "status": "active",
-    "modelUrl": "/models/normalized/CW038.glb"
+    "modelUrl": "/models/normalized/CW038.glb",
+    "platformRefs": []
   },
   {
     "id": "CW039",
+    "ghostId": "gp_901f5aface69",
     "title": "Smartwatch K52",
     "sku": "5443115271039",
+    "gtin": null,
     "price": 399.9,
     "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN01W1M2rp1PFUCVphT76__2217500971811-0-cib.jpg",
     "handle": "new-k52-bluetooth-call-smart-watch-ultra-long-standby-heart-rate-blood-oxygen-outdoor-three-proof-sports-smart-watch",
     "status": "active",
-    "modelUrl": "/models/normalized/CW039.glb"
+    "modelUrl": "/models/normalized/CW039.glb",
+    "platformRefs": []
   }
 ]

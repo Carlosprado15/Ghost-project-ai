@@ -13,6 +13,7 @@ import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { hasGid } from './lib/requireGid.mjs';
+import { primaryPlatformRef } from './lib/identity.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '../..');
@@ -43,8 +44,8 @@ if (withoutGid.length) {
 }
 
 if (withGid.length) {
-  console.log('\nProdutos JÁ com GID confirmado:');
+  console.log('\nProdutos JÁ com identidade estável (platformRef/gtin):');
   for (const p of withGid) {
-    console.log(`  ${p.id} — ${p.shopifyGid}`);
+    console.log(`  ${p.id} — ${primaryPlatformRef(p) || `gtin:${p.gtin}`}`);
   }
 }

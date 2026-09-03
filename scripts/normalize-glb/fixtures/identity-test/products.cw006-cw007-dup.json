@@ -1,0 +1,42 @@
+[
+  {
+    "id": "CW006",
+    "ghostId": "gp_000000000006",
+    "title": "Smartwatch LIGE Chronos – Conectividade e Alta Performance",
+    "sku": "5449180938562",
+    "gtin": null,
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/f65fd2d6755dfb2da91e51edbaa3af95_800x800x156967.jpg",
+    "handle": "lige-smart-watch-full-touch-screen",
+    "status": "active",
+    "modelUrl": "/models/normalized/CW006.glb",
+    "platformRefs": [
+      { "platform": "shopify", "store": "clickwear", "id": "gid://shopify/Product/9278949916890" }
+    ]
+  },
+  {
+    "id": "CW007",
+    "ghostId": "gp_000000000007",
+    "title": "Smartwatch LIGE Chronos – Conectividade e Alta Performance",
+    "sku": "5449180938562",
+    "gtin": null,
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/f65fd2d6755dfb2da91e51edbaa3af95_800x800x156967.jpg",
+    "handle": "lige-smart-watch-full-touch-screen",
+    "status": "active",
+    "modelUrl": "/models/normalized/CW007.glb",
+    "platformRefs": [
+      { "platform": "shopify", "store": "clickwear", "id": "gid://shopify/Product/9278949916890" }
+    ]
+  },
+  {
+    "id": "CW001",
+    "ghostId": "gp_000000000001",
+    "title": "Relógio Casio Vintage LF-20W-8A",
+    "sku": "14:201447598#LF-20W-8A",
+    "gtin": null,
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/929fdf680aeaf75dc92018f9063c38c1_1000x1000x189235.jpg",
+    "handle": "relogio-casio-para-neutro-2023",
+    "status": "active",
+    "modelUrl": "/models/normalized/CW001.glb",
+    "platformRefs": []
+  }
+]

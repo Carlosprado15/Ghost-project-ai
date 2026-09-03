@@ -1,0 +1,68 @@
+[
+  {
+    "id": "CW017",
+    "ghostId": "gp_000000000017",
+    "title": "Smartwatch T9 – Monitor Cardíaco & Assistente de Voz",
+    "sku": "5821526340163",
+    "gtin": null,
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/O1CN010EhYe12Amj0XPyeLM__2218112178246-0-cib.jpg",
+    "handle": "smart-watch-watch-adult-heart-rate-monitoring-sports-entertainment-black-technology-ai-intelligent-voice-cross-border-hot-model",
+    "status": "active",
+    "modelUrl": "/models/normalized/CW017.glb",
+    "platformRefs": [
+      { "platform": "shopify", "store": "clickwear", "id": "gid://shopify/Product/9395048841434" }
+    ]
+  },
+  {
+    "id": "CW006",
+    "ghostId": "gp_000000000006",
+    "title": "Smartwatch LIGE Chronos – Conectividade e Alta Performance",
+    "sku": "5449180938562",
+    "gtin": null,
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/f65fd2d6755dfb2da91e51edbaa3af95_800x800x156967.jpg",
+    "handle": "lige-smart-watch-full-touch-screen",
+    "status": "active",
+    "modelUrl": "/models/normalized/CW006.glb",
+    "platformRefs": [
+      { "platform": "shopify", "store": "clickwear", "id": "gid://shopify/Product/9278949916890" }
+    ]
+  },
+  {
+    "id": "CW007",
+    "ghostId": "gp_000000000007",
+    "title": "Smartwatch ChiBear Active Pro – Monitoramento Avançado",
+    "sku": "5449180111111",
+    "gtin": null,
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/baeb101768bc9e1224279fb6b6f47944_800x800x159636.jpg",
+    "handle": "chibear-active-pro-smart-watch",
+    "status": "active",
+    "modelUrl": "/models/normalized/CW007.glb",
+    "platformRefs": [
+      { "platform": "shopify", "store": "clickwear", "id": "gid://shopify/Product/9278924587226" }
+    ]
+  },
+  {
+    "id": "CW001",
+    "ghostId": "gp_000000000001",
+    "title": "Relógio Casio Vintage LF-20W-8A",
+    "sku": "14:201447598#LF-20W-8A",
+    "gtin": null,
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/929fdf680aeaf75dc92018f9063c38c1_1000x1000x189235.jpg",
+    "handle": "relogio-casio-para-neutro-2023",
+    "status": "active",
+    "modelUrl": "/models/normalized/CW001.glb",
+    "platformRefs": []
+  },
+  {
+    "id": "CW008",
+    "ghostId": "gp_000000000008",
+    "title": "Relógio Quartzo Curren Luxury Gold – Pulseira em Aço",
+    "sku": "14:29#GW-BOX",
+    "gtin": null,
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0796/3702/0890/files/curren-gold.jpg",
+    "handle": "curren-relogio-de-ouro-feminino",
+    "status": "active",
+    "modelUrl": "/models/normalized/CW008.glb",
+    "platformRefs": []
+  }
+]
