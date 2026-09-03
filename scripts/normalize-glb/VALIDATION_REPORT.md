@@ -1,5 +1,5 @@
 # VALIDATION_REPORT — GLBs Normalizados
-Gerado por `node scripts/normalize-glb/validate.mjs` em 2026-09-02
+Gerado por `node scripts/normalize-glb/validate.mjs` em 2026-09-03
 
 Critérios por tipo — **watch**: Y maior ou 2ª maior (em pé), alvo 0.08 · **bracelet**: Y é a MENOR dimensão (loop ⊥ Y), alvo 0.07 · **Centralizado**: centro do bbox a < 0.01 da origem · escala ±10%
 
@@ -17,7 +17,7 @@ Critérios por tipo — **watch**: Y maior ou 2ª maior (em pé), alvo 0.08 · *
 | CW013 | watch | 0.0216 | 0.0800 | 0.0288 | Sim | Sim | ✅ OK |
 | CW014 | watch | 0.0501 | 0.0800 | 0.0192 | Sim | Sim | ✅ OK |
 | CW016 | watch | 0.0418 | 0.0800 | 0.0183 | Sim | Sim | ✅ OK |
-| CW017 | watch | 0.0538 | 0.0800 | 0.0204 | Sim | Sim | ✅ OK |
+| CW017 | watch | 0.0711 | 0.0800 | 0.0526 | Sim | Sim | ✅ OK |
 | CW018 | watch | 0.0262 | 0.0800 | 0.0393 | Sim | Sim | ✅ OK |
 | CW019 | watch | 0.0590 | 0.0800 | 0.0761 | Sim | Sim | ✅ OK |
 | CW020 | watch | 0.0432 | 0.0800 | 0.0651 | Sim | Sim | ✅ OK |
@@ -28,12 +28,12 @@ Critérios por tipo — **watch**: Y maior ou 2ª maior (em pé), alvo 0.08 · *
 | CW025 | watch | 0.0445 | 0.0800 | 0.0452 | Sim | Sim | ✅ OK |
 | CW026 | watch | 0.0577 | 0.0800 | 0.0551 | Sim | Sim | ✅ OK |
 | CW027 | watch | 0.0570 | 0.0800 | 0.0289 | Sim | Sim | ✅ OK |
-| CW028 | watch | 0.0777 | 0.0800 | 0.0376 | Sim | Sim | ✅ OK |
+| CW028 | watch | 0.0330 | 0.0800 | 0.0766 | Sim | Sim | ✅ OK |
 | CW029 | watch | 0.0469 | 0.0800 | 0.0298 | Sim | Sim | ✅ OK |
 | CW030 | watch | 0.0498 | 0.0800 | 0.0347 | Sim | Sim | ✅ OK |
 | CW031 | watch | 0.0490 | 0.0800 | 0.0200 | Sim | Sim | ✅ OK |
-| CW032 | watch | 0.0783 | 0.0800 | 0.0515 | Sim | Sim | ✅ OK |
-| CW033 | watch | 0.0502 | 0.0747 | 0.0800 | Sim | Sim | ✅ OK |
+| CW032 | watch | 0.0281 | 0.0800 | 0.0783 | Sim | Sim | ✅ OK |
+| CW033 | watch | 0.0501 | 0.0800 | 0.0798 | Sim | Sim | ✅ OK |
 | CW034 | watch | 0.0506 | 0.0800 | 0.0267 | Sim | Sim | ✅ OK |
 | CW035 | watch | 0.0336 | 0.0800 | 0.0657 | Sim | Sim | ✅ OK |
 | CW036 | watch | 0.0449 | 0.0800 | 0.0189 | Sim | Sim | ✅ OK |
