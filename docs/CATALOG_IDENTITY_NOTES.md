@@ -107,3 +107,34 @@ analógico-digital limpo, sem reflexo. `fotos-limpas/CW017.png` e
 `imageUrl` em `products.json` atualizados. **Modelo 3D ainda não
 regenerado** — fica pra quando decidirem tratar a leva de cores erradas
 (ver [[project_lembrete_cw016_cw017_meshy]] na memória).
+
+## CW033 — Relógio rosa, aro dourado octogonal, mostrador verde-água
+
+Regenerado em 02/09/2026 na leva de correção de cor/forma junto com
+CW017/CW028/CW032 (arquivos antigos, com defeito, em
+`public/models/_pre_hyper3d_color_fix_backup/`). Calibração de rotação
+refeita em 03/09/2026 — o modelo novo nascia com o mostrador **deitado
+de lado** (~90° fora). Valor final `rotationDeg x:90 y:22.5 z:90`
+(antigo `x:97.5 y:0 z:0`), lido pelo próprio lab de calibração
+(`?lab=calibrate-product`) e conferido de 4 ângulos contra a foto real.
+Passa no `validate.mjs`. Cor e objeto conferem com a foto (relógio rosa,
+aro dourado octogonal, mostrador verde-água com sub-mostrador rosa).
+
+**Ressalva de qualidade de malha — NÃO é bug desta calibração,
+orientação está correta:** na foto real o sub-mostrador fica por volta
+das "8 horas"; no modelo 3D ele saiu mais pra baixo, perto das "6
+horas", e a textura/relevo da pulseira ficou mais grosseira/ondulada que
+a da foto. Isso está assado na geometria gerada, não se resolve girando
+— só regenerando o modelo. **Pendência de regeneração futura**, sem
+urgência (a peça já serve pro try-on: objeto certo, cor certa, de frente
+e em pé).
+
+Este caso **não é isolado** — é a mesma limitação já mapeada de
+**geração de 3D a partir de foto única**: detalhes finos de mostrador e
+micro-relevo de pulseira ficam aproximados. Caminhos de solução
+levantados pra roadmap (não implementados): alimentar a geração com
+**múltiplas fotos** do mesmo produto e/ou uma etapa de
+**pós-processamento** da malha. Mesma família de CW017 (também aguardando
+regeneração) e da leva de cores erradas
+(ver [[project_lembrete_cw016_cw017_meshy]] e
+[[project_limite_geracao_3d_foto_unica]] na memória).

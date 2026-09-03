@@ -393,9 +393,9 @@
   "CW028": {
     "type": "watch",
     "rotationDeg": {
-      "x": -11.4,
-      "y": -84.9,
-      "z": 11.3
+      "x": 0,
+      "y": 0,
+      "z": 0
     },
     "scale": 1,
     "offset": {
@@ -461,9 +461,9 @@
   "CW032": {
     "type": "watch",
     "rotationDeg": {
-      "x": 180,
-      "y": -66,
-      "z": 180
+      "x": 0,
+      "y": 0,
+      "z": 0
     },
     "scale": 1,
     "offset": {
@@ -478,9 +478,9 @@
   "CW033": {
     "type": "watch",
     "rotationDeg": {
-      "x": -149.4,
-      "y": -88.8,
-      "z": 150.3
+      "x": 90,
+      "y": 22.5,
+      "z": 90
     },
     "scale": 1,
     "offset": {
