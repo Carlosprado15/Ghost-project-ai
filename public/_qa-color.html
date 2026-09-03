@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  _qa-color.html — página estática mínima usada por scripts/normalize-glb/qa-color-check.mjs
+  pra renderizar um GLB normalizado contra um fundo sólido conhecido, sem sombra (a sombra do
+  model-viewer contamina a exclusão de fundo por cor, que assume "fundo = cor exata da página").
+
+  O fundo aqui (#161616) TEM QUE bater com a constante RENDER_BG_HEX em qa-color-check.mjs —
+  se um dia mudar um dos dois, mudar o outro junto.
+-->
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+<style>html,body{margin:0;background:#161616;} model-viewer{width:600px;height:600px;background:transparent;}</style>
+</head><body>
+<model-viewer id="mv" disable-zoom shadow-intensity="0" exposure="1.0" interaction-prompt="none"
+  camera-orbit="0deg 78deg 105%" field-of-view="26deg" min-camera-orbit="auto auto 105%" max-camera-orbit="auto auto 105%"
+  tone-mapping="neutral"></model-viewer>
+<script>
+  const params = new URLSearchParams(location.search);
+  const src = params.get('src');
+  if (src) document.getElementById('mv').setAttribute('src', src);
+</script>
+</body></html>
