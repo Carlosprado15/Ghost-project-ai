@@ -11,7 +11,13 @@
     "status": "active",
     "modelUrl": "/models/normalized/CW001.glb",
     "arScale": 1,
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9280096534746"
+      }
+    ]
   },
   {
     "id": "CW002",
@@ -24,7 +30,13 @@
     "handle": "nidin-moda-banhado-a-ouro-corrente-mistura-pulseira-para-mulheres-colorido-crist",
     "status": "active",
     "modelUrl": "/models/normalized/CW002.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9280084246746"
+      }
+    ]
   },
   {
     "id": "CW003",
@@ -57,7 +69,13 @@
     "handle": "pulseiras-de-cobre-puro-vinterly-estilo-viking-yggdrasil-15mm-ajustaveis-joi",
     "status": "active",
     "modelUrl": "/models/normalized/CW004.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9280079233242"
+      }
+    ]
   },
   {
     "id": "CW005",
@@ -70,7 +88,13 @@
     "handle": "pulseira-magnetico-bioquantico-de-equilibrio-original",
     "status": "active",
     "modelUrl": "/models/normalized/CW005.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9278955585754"
+      }
+    ]
   },
   {
     "id": "CW006",
@@ -123,7 +147,13 @@
     "handle": "curren-relogio-de-ouro-feminino-relogios-senhoras-criativo-aco-pulseira-relogios",
     "status": "active",
     "modelUrl": "/models/normalized/CW008.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9278941036762"
+      }
+    ]
   },
   {
     "id": "CW009",
@@ -136,7 +166,13 @@
     "handle": "diamante-relogio-feminino-marca-de-luxo-2025-strass-elegante-senhoras-relogios-r",
     "status": "active",
     "modelUrl": "/models/normalized/CW009.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9278937628890"
+      }
+    ]
   },
   {
     "id": "CW013",
@@ -149,7 +185,13 @@
     "handle": "reloj-hombre-2023-relogio-masculino-minimalista-ultra-fino-relogios-moda-masculi",
     "status": "active",
     "modelUrl": "/models/normalized/CW013.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9278904533210"
+      }
+    ]
   },
   {
     "id": "CW014",
@@ -162,7 +204,13 @@
     "handle": "curren-relogio-de-pulso-masculino-cronografo-a-prova-d-39-agua-militar-do-exe",
     "status": "active",
     "modelUrl": "/models/normalized/CW014.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9278897914074"
+      }
+    ]
   },
   {
     "id": "CW016",
@@ -175,7 +223,13 @@
     "handle": "hw20-smart-watch-ecg-ppg-business-stainless-steel-strap-1-46-large-screen-bluetooth-call-smart-watch",
     "status": "active",
     "modelUrl": "/models/normalized/CW016.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395049038042"
+      }
+    ]
   },
   {
     "id": "CW017",
@@ -208,7 +262,13 @@
     "handle": "new-pacha-dog-cartoon-electronic-watch-student-cute-children-cartoon-printed-led-sports-watch-wholesale",
     "status": "active",
     "modelUrl": "/models/normalized/CW018.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395048644826"
+      }
+    ]
   },
   {
     "id": "CW019",
@@ -221,7 +281,13 @@
     "handle": "cross-border-v69-smart-watch-1-85-inch-bluetooth-call-large-screen-heart-rate-blood-oxygen-multi-sports-waterproof-smart-watch",
     "status": "active",
     "modelUrl": "/models/normalized/CW019.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395048448218"
+      }
+    ]
   },
   {
     "id": "CW020",
@@ -234,7 +300,13 @@
     "handle": "foreign-trade-cross-border-new-womens-watch-student-wristwatch-wood-grain-dial-retro-striped-leather-strap-in-stock-wholesale",
     "status": "active",
     "modelUrl": "/models/normalized/CW020.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395048251610"
+      }
+    ]
   },
   {
     "id": "CW021",
@@ -247,7 +319,13 @@
     "handle": "brand-megir-mens-watch-multifunctional-chronograph-sports-silicone-mens-quartz-sports-watch-2144",
     "status": "active",
     "modelUrl": "/models/normalized/CW021.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395047891162"
+      }
+    ]
   },
   {
     "id": "CW022",
@@ -260,7 +338,13 @@
     "handle": "honmin-brand-watch-outdoor-casual-mens-watch-multifunctional-quartz-watch-luminous-waterproof-large-dial-watch-for-men",
     "status": "active",
     "modelUrl": "/models/normalized/CW022.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395047792858"
+      }
+    ]
   },
   {
     "id": "CW023",
@@ -273,7 +357,13 @@
     "handle": "cross-border-explosive-mens-watch-quartz-mens-watch-calendar-steel-band-watch-mens-fashion-sports-luminous-pointer-wrist-watch",
     "status": "active",
     "modelUrl": "/models/normalized/CW023.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395047661786"
+      }
+    ]
   },
   {
     "id": "CW024",
@@ -286,7 +376,13 @@
     "handle": "wormhole-concept-square-high-end-watch-mens-quartz-watch-sports-mens-high-end-business-mens-tritium-gas-mens-watch",
     "status": "active",
     "modelUrl": "/models/normalized/CW024.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395047497946"
+      }
+    ]
   },
   {
     "id": "CW025",
@@ -299,7 +395,13 @@
     "handle": "cross-border-popular-engine-style-sports-mens-watch-brand-wristwatch-quartz-watch-wholesale-foreign-trade-fashion-personalized-mens-watch",
     "status": "active",
     "modelUrl": "/models/normalized/CW025.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395047268570"
+      }
+    ]
   },
   {
     "id": "CW026",
@@ -312,7 +414,13 @@
     "handle": "cross-border-popular-blue-angel-multifunctional-chronograph-watch-with-steel-strap-mens-fashion-dial-factory-ready-stock-one-piece-dropshipping",
     "status": "active",
     "modelUrl": "/models/normalized/CW026.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395047071962"
+      }
+    ]
   },
   {
     "id": "CW027",
@@ -325,7 +433,13 @@
     "handle": "curren-curren-8225-calendar-mens-casual-large-dial-waterproof-creative-belt-watch",
     "status": "active",
     "modelUrl": "/models/normalized/CW027.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395046908122"
+      }
+    ]
   },
   {
     "id": "CW028",
@@ -338,7 +452,13 @@
     "handle": "cross-border-p11plus-smart-bracelet-with-ecg-body-temperature-heart-rate-blood-oxygen-sleep-monitoring-exercise-tracking-and-step-counting-sports-watch",
     "status": "active",
     "modelUrl": "/models/normalized/CW028.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395046744282"
+      }
+    ]
   },
   {
     "id": "CW029",
@@ -351,7 +471,13 @@
     "handle": "louie-juelen-retro-personalized-quartz-watch-for-teenagers-and-students-mens-watch",
     "status": "active",
     "modelUrl": "/models/normalized/CW029.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395046547674"
+      }
+    ]
   },
   {
     "id": "CW030",
@@ -364,7 +490,13 @@
     "handle": "lige-bangwei-multifunctional-smart-watch-bluetooth-call-step-counting-blood-pressure-and-heart-rate-detection-waterproof-watch",
     "status": "active",
     "modelUrl": "/models/normalized/CW030.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395046416602"
+      }
+    ]
   },
   {
     "id": "CW031",
@@ -377,7 +509,13 @@
     "handle": "2021-amazon-sports-mens-watch-wood-suit-quartz-watch-calendar-multifunctional-fashion-watch",
     "status": "active",
     "modelUrl": "/models/normalized/CW031.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395046219994"
+      }
+    ]
   },
   {
     "id": "CW032",
@@ -390,7 +528,13 @@
     "handle": "new-cross-border-c60-smart-bracelet-sports-watch-with-heart-rate-sleep-monitoring-alarm-blood-oxygen-body-temperature-waterproof-watch-face",
     "status": "active",
     "modelUrl": "/models/normalized/CW032.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395045925082"
+      }
+    ]
   },
   {
     "id": "CW033",
@@ -403,7 +547,13 @@
     "handle": "direct-sales-from-the-source-manufacturer-fashionable-exquisite-high-looking-luminous-waterproof-quartz-watch-couples-watch-silicone-strap-watch",
     "status": "active",
     "modelUrl": "/models/normalized/CW033.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395045269722"
+      }
+    ]
   },
   {
     "id": "CW034",
@@ -416,7 +566,13 @@
     "handle": "hot-selling-megir-mens-watch-tiktok-amazon-popular-sports-versatile-mens-quartz-watch-1010",
     "status": "active",
     "modelUrl": "/models/normalized/CW034.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395044909274"
+      }
+    ]
   },
   {
     "id": "CW035",
@@ -429,7 +585,13 @@
     "handle": "millennial-vintage-original-design-watch-for-men-and-women-american-style-trendy-niche-cross-border-wristwatch-for-middle-and-high-school-students",
     "status": "active",
     "modelUrl": "/models/normalized/CW035.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9395044843738"
+      }
+    ]
   },
   {
     "id": "CW036",
@@ -442,7 +604,13 @@
     "handle": "2026-mens-watch-light-luxury-high-end-simple-and-fashionable-quartz-watch-black-large-dial-set-pointer-type",
     "status": "active",
     "modelUrl": "/models/normalized/CW036.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9394663686362"
+      }
+    ]
   },
   {
     "id": "CW037",
@@ -455,7 +623,13 @@
     "handle": "official-authentic-full-automatic-movement-watch-mens-new-non-mechanical-steel-belt-business-waterproof-luminous-calendar",
     "status": "active",
     "modelUrl": "/models/normalized/CW037.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9394653987034"
+      }
+    ]
   },
   {
     "id": "CW038",
@@ -468,7 +642,13 @@
     "handle": "bubble-brand-trendy-high-end-light-luxury-all-match-automatic-quartz-luminous-waterproof-roman-hollow-mens-watch",
     "status": "active",
     "modelUrl": "/models/normalized/CW038.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9394651660506"
+      }
+    ]
   },
   {
     "id": "CW039",
@@ -481,6 +661,12 @@
     "handle": "new-k52-bluetooth-call-smart-watch-ultra-long-standby-heart-rate-blood-oxygen-outdoor-three-proof-sports-smart-watch",
     "status": "active",
     "modelUrl": "/models/normalized/CW039.glb",
-    "platformRefs": []
+    "platformRefs": [
+      {
+        "platform": "shopify",
+        "store": "clickwear",
+        "id": "gid://shopify/Product/9394640421082"
+      }
+    ]
   }
 ]
