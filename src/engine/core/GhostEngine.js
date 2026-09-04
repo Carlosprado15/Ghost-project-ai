@@ -170,6 +170,13 @@ export class GhostEngine {
         // aqui) preserva o estado sem nenhuma ação extra.
         this._anchorState.crossoverOffset = 0;
         this._anchorState.prevDegraded    = false;
+        // Feedback Dr. Cho (KAIST): _lastRotZ também precisa ser invalidado
+        // aqui, pelo mesmo motivo do crossoverOffset — sem isso, _unwrapRotZ()
+        // calcula o delta contra o ângulo de ANTES da perda de tracking na
+        // primeira detecção da sessão nova, gerando salto espúrio. Sentinela
+        // é null (não 0) porque _unwrapRotZ() trata null como "primeiro
+        // frame" (ver linha ~103).
+        this._lastRotZ = null;
       }
       this._onPose({
         ts,
