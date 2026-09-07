@@ -38,9 +38,20 @@ export class GhostEngine {
     this._hold      = new HoldLastPose(HOLD_POSE_MS);
     this._scaleHist = [];   // últimos SCALE_REF_WINDOW valores de escala
 
+    // AR-KB-005/006/008 (AR-004-fisico, 2026-08-28): estado do "crossover
+    // offset" de wristAnchor.js, mantido AQUI (chamador) e passado por
+    // referência a computeWristAnchor() a cada frame — ver wristAnchor.js
+    // para o porquê de estado explícito em vez de closure/factory.
+    this._anchorState = { prevDegraded: false, crossoverOffset: 0 };
+
     this._frameCount = 0;
     this._lastFpsTs  = 0;
     this._fps        = 0;
+
+    // D4 (AR-004): último rotZ (radianos) já "desembrulhado" (unwrapped),
+    // usado só pra detectar a passagem pela fronteira ±π do atan2 antes de
+    // entrar no filtro — ver _unwrapRotZ().
+    this._lastRotZ = null;
 
     this.isReady = false;
   }
@@ -73,6 +84,34 @@ export class GhostEngine {
     return avg5 < avg10 * SCALE_DROP_LIMIT ? avg10 : avg5;
   }
 
+  // D4 (AR-004): unwrap angular antes do OneEuroFilterScalar de rotZ.
+  // Math.atan2 devolve valores em (-π, π]. Quando a rotação real do pulso
+  // cruza essa fronteira (ex.: +179° → -179°, uma mudança real pequena de
+  // 2°), o filtro veria isso como um salto de quase 2π (360°) e reagiria mal
+  // (giro completo/artefato visual). Portado de
+  // src/tracking/WristTracker.js, método `_filterRotation()` — mesma lógica
+  // (compara com o valor anterior, corrige delta > 180°/-180° somando ou
+  // subtraindo 360°), adaptada de graus para radianos (180°→π, 360°→2π).
+  //
+  // Decisão: o legado compara com `this.rotationFilter.x.lastValue` (o
+  // valor JÁ FILTRADO anterior). Aqui, em vez de acessar o estado interno
+  // privado do OneEuroFilterScalar (`_x`), mantemos um estado próprio
+  // (`this._lastRotZ`) com o último valor JÁ DESEMBRULHADO passado pro
+  // filtro — resultado equivalente, sem violar o encapsulamento da classe
+  // de filtro (que não expõe esse valor publicamente).
+  _unwrapRotZ(rawRotZ) {
+    if (this._lastRotZ === null) {
+      this._lastRotZ = rawRotZ;
+      return rawRotZ;
+    }
+    let delta = rawRotZ - this._lastRotZ;
+    if (delta > Math.PI)  delta -= 2 * Math.PI;
+    if (delta < -Math.PI) delta += 2 * Math.PI;
+    const unwrapped = this._lastRotZ + delta;
+    this._lastRotZ  = unwrapped;
+    return unwrapped;
+  }
+
   _initFilters(preset) {
     const p = { ...defaultPreset, ...preset };
     this._filters = {
@@ -91,6 +130,10 @@ export class GhostEngine {
   async init() {
     this._initFilters(this._filterPreset);
     this._hold.reset();
+    this._lastRotZ = null;
+    // AR-KB-006: reinicializar o motor invalida qualquer crossoverOffset de
+    // uma sessão de tracking anterior.
+    this._anchorState = { prevDegraded: false, crossoverOffset: 0 };
 
     this._tracker = new HandTracker({
       onFrame: (lms, ts) => this._onFrame(lms, ts),
@@ -119,7 +162,22 @@ export class GhostEngine {
     if (!landmarks) {
       if (this._onRawFrame) this._onRawFrame({ ts, detected: false });
       const held = this._hold.onLost(ts);
-      if (held === null) this._scaleHist = [];  // perda real: recomeça histórico de escala
+      if (held === null) {
+        this._scaleHist = [];  // perda real: recomeça histórico de escala
+        // AR-KB-008: hold expirado = nova sessão de tracking (MediaPipe
+        // re-detecta via palm detection) — crossoverOffset da sessão
+        // anterior é inválido. Perda CURTA (hold ainda ativo, não entra
+        // aqui) preserva o estado sem nenhuma ação extra.
+        this._anchorState.crossoverOffset = 0;
+        this._anchorState.prevDegraded    = false;
+        // Feedback Dr. Cho (KAIST): _lastRotZ também precisa ser invalidado
+        // aqui, pelo mesmo motivo do crossoverOffset — sem isso, _unwrapRotZ()
+        // calcula o delta contra o ângulo de ANTES da perda de tracking na
+        // primeira detecção da sessão nova, gerando salto espúrio. Sentinela
+        // é null (não 0) porque _unwrapRotZ() trata null como "primeiro
+        // frame" (ver linha ~103).
+        this._lastRotZ = null;
+      }
       this._onPose({
         ts,
         fps:       this._fps,
@@ -131,11 +189,17 @@ export class GhostEngine {
         raw:       null,
         filtered:  held ? { pos: held.position, rotZ: held.rotationZ, scale: held.scale } : null,
         landmarks: null,
+        // HUD (AR-004-fisico): sem landmarks novos aqui não há anchor fresco
+        // pra ler degraded/crossoverOffset — reusa o anchorState mantido por
+        // este engine, que só é invalidado quando o hold expira de vez
+        // (ver bloco `if (held === null)` acima).
+        degraded:        this._anchorState.prevDegraded,
+        crossoverOffset: this._anchorState.crossoverOffset,
       });
       return;
     }
 
-    const anchor = computeWristAnchor(landmarks);
+    const anchor = computeWristAnchor(landmarks, this._anchorState);
 
     if (this._onRawFrame) {
       this._onRawFrame({
@@ -149,10 +213,11 @@ export class GhostEngine {
 
     const stableScale = this._stabilizeScale(anchor.scale);
 
-    const f        = this._filters;
-    const filtPos  = f.pos.filter({ x: anchor.x, y: anchor.y, z: anchor.z }, ts);
-    const filtRotZ = f.rotZ.filter(anchor.rotZ, ts);
-    const filtScl  = f.scl.filter(stableScale, ts);
+    const f            = this._filters;
+    const filtPos      = f.pos.filter({ x: anchor.x, y: anchor.y, z: anchor.z }, ts);
+    const unwrappedRotZ = this._unwrapRotZ(anchor.rotZ);
+    const filtRotZ     = f.rotZ.filter(unwrappedRotZ, ts);
+    const filtScl      = f.scl.filter(stableScale, ts);
 
     this._hold.onDetected({ position: filtPos, rotationZ: filtRotZ, scale: filtScl }, ts);
 
@@ -167,6 +232,12 @@ export class GhostEngine {
       raw:      { pos: { x: anchor.x, y: anchor.y, z: anchor.z }, rotZ: anchor.rotZ, scale: anchor.scale },
       filtered: { pos: filtPos, rotZ: filtRotZ, scale: filtScl },
       landmarks,   // 21 landmarks crus (normalizados 0-1) — overlay de tracking
+      // HUD (AR-004-fisico): repassa direto do anchor — nem `degraded` nem
+      // `crossoverOffset` passam pelo One Euro Filter (não são posição/
+      // rotação contínua, são estado discreto de qual par de landmarks está
+      // ativo), então não têm equivalente em `raw`/`filtered`.
+      degraded:        anchor.degraded,
+      crossoverOffset: anchor.crossoverOffset,
     });
   }
 

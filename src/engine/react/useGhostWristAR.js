@@ -26,6 +26,8 @@ export function useGhostWristAR({
     position:   { x: 0, y: 0, z: 0 },
     rotationZ:  0,
     scale:      1,
+    degraded:        false,  // HUD (AR-004-fisico): par de landmarks ativo p/ rotação/escala
+    crossoverOffset: 0,      // HUD (AR-004-fisico): offset (radianos) do crossover — ver wristAnchor.js
     raw:        null,
     filtered:   null,
     landmarks:  null,   // 21 landmarks crus quando detectado
@@ -70,6 +72,8 @@ export function useGhostWristAR({
           position:   frame.position,
           rotationZ:  frame.rotationZ,
           scale:      frame.scale,
+          degraded:        frame.degraded,
+          crossoverOffset: frame.crossoverOffset,
           raw:        frame.raw,
           filtered:   frame.filtered,
           landmarks:  frame.landmarks ?? null,
