@@ -1,10 +1,85 @@
 # CURRENT_STATE — PRADO GHOST RESCUE / AR LAB v1
 
-Última atualização: 2026-08-29/30 — auditoria de código do motor ANTIGO (`src/tracking/`, em
-produção) + 3 bugs corrigidos (câmera fixa, salto de ângulo no reforço, offset mão→braço) +
-limpeza de catálogo. Ver seção "Motor antigo" no final deste arquivo. Nenhum teste físico do
-motor antigo feito ainda — fica pra amanhã. Histórico do motor NOVO abaixo, sem mudança.
+Última atualização: 2026-09-07 — AR-008, reteste físico do commit `a48e2b2` (fix
+`_lastRotZ = null` ao perder tracking, motor moderno `src/engine/`, branch
+`fix/d1-d2-d4-estabilizacao`). Ver seção própria abaixo. Sessão anterior
+(2026-08-29/30, motor ANTIGO `src/tracking/`) preservada mais abaixo, sem mudança.
 **Ler este arquivo antes de qualquer nova investigação — não repetir o que já foi feito aqui.**
+
+## AR-008 (2026-09-07) — reteste físico do fix `_lastRotZ` (commit a48e2b2)
+
+**O que estava pendente:** o commit `a48e2b2` ("fix(engine): reseta _lastRotZ ao
+perder tracking (feedback Dr. Cho, KAIST)") tinha sido commitado só com validação
+estática (`node --check`), sem reteste físico — item registrado como pendente em
+`docs/prado-rescue/READY_FOR_PRADO_ENGINE.md`. Este é esse reteste.
+
+**Setup:** worktree isolado (`ghost-ar-fix-wt`) no commit exato `a48e2b2`, branch
+`fix/d1-d2-d4-estabilizacao` — `ghost-engine-v1` não foi tocado. Um WIP não commitado
+achado no worktree (`wristAnchor.js`, proposta não consumida do Dr. Cho) foi
+stashed antes do teste e devolvido (`stash pop`) depois, pra garantir que o código
+testado era exatamente o commit em questão.
+
+**Duas tentativas de captura, ambas registradas:** a primeira (16s) saiu vazia —
+sem canal de diálogo em tempo real com o Carlos, o celular ficou parado numa cama
+sem ninguém segurando/girando o pulso durante a janela de gravação (limitação
+estrutural do protocolo, documentada em vez de forjada). A segunda, disparada só
+depois de confirmar `isTracking=true` ao vivo via CDP, capturou o evento-alvo: uma
+perda de tracking (~1.75s, t≈10-11.75s) seguida de recuperação durante rotação
+ativa do pulso.
+
+**Resultado da transição perda→recuperação (o que o fix deveria evitar):** rotZ
+foi de -62.9° (antes da perda) para +201.6° (na recuperação) — diferença de ~92°
+(caminho curto) ou ~268° (caminho longo), **não um salto de ~360°** (o padrão de
+bug que a correção existe para evitar). Visualmente, o relógio 3D some por
+~0.5-0.75s depois da recuperação e reaparece em orientação normal, sem giro
+espúrio nem inversão. **Não piorou em nenhuma métrica observável.**
+
+**Achado novo, resolvendo uma pergunta em aberto desde AR-004:** esta branch já
+expõe `degraded`/`crossoverOffset` no HUD (commit `b7c1aac`, ancestral de
+`a48e2b2`) — campo que o AR-004 original não conseguia ler. Agora confirmado:
+as rotações de amplitude maior (~90-270°) que apareciam nos testes anteriores
+como "anômalas" **coincidem com `degraded=true`** (troca de par de landmarks
+lm5-lm17→lm1-lm17) e `crossoverOffset` diferente de zero — primeira evidência
+concreta ligando os dois fenômenos. Isso é uma área DIFERENTE do código
+(`wristAnchor.js`/crossover) da que o fix `_lastRotZ` endereça — não foi tocada,
+só observada.
+
+**Regression check (Fase 8):** `npm run build` no worktree — PASS, sem erro novo
+(só avisos pré-existentes). Rotas `/`, `?lab=tasks-wrist`, `?lab=validate-glb` —
+HTTP 200. `node --check` em `GhostEngine.js`/`wristAnchor.js` — OK.
+
+**Limitação importante:** só uma janela de perda/recuperação capturada (evidência
+mais estreita que o ideal — o correto seria várias repetições). Não foi possível
+comparar "com fix" vs. "sem fix" no mesmo gesto físico exato (exigiria repetir o
+movimento duas vezes, uma por versão — não praticável numa sessão só). A conclusão
+é observacional, não uma prova A/B rigorosa.
+
+**Ferramenta atualizada:** `scripts/prado-rescue/capture-console-live.mjs` passou a
+capturar `degraded`/`crossoverOffset`, corrigido um bug de reconexão (timer não
+rearmado), e documentado (não corrigido) um bug mais sério: o coletor via
+`setInterval` injetado devolveu 100% das amostras `null` em ambas as tentativas ao
+vivo desta sessão, mesmo com leitura manual do mesmo texto funcionando no mesmo
+instante — causa raiz desconhecida. Workaround usado: leitura quadro-a-quadro do
+vídeo gravado (método válido pela regra de confiabilidade da Fase 4).
+
+**Decisão:** PROMOTE mantido — sem evidência de regressão. Fix continua só no
+branch `fix/d1-d2-d4-estabilizacao`, **sem merge para `ghost-engine-v1`** (decisão
+do Carlos, não desta sessão). Regra das 2 falhas: NÃO acionada (não houve falha da
+hipótese testada).
+
+Testado no aparelho de teste atual (Razr 40) — ainda não validado em outros
+aparelhos. Ghost Project deve funcionar em qualquer Android/iOS.
+
+Detalhe completo: `docs/prado-rescue/evidence/AR-008/` (`README.md`, `result.json`,
+`logcat.txt`, os dois vídeos, `frames-key/` com o contact sheet e frames
+individuais nomeados por instante/evento).
+
+**Próxima investigação recomendada:** (1) repetir este teste em mais 1-2 janelas
+de perda/recuperação antes de considerar o fix definitivamente confirmado; (2)
+investigar separadamente a causa das rotações de 90-270° associadas a
+`degraded=true` (achado novo, não é o que o fix `_lastRotZ` endereça); (3)
+debugar o bug do coletor CDP sempre-null (documentado no cabeçalho do script) ou
+migrar para `chrome-devtools-mcp` quando disponível na sessão.
 
 ## AR-004-fisico — Rodada 2 (2026-08-28) — vídeo + métricas sincronizados
 

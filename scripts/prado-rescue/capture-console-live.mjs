@@ -12,6 +12,24 @@
 // bundle) usando `Runtime.evaluate` do CDP. Isso é execução remota temporária
 // de debug, não uma mudança de código.
 //
+// BUG CONHECIDO, NÃO CORRIGIDO (achado 2026-09-07, AR-008): em pelo menos uma
+// captura real neste dia, o coletor injetado rodou os 18s inteiros sem erro
+// nenhum mas devolveu TODAS as amostras com every campo null — mesmo com
+// "isTracking: false" visivelmente presente no texto renderizado (confirmado
+// por leitura manual de document.body.innerText via CDP na mesma aba, no
+// mesmo instante, funcionando normalmente). Ou seja, o bug não é o regex em
+// si (mesmo regex, mesmo texto, funciona fora do setInterval injetado). Já
+// citado no CLAUDE.md como "engole erro silenciosamente dentro do coletor
+// setInterval" — isso bate com essa observação, mas a causa raiz continua
+// desconhecida. Corrigido nesta sessão só o sintoma adjacente de reconectar
+// numa aba que já tinha o timer zerado por um stop() anterior (ver
+// 'already-installed-timer-restarted' abaixo) — não o bug do valor sempre
+// null. Workaround usado no AR-008: abandonar o polling ao vivo e ler os
+// valores direto dos frames do vídeo gravado (HUD queimado na imagem) —
+// método válido pela própria regra de confiabilidade da Fase 4 (vídeo
+// contínuo quadro-a-quadro), só mais trabalhoso. Preferir o chrome-devtools-
+// mcp (ver CLAUDE.md) da próxima vez, se disponível na sessão.
+//
 // LIMITAÇÃO CONHECIDA: a amostragem é por polling do DOM (padrão
 // SAMPLE_INTERVAL_MS abaixo), não por hook direto no callback onPose do
 // motor. Ou seja, é "a cada mudança relevante visível no HUD", não
@@ -136,7 +154,19 @@ function connectCdp(wsUrl) {
 // Script injetado no contexto da página. Idempotente (não reinstala se já existir).
 const INSTALL_COLLECTOR_EXPR = `
 (function() {
-  if (window.__AR004_CAP__) return 'already-installed';
+  if (window.__AR004_CAP__) {
+    // AR-retest a48e2b2 (2026-09-07): reconexão numa aba que já tinha o coletor
+    // de uma captura anterior (rodada de espera + rodada de gravação, mesma
+    // aba, sem reload) — a captura anterior pode ter chamado stop() e zerado
+    // o timer (clearInterval + timer=null). Sem isso, a segunda conexão via
+    // CDP achava 'already-installed' e não reativava o polling, gravando
+    // um arquivo vazio pro resto da duração. Rearma o timer se estiver nulo.
+    if (!window.__AR004_CAP__.timer) {
+      window.__AR004_CAP__.timer = setInterval(readHud, ${SAMPLE_INTERVAL_MS});
+      return 'already-installed-timer-restarted';
+    }
+    return 'already-installed';
+  }
   window.__AR004_CAP__ = { log: [] };
   function readHud() {
     try {
@@ -151,6 +181,14 @@ const INSTALL_COLLECTOR_EXPR = `
       const trk = text.match(/isTracking:\s*(true|false)/i);
       const hand = text.match(/hand:\s*(detected|lost)/i);
       const conf = text.match(/conf:\s*(\d+)%/);
+      // AR-retest a48e2b2 (2026-09-07): motor moderno (commit b7c1aac, ancestral de
+      // a48e2b2) passou a expor degraded/crossoverOffset no HUD do lab
+      // (?lab=tasks-wrist) — não existiam quando este script foi escrito (AR-004,
+      // 2026-08-28). Capturando agora porque é exatamente o dado que faltava pra
+      // testar a hipótese em aberto (rotação anômala coincidindo com troca de par
+      // de landmarks). Campo fica null se o HUD atual não expuser (não inventa).
+      const deg = text.match(/degraded:\s*(true|false)/i);
+      const cof = text.match(/crossoverOffset:\s*(-?\d+\.?\d*)°/);
       window.__AR004_CAP__.log.push({
         t: Date.now(),
         rotZ: rot ? Number(rot[1]) : null,
@@ -158,6 +196,8 @@ const INSTALL_COLLECTOR_EXPR = `
         fps: fps ? Number(fps[1]) : null,
         isTracking: trk ? (trk[1].toLowerCase() === 'true') : (hand ? hand[1].toLowerCase() === 'detected' : null),
         conf: conf ? Number(conf[1]) : null,
+        degraded: deg ? (deg[1].toLowerCase() === 'true') : null,
+        crossoverOffset: cof ? Number(cof[1]) : null,
       });
     } catch (e) {
       window.__AR004_CAP__.log.push({ t: Date.now(), error: String(e) });
@@ -205,7 +245,7 @@ async function main() {
     const lines = entries.map(e => {
       const ts = new Date(e.t).toISOString();
       if (e.error) return `${ts} ERROR=${e.error}`;
-      return `${ts} rotZ=${e.rotZ ?? 'null'} scale=${e.scale ?? 'null'} fps=${e.fps ?? 'null'} isTracking=${e.isTracking ?? 'null'}`;
+      return `${ts} rotZ=${e.rotZ ?? 'null'} scale=${e.scale ?? 'null'} fps=${e.fps ?? 'null'} isTracking=${e.isTracking ?? 'null'} degraded=${e.degraded ?? 'null'} crossoverOffset=${e.crossoverOffset ?? 'null'}`;
     }).join('\n') + '\n';
     appendFileSync(OUT_PATH, lines);
     totalLines += entries.length;
