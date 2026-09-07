@@ -1,12 +1,12 @@
 # VALIDATION_REPORT — GLBs Normalizados
-Gerado por `node scripts/normalize-glb/validate.mjs` em 2026-09-03
+Gerado por `node scripts/normalize-glb/validate.mjs` em 2026-09-07
 
 Critérios por tipo — **watch**: Y maior ou 2ª maior (em pé), alvo 0.08 · **bracelet**: Y é a MENOR dimensão (loop ⊥ Y), alvo 0.07 · **Centralizado**: centro do bbox a < 0.01 da origem · escala ±10%
 
 | Produto | Tipo | Dim X | Dim Y | Dim Z | Orientação? | Centralizado? | Status |
 |---------|------|-------|-------|-------|-------------|---------------|--------|
 | CW001 | watch | 0.0241 | 0.0800 | 0.0246 | Sim | Sim | ✅ OK |
-| CW002 | bracelet | 0.0222 | 0.0697 | 0.0700 | NÃO | Sim | ⚠️ REVISAR (loop não ⊥ Y (Y=0.0697 é a 2ª dimensão, deveria ser a menor)) |
+| CW002 | bracelet | 0.0695 | 0.0091 | 0.0700 | Sim | Sim | ✅ OK |
 | CW003 | bracelet | 0.0700 | 0.0351 | 0.0646 | Sim | Sim | ✅ OK |
 | CW004 | bracelet | 0.0689 | 0.0700 | 0.0315 | Sim | Sim | ✅ OK |
 | CW005 | bracelet | 0.0700 | 0.0189 | 0.0622 | Sim | Sim | ✅ OK |
@@ -41,12 +41,7 @@ Critérios por tipo — **watch**: Y maior ou 2ª maior (em pé), alvo 0.08 · *
 | CW038 | watch | 0.0444 | 0.0800 | 0.0494 | Sim | Sim | ✅ OK |
 | CW039 | watch | 0.0490 | 0.0800 | 0.0703 | Sim | Sim | ✅ OK |
 
-**Resultado: 34/35 ✅ OK · 1 ⚠️ REVISAR**
-
-## Sugestões de correção
-
-### CW002
-- ajustar rotationDeg no overrides.json até o eixo do loop ficar em Y (usar ?lab=calibrate-product&productId=CW002)
+**Resultado: 35/35 ✅ OK · 0 ⚠️ REVISAR**
 
 > Nota de método: o bounding box é calculado transformando os cantos do AABB
 > local pelo wrapper AR_NORMALIZED (método padrão do gltf-transform). Rotações
