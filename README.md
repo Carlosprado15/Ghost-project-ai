@@ -193,6 +193,7 @@ Proprietário - Carlos Prado © 2026
 ## 🤝 CONTATO
 
 Para dúvidas técnicas ou comerciais:
+- E-mail: carlos.prado@ghostprojectai.com
 - GitHub: [@Carlosprado15](https://github.com/Carlosprado15)
 - Projeto: [Ghost-project-ai](https://github.com/Carlosprado15/Ghost-project-ai)
 

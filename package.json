@@ -2,6 +2,9 @@
   "name": "ghost-project",
   "private": true,
   "version": "1.0.0",
+  "description": "Ghost Project AI — experiência de prova virtual (AR) de relógios e pulseiras para lojas Shopify",
+  "author": "Carlos Prado <carlos.prado@ghostprojectai.com>",
+  "homepage": "https://ghostprojectai.com",
   "type": "module",
   "scripts": {
     "dev": "vite",
